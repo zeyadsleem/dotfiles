@@ -6,6 +6,7 @@ return {
       "html",
       "javascript",
       "astro",
+      "vue",
       "json",
       "lua",
       "markdown",
