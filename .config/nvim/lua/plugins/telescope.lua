@@ -3,15 +3,15 @@ return {
 
   opts = {
     defaults = {
-      layout_strategy = "horizontal",
+      layout_strategy = "vertical",
       layout_config = {
-        preview_width = 0.65,
-        horizontal = {
-          size = {
-            width = "95%",
-            height = "95%",
-          },
-        },
+        -- preview_width = 0.60,
+        -- horizontal = {
+        --   size = {
+        --     width = "97%",
+        --     height = "95%",
+        --   },
+        -- },
       },
       sorting_strategy = "ascending",
       winblend = 0,
