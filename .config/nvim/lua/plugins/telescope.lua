@@ -3,6 +3,7 @@ return {
 
   opts = {
     defaults = {
+      file_ignore_patterns = { "node_modules", ".git/" },
       layout_strategy = "vertical",
       layout_config = {
         -- preview_width = 0.60,
