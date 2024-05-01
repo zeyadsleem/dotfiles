@@ -170,6 +170,16 @@ alias stashes='git stash list'
 alias pick='git cherry-pick'
 alias trackedbranch='git rev-parse --abbrev-ref --symbolic-full-name @{u}'
 
+# add yazi terminal file manger
+function yy() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
+
 # pnpm
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 case ":$PATH:" in
