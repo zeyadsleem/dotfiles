@@ -1,10 +1,11 @@
 return {
   {
-    "rcarriga/nvim-notify",
+    "folke/noice.nvim",
     opts = {
-      background_colour = "#000000",
-      render = "minimal",
-      stages = "static",
+      notify = {
+        enabled = false,
+      },
     },
   },
+  { "rcarriga/nvim-notify", enabled = false },
 }
