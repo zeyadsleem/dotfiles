@@ -5,15 +5,6 @@ return {
     defaults = {
       file_ignore_patterns = { "node_modules", ".git/" },
       layout_strategy = "vertical",
-      layout_config = {
-        -- preview_width = 0.60,
-        -- horizontal = {
-        --   size = {
-        --     width = "97%",
-        --     height = "95%",
-        --   },
-        -- },
-      },
       sorting_strategy = "ascending",
       winblend = 0,
 

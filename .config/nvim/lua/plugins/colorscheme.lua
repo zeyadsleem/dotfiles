@@ -1,13 +1,10 @@
 return {
-  "dgox16/oldworld.nvim",
+  "catppuccin/nvim",
 
   {
     "LazyVim/LazyVim",
     opts = {
-      lazy = false,
-      priority = 1000,
-      config = true,
-      colorscheme = "oldworld",
+      colorscheme = "catppuccin-mocha",
     },
   },
 }
