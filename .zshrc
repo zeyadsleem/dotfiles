@@ -199,5 +199,11 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 export ANDROID_HOME=/opt/android-sdk
 export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+# nodejs version manger (Volta)
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
+
+# Added by `rbenv init` on 20 ماي, 2024 EEST 08:24:30 ص
+eval "$(rbenv init - zsh)"
+export GEM_HOME="$HOME/.gem"

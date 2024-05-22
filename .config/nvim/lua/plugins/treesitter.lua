@@ -19,6 +19,8 @@ return {
       "typescript",
       "vim",
       "yaml",
+      "php",
+      "ruby",
     },
   },
 }
