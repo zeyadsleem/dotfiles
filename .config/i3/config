@@ -297,10 +297,10 @@ exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 exec --no-startup-id dex --autostart --environment i3
 
 # num lock activated
-exec --no-startup-id numlockx on
+# exec --no-startup-id numlockx on
 
-# configure multiple keyboard layouts and hotkey to switch (Alt+CAPSLOCK in this example)
-exec --no-startup-id fcitx -d
+# configure multiple keyboard layouts and hotkey to switch (Alt+Shift in this example)
+exec --no-startup-id "setxkbmap -model pc104 -layout us,ara -variant , -option grp:alt_shift_toggle"
 
 # start a script to setup displays
 # uncomment the next line, use arandr to setup displays and save the file as monitor:
@@ -322,7 +322,7 @@ exec --no-startup-id xautolock -time 60 -locker "systemctl suspend"
 
 # xscreensaver
 # https://www.jwz.org/xscreensaver
-exec --no-startup-id xscreensaver --no-splash
+# exec --no-startup-id xscreensaver --no-splash
 
 # Desktop notifications
 # dunst config used ~/.config/dunst/dunstrc
