@@ -304,11 +304,11 @@ exec --no-startup-id "setxkbmap -model pc104 -layout us,ara -variant , -option g
 
 # start a script to setup displays
 # uncomment the next line, use arandr to setup displays and save the file as monitor:
-exec --no-startup-id sleep 1 && xrandr --output eDP-1 --off --output HDMI-1 --primary --mode 1280x1024 --pos 0x0 --rotate normal
+exec --no-startup-id xrandr --output eDP-1 --off --output HDMI-1 --primary --mode 1280x1024 --pos 0x0 --rotate normal
 
 # set wallpaper
 # exec --no-startup-id sleep 2 && nitrogen --restore
-exec --no-startup-id sleep 2 && feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
+exec --no-startup-id sleep 1 && feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
 
 # set powersavings for display:
 exec --no-startup-id xset s 480 dpms 600 600 600
@@ -335,8 +335,8 @@ exec --no-startup-id /usr/bin/dunst
 # exec --no-startup-id /usr/lib/xfce4/notifyd/xfce4-notifyd &
 
 # Autostart apps as you like
-exec --no-startup-id sleep 2 && kitty --hold sh -c tmux
-exec --no-startup-id sleep 4 && firefox
+exec --no-startup-id sleep 1 && kitty --hold sh -c tmux
+exec --no-startup-id sleep 2 && firefox
 #exec --no-startup-id sleep 3 && thunar
 
 ######################################

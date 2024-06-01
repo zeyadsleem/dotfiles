@@ -121,7 +121,7 @@ alias pn='pnpm'
 alias px='pnpm'
 alias t='tmux'
 alias ta='t a'
-alias tell='tldr'
+# alias tell='tldr'
 
 # zoxide
 eval "$(zoxide init zsh)"
@@ -207,3 +207,6 @@ export PATH="$VOLTA_HOME/bin:$PATH"
 # Added by `rbenv init` on 20 ماي, 2024 EEST 08:24:30 ص
 eval "$(rbenv init - zsh)"
 export GEM_HOME="$HOME/.gem"
+
+# Add laravel 
+export PATH="$HOME/.config/composer/vendor/bin:$PATH"
