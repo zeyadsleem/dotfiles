@@ -118,10 +118,9 @@ alias lsa='exa'
 alias tree='exa -T --group-directories-first --icons --git'
 alias v=$EDITOR
 alias pn='pnpm'
-alias px='pnpm'
+alias px='pnpx'
 alias t='tmux'
 alias ta='t a'
-# alias tell='tldr'
 
 # zoxide
 eval "$(zoxide init zsh)"
@@ -210,3 +209,6 @@ export GEM_HOME="$HOME/.gem"
 
 # Add laravel 
 export PATH="$HOME/.config/composer/vendor/bin:$PATH"
+
+# Add go PATH
+export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
