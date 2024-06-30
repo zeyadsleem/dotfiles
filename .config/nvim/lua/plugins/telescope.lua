@@ -4,7 +4,17 @@ return {
   opts = {
     defaults = {
       file_ignore_patterns = { "node_modules", ".git/" },
-      layout_strategy = "vertical",
+      -- layout_strategy = "vertical",
+      layout_strategy = "horizontal",
+      layout_config = {
+        preview_width = 0.65,
+        horizontal = {
+          size = {
+            width = "95%",
+            height = "95%",
+          },
+        },
+      },
       sorting_strategy = "ascending",
       winblend = 0,
 
