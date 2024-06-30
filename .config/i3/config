@@ -2,7 +2,7 @@
 # config starts here: #
 #######################
 
-font pango: Noto Sans Regular 10
+font pango: Noto Sans CJK SC 10
 
 # set the mod key to the winkey:
 set $mod Mod4
@@ -251,8 +251,7 @@ bindsym $mod+p exec --no-startup-id /usr/local/bin/switch-audio-port
 ## App shortcuts
 bindsym $mod+w exec --no-startup-id /usr/bin/firefox
 bindsym $mod+n exec --no-startup-id /usr/bin/thunar
-bindsym Print exec --no-startup-id scrot ~/Pictures/%Y-%m-%d-%T-screenshot.png && notify-send "Screenshot saved to ~/Pictures/$(date +"%Y-%m-%d-%T")-screenshot.png"
-
+bindsym Print exec --no-startup-id gnome-screenshot -a -i
 # Power Profiles menu switcher (rofi)
 bindsym $mod+Shift+p exec --no-startup-id ~/.config/i3/scripts/power-profiles
 
