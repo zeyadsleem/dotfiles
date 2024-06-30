@@ -121,13 +121,14 @@ alias pn='pnpm'
 alias px='pnpx'
 alias t='tmux'
 alias ta='t a'
+alias gpt='tgpt'
 
 # zoxide
 eval "$(zoxide init zsh)"
 
 # cht.sh cheat sheet
 cht() {
-    eval cht.sh "$@" | bat -p
+    eval cht.sh "$@" | less
 }
 
 # lazyGit 
@@ -146,7 +147,7 @@ lg()
 # git alias 
 alias g='git'
 alias clean='git clean -xdf'
-alias clone='git clone'
+alias clone='gh repo clone'
 alias push='git push'
 alias pushupstream='git push --set-upstream origin $(git_branch)'
 alias pull='git pull'
@@ -212,3 +213,5 @@ export PATH="$HOME/.config/composer/vendor/bin:$PATH"
 
 # Add go PATH
 export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
+
+source /home/zeyad/.config/broot/launcher/bash/br
