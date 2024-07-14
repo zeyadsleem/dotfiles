@@ -215,3 +215,7 @@ export PATH="$HOME/.config/composer/vendor/bin:$PATH"
 export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
 
 source /home/zeyad/.config/broot/launcher/bash/br
+
+# forc set browser to chrome
+export BROWSER='google-chrome-stable'
+

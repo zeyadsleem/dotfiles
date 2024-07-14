@@ -249,7 +249,7 @@ bindsym XF86AudioPrev exec --no-startup-id playerctl previous
 bindsym $mod+p exec --no-startup-id /usr/local/bin/switch-audio-port
 
 ## App shortcuts
-bindsym $mod+w exec --no-startup-id /usr/bin/firefox
+bindsym $mod+w exec --no-startup-id /usr/bin/google-chrome-stable
 bindsym $mod+n exec --no-startup-id /usr/bin/thunar
 bindsym Print exec --no-startup-id gnome-screenshot -a -i
 # Power Profiles menu switcher (rofi)
@@ -273,18 +273,18 @@ set $ws9 "9"
 set $ws10 "10"
 
 # bind program to workspace and focus to them on startup:
-assign [class="(?i)firefox"] $ws1
+assign [class="googlchrome-stable"] $ws1
 assign [class="kitty"] $ws2
-# assign [class="thunderbird"] $ws3
+assign [class="mpv"] $ws3
 assign [class="Thunar"] $ws4
 # assign [class="TelegramDesktop"] $ws5
 
 # automatic set focus new window if it opens on another workspace than the current:
 for_window [class=kitty] focus
-for_window [class=(?i)firefox] focus
-for_window [class=Thunar] focus
+for_window [class=google-chrome-stable] focus
+for_window [class=mpv] focus
 for_window [class=Thunderbird] focus
-for_window [class=TelegramDesktop] focus
+# for_window [class=TelegramDesktop] focus
 
 #############################################
 # autostart applications/services on login: #
@@ -329,13 +329,13 @@ exec --no-startup-id xautolock -time 60 -locker "systemctl suspend"
 #exec --no-startup-id /usr/bin/dunst --config ~/.config/dunst/dunstrc
 # may need to run dbus-launch explicitly: 
 #exec --no-startup-id dbus-launch /usr/bin/dunst
-exec --no-startup-id /usr/bin/dunst
+# exec --no-startup-id /usr/bin/dunst
 # alternative if you installed aside with XFCE4:
-# exec --no-startup-id /usr/lib/xfce4/notifyd/xfce4-notifyd &
+exec --no-startup-id /usr/lib/xfce4/notifyd/xfce4-notifyd &
 
 # Autostart apps as you like
 exec --no-startup-id sleep 1 && kitty --hold sh -c tmux
-exec --no-startup-id sleep 2 && firefox
+exec --no-startup-id sleep 2 && google-chrome-stable
 #exec --no-startup-id sleep 3 && thunar
 
 ######################################
