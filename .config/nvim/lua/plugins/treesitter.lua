@@ -17,6 +17,8 @@ return {
       "regex",
       "tsx",
       "typescript",
+      "emmet-ls",
+      "graphql-language-service-cli",
       "vim",
       "yaml",
       "php",
