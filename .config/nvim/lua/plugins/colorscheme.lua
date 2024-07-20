@@ -1,17 +1,21 @@
 return {
   {
-    "scottmckendry/cyberdream.nvim",
+    "gmr458/vscode_modern_theme.nvim",
     lazy = false,
     priority = 1000,
-    opts = function(_, opts)
-      opts.transparent = true
-      opts.italic_comments = true
+    config = function()
+      require("vscode_modern").setup({
+        cursorline = true,
+        transparent_background = false,
+        nvim_tree_darker = true,
+      })
+      vim.cmd.colorscheme("vscode_modern")
     end,
   },
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "cyberdream",
+      colorscheme = "catppuccin-mocha",
     },
   },
 
