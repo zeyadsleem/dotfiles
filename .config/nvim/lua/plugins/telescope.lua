@@ -112,7 +112,12 @@ return {
         sorting_strategy = "ascending",
         winblend = 0,
         mappings = {
-          n = {},
+          i = {
+            ["<C-u>"] = false,
+            ["<C-d>"] = false,
+            ["<C-j>"] = require("telescope.actions").move_selection_next,
+            ["<C-k>"] = require("telescope.actions").move_selection_previous,
+          },
         },
       })
       opts.pickers = {
@@ -135,14 +140,7 @@ return {
           theme = "dropdown",
           -- disables netrw and use telescope-file-browser in its place
           -- hijack_netrw = true,
-          mappings = {
-            i = {
-              ["<C-u>"] = false,
-              ["<C-d>"] = false,
-              ["<C-j>"] = require("telescope.actions").move_selection_next,
-              ["<C-k>"] = require("telescope.actions").move_selection_previous,
-            },
-          },
+          mappings = opts.mappings,
         },
       }
       telescope.setup(opts)

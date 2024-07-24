@@ -12,22 +12,4 @@ return {
       vim.cmd.colorscheme("vscode_modern")
     end,
   },
-  {
-    "LazyVim/LazyVim",
-    opts = {
-      colorscheme = "catppuccin-mocha",
-    },
-  },
-
-  -- modicator (auto color line number based on vim mode)
-  {
-    "mawkler/modicator.nvim",
-    dependencies = "scottmckendry/cyberdream.nvim",
-    init = function()
-      -- These are required for Modicator to work
-      vim.o.cursorline = true
-      vim.o.termguicolors = true
-    end,
-    opts = {},
-  },
 }
