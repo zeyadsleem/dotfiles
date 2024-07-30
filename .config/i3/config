@@ -154,12 +154,6 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to update i3)
 bindsym $mod+Shift+r restart
 
-# keybinding in fancy rofi (automated):
-bindsym F1 exec --no-startup-id ~/.config/i3/scripts/keyhint-2
-# alternative
-# keybinding list in editor:
-# bindsym $mod+F1 exec --no-startup-id xed ~/.config/i3/keybindings
-
 # Backlight control
 #bindsym XF86MonBrightnessUp exec --no-startup-id xbacklight +10 && notify-send "Brightness - $(xbacklight -get | cut -d '.' -f 1)%"
 #bindsym XF86MonBrightnessDown exec --no-startup-id xbacklight -10 && notify-send "Brightness - $(xbacklight -get | cut -d '.' -f 1)%"
@@ -296,7 +290,7 @@ exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 exec --no-startup-id dex --autostart --environment i3
 
 # num lock activated
-# exec --no-startup-id numlockx on
+exec --no-startup-id numlockx on
 
 # configure multiple keyboard layouts and hotkey to switch (Alt+Shift in this example)
 exec --no-startup-id "setxkbmap -model pc104 -layout us,ara -variant , -option grp:alt_shift_toggle"
@@ -306,8 +300,8 @@ exec --no-startup-id "setxkbmap -model pc104 -layout us,ara -variant , -option g
 exec --no-startup-id xrandr --output eDP-1 --off --output HDMI-1 --primary --mode 1280x1024 --pos 0x0 --rotate normal
 
 # set wallpaper
-# exec --no-startup-id sleep 2 && nitrogen --restore
-exec --no-startup-id sleep 1 && feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
+# exec --no-startup-id sleep 0 && feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
+exec --no-startup-id feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
 
 # set powersavings for display:
 exec --no-startup-id xset s 480 dpms 600 600 600
@@ -319,23 +313,14 @@ exec --no-startup-id xset -dpms
 # https://wiki.archlinux.org/title/Session_lock#xautolock
 exec --no-startup-id xautolock -time 60 -locker "systemctl suspend"
 
-# xscreensaver
-# https://www.jwz.org/xscreensaver
-# exec --no-startup-id xscreensaver --no-splash
-
 # Desktop notifications
 # dunst config used ~/.config/dunst/dunstrc
 # set alternative config if needed:
-#exec --no-startup-id /usr/bin/dunst --config ~/.config/dunst/dunstrc
-# may need to run dbus-launch explicitly: 
-#exec --no-startup-id dbus-launch /usr/bin/dunst
-# exec --no-startup-id /usr/bin/dunst
-# alternative if you installed aside with XFCE4:
-exec --no-startup-id /usr/lib/xfce4/notifyd/xfce4-notifyd &
+exec --no-startup-id /usr/bin/dunst --config ~/.config/dunst/dunstrc &
 
 # Autostart apps as you like
-exec --no-startup-id sleep 1 && kitty --hold sh -c tmux
-exec --no-startup-id sleep 2 && google-chrome-stable
+exec --no-startup-id sleep 0 && kitty
+exec --no-startup-id sleep 0 && google-chrome-stable
 #exec --no-startup-id sleep 3 && thunar
 
 ######################################
@@ -387,7 +372,7 @@ bar {
 # Application menu handled by rofi: #
 #####################################
 
-## rofi bindings fancy application menu ($mod+d /F9 optional disabled)
+## rofi bindings fancy application menu
 bindsym $mod+d exec --no-startup-id rofi -modi drun -show drun \
 		-config ~/.config/rofi/rofidmenu.rasi
 

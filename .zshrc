@@ -17,10 +17,10 @@ zstyle ':z4h:bindkey' keyboard  'pc'
 zstyle ':z4h:' start-tmux no
 
 # Check if tmux is already running
-# if ! tmux has-session 2>/dev/null; then
-#   # Start tmux if not already in tmux.
-#   zstyle ':z4h:' start-tmux command tmux -u new -A -D -t z4h
-# fi
+if ! tmux has-session 2>/dev/null; then
+  # Start tmux if not already in tmux.
+  zstyle ':z4h:' start-tmux command tmux -u new -A -D -t z4h
+fi
 
 # Whether to move prompt to the bottom when zsh starts and on Ctrl+L.
 zstyle ':z4h:' prompt-at-bottom 'no'
