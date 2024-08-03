@@ -195,10 +195,13 @@ esac
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-# android
-export ANDROID_HOME=/opt/android-sdk
+# Android Studio
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
 export PATH=$PATH:$ANDROID_HOME/tools
+export PATH=$PATH:$ANDROID_HOME/tools/bin
 export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
 
 # nodejs version manger (Volta)
 export VOLTA_HOME="$HOME/.volta"
@@ -216,3 +219,9 @@ export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
 
 source /home/zeyad/.config/broot/launcher/bash/br
 
+# Flutter setup
+export PATH=/usr/bin/flutter/bin:$PATH
+export CHROME_EXECUTABLE=/usr/bin/google-chrome-stable
+export PATH=$JAVA_HOME/bin:$PATH
+  export PATH="$PATH":"$HOME/.pub-cache/bin"
+export PATH="$PATH":"$HOME/.pub-cache/bin"
