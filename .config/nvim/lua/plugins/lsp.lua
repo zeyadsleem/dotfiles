@@ -19,7 +19,6 @@ vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
     return
   end
   local markdown_lines = vim.lsp.util.convert_input_to_markdown_lines(result.contents)
-  markdown_lines = vim.lsp.util.trim_empty_lines(markdown_lines)
   if vim.tbl_isempty(markdown_lines) then
     return
   end
@@ -30,22 +29,7 @@ return {
   {
     "neovim/nvim-lspconfig",
     opts = {
-      servers = {
-        vtsls = {
-          settings = {
-            typescript = {
-              inlayHints = {
-                enumMemberValues = { enabled = false },
-                functionLikeReturnTypes = { enabled = false },
-                parameterNames = { enabled = false },
-                parameterTypes = { enabled = false },
-                propertyDeclarationTypes = { enabled = false },
-                variableTypes = { enabled = false },
-              },
-            },
-          },
-        },
-      },
+      inlay_hints = { enabled = false },
     },
   },
 }
