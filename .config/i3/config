@@ -18,21 +18,16 @@ workspace_layout default
 # extra options for windows: #
 ##############################
 
-#border indicator on windows:
-new_window pixel 0
-
-# thin borders
-hide_edge_borders both
-
 # Set inner/outer gaps
-# gaps inner 2
-# gaps outer 6
+gaps inner 6
+gaps outer 6
 
-# show window title bars (not officially supported with i3gaps)
-# default_border normal
+#border indicator on windows:
+for_window [class=".*"] border pixel 2
+smart_borders on
 
 # window title alignment
-# title_align center
+title_align center
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
@@ -267,18 +262,16 @@ set $ws9 "9"
 set $ws10 "10"
 
 # bind program to workspace and focus to them on startup:
-assign [class="googlchrome-stable"] $ws1
+assign [class="google-chrome-stable"] $ws1
 assign [class="kitty"] $ws2
 assign [class="mpv"] $ws3
 assign [class="Thunar"] $ws4
-# assign [class="TelegramDesktop"] $ws5
 
 # automatic set focus new window if it opens on another workspace than the current:
 for_window [class=kitty] focus
 for_window [class=google-chrome-stable] focus
 for_window [class=mpv] focus
 for_window [class=Thunderbird] focus
-# for_window [class=TelegramDesktop] focus
 
 #############################################
 # autostart applications/services on login: #
@@ -300,7 +293,6 @@ exec --no-startup-id "setxkbmap -model pc104 -layout us,ara -variant , -option g
 exec --no-startup-id xrandr --output eDP-1 --off --output HDMI-1 --primary --mode 1280x1024 --pos 0x0 --rotate normal
 
 # set wallpaper
-# exec --no-startup-id sleep 0 && feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
 exec --no-startup-id feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
 
 # set powersavings for display:
@@ -321,6 +313,9 @@ exec --no-startup-id /usr/bin/dunst --config ~/.config/dunst/dunstrc &
 # Autostart apps as you like
 exec --no-startup-id sleep 2 && kitty
 exec --no-startup-id sleep 5 && google-chrome-stable
+
+# add picom to autostart
+exec --no-startup-id picom
 
 ######################################
 # color settings for bar and windows #
@@ -351,20 +346,20 @@ client.urgent		    	$urgentred	$urgentred	$white		$yellowbrown	$yellowbrown
 ############################################
 
 bar {
-		font pango: Noto Sans Regular 10
-		status_command i3blocks -c ~/.config/i3/i3blocks.conf
-    position bottom
-    strip_workspace_numbers yes
+  font pango: Noto Sans Regular 10
+  status_command i3blocks -c ~/.config/i3/i3blocks.conf
+  position bottom
+  strip_workspace_numbers yes
 
-    colors {
-    separator          $purple
-    background         $darkgrey
-    statusline         $white
-		focused_workspace	$mediumgrey	   	$grey		$darkgrey	$purple
-		active_workspace	$lightblue      	$mediumgrey	$darkgrey	$purple
-		inactive_workspace	$darkgrey   		$darkgrey	$grey		$purple
-		urgent_workspace	$urgentred	    	$urgentred	$white		$purple
-	}
+  colors {
+  separator          $purple
+  background         $darkgrey
+  statusline         $white
+  focused_workspace	$mediumgrey	   	$grey		$darkgrey	$purple
+  active_workspace	$lightblue      	$mediumgrey	$darkgrey	$purple
+  inactive_workspace	$darkgrey   		$darkgrey	$grey		$purple
+  urgent_workspace	$urgentred	    	$urgentred	$white		$purple
+}
 }
 
 #####################################
@@ -383,3 +378,6 @@ bindsym $mod+m exec --no-startup-id rofi -modi emoji -show emoji \
 exec --no-startup-id greenclip daemon>/dev/null
 bindsym $mod+c exec --no-startup-id rofi -modi "clipboard:greenclip print" -show clipboard \
 		-config ~/.config/rofi/rofidmenu.rasi
+
+# auto stop genymotion
+exec --no-startup-id systemd-inhibit --what=sleep ~/.config/i3/scripts/stop_genymotion.sh

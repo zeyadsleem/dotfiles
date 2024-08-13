@@ -122,6 +122,8 @@ alias px='pnpx'
 alias t='tmux'
 alias ta='t a'
 alias gpt='tgpt'
+alias android-emulator-run='gmtool admin start "Custom Phone"'
+alias android-emulator-stop='gmtool admin stop "Custom Phone"'
 
 # zoxide
 eval "$(zoxide init zsh)"
