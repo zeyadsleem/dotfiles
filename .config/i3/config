@@ -19,15 +19,12 @@ workspace_layout default
 ##############################
 
 # Set inner/outer gaps
-gaps inner 6
-gaps outer 6
+# gaps inner 6
+# gaps outer 6
 
 #border indicator on windows:
 for_window [class=".*"] border pixel 2
 smart_borders on
-
-# window title alignment
-title_align center
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod

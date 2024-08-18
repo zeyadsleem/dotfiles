@@ -205,6 +205,8 @@ export PATH=$PATH:$ANDROID_HOME/tools/bin
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
 
+export QT_QPA_PLATFORMTHEME=qt5ct
+
 # nodejs version manger (Volta)
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
@@ -212,6 +214,7 @@ export PATH="$VOLTA_HOME/bin:$PATH"
 # Added by `rbenv init` on 20 ماي, 2024 EEST 08:24:30 ص
 eval "$(rbenv init - zsh)"
 export GEM_HOME="$HOME/.gem"
+export PATH="$HOME/.gem/bin:$PATH"
 
 # Add laravel 
 export PATH="$HOME/.config/composer/vendor/bin:$PATH"
@@ -225,5 +228,5 @@ source /home/zeyad/.config/broot/launcher/bash/br
 export PATH=/usr/bin/flutter/bin:$PATH
 export CHROME_EXECUTABLE=/usr/bin/google-chrome-stable
 export PATH=$JAVA_HOME/bin:$PATH
-  export PATH="$PATH":"$HOME/.pub-cache/bin"
+export PATH="$PATH":"$HOME/.pub-cache/bin"
 export PATH="$PATH":"$HOME/.pub-cache/bin"
