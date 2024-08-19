@@ -229,4 +229,3 @@ export PATH=/usr/bin/flutter/bin:$PATH
 export CHROME_EXECUTABLE=/usr/bin/google-chrome-stable
 export PATH=$JAVA_HOME/bin:$PATH
 export PATH="$PATH":"$HOME/.pub-cache/bin"
-export PATH="$PATH":"$HOME/.pub-cache/bin"

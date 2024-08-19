@@ -4,7 +4,7 @@ SELECTION="$(printf "1 - Lock\n2 - Suspend\n3 - Log out\n4 - Reboot\n5 - Reboot 
 
 confirm_action() {
     local action="$1"
-    CONFIRMATION="$(printf "1 - No\n2 - Yes" | fuzzel --dmenu -a top-right -l 2 -w 20 -p "$action?")"
+    CONFIRMATION="$(printf "1 - No\n2 - Yes" | fuzzel --dmenu -a bottom-right -l 2 -w 20 -p "$action?")"
     [ "$CONFIRMATION" = "2 - Yes" ]
 }
 
