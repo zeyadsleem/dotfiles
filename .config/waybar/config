@@ -17,7 +17,7 @@
     ],
 
     "modules-right": [
-        //"network",
+        "network",
         //"custom/weather",
         "idle_inhibitor",
         "memory",
@@ -65,11 +65,11 @@
 
     "network": {
         "format-disabled": " Disabled  ",
-        "format-wifi": "  {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣  ",
+        "format-wifi": " {bandwidthDownBits:>} 󰶡{bandwidthUpBits:>} 󰶣",
         "tooltip-format-wifi": "{essid}",
         "format-ethernet": "  {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣  ",
         "tooltip-format-ethernet": "{ifname}: {ipaddr}/{cidr}",
-        "format-disconnected": " Disconnected  ",
+        "format-disconnected": "  Disconnected",
         "on-click": "kitty -T waybar_nmtui -e nmtui",
         "interval": 2,
     },
