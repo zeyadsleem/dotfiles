@@ -229,3 +229,8 @@ export PATH=/usr/bin/flutter/bin:$PATH
 export CHROME_EXECUTABLE=/usr/bin/google-chrome-stable
 export PATH=$JAVA_HOME/bin:$PATH
 export PATH="$PATH":"$HOME/.pub-cache/bin"
+
+export TERMINAL=kitty
+export QT_QPA_PLATFORMTHEME=qt5ct
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
