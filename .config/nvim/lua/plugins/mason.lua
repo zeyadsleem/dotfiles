@@ -13,6 +13,7 @@ return {
         "selene",
         "shellcheck",
         "sql-formatter",
+        "biome",
       },
     },
   },
