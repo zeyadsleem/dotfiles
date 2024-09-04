@@ -237,7 +237,12 @@ bindsym $mod+p exec --no-startup-id /usr/local/bin/switch-audio-port
 ## App shortcuts
 bindsym $mod+w exec --no-startup-id /usr/bin/google-chrome-stable
 bindsym $mod+n exec --no-startup-id /usr/bin/thunar
-bindsym Print exec --no-startup-id gnome-screenshot -a -i
+
+#screenshot
+exec --no-startup-id greenclip daemon
+bindsym Print exec --no-startup-id maim -s | xclip -selection clipboard -t image/png
+bindsym Print+Shift exec --no-startup-id maim | xclip -selection clipboard -t image/png
+
 # Power Profiles menu switcher (rofi)
 bindsym $mod+Shift+p exec --no-startup-id ~/.config/i3/scripts/power-profiles
 
@@ -312,7 +317,7 @@ exec --no-startup-id sleep 2 && kitty
 exec --no-startup-id sleep 5 && google-chrome-stable
 
 # add picom to autostart
-exec --no-startup-id picom
+# exec --no-startup-id picom
 
 ######################################
 # color settings for bar and windows #
