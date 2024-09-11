@@ -109,6 +109,8 @@ setopt no_auto_menu  # require an extra TAB press to open the completion menu
 
 # export editor
 export EDITOR='nvim'
+export BROWSER='google-chrome-stable'
+export TERMINAL='kitty'
 
 alias cd='z'
 alias c='clear'
@@ -127,6 +129,9 @@ alias android-emulator-stop='gmtool admin stop "Custom Phone"'
 
 # zoxide
 eval "$(zoxide init zsh)"
+
+# thefuck
+eval $(thefuck --alias)
 
 # cht.sh cheat sheet
 cht() {
@@ -222,17 +227,10 @@ export PATH="$HOME/.config/composer/vendor/bin:$PATH"
 # Add go PATH
 export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
 
-source /home/zeyad/.config/broot/launcher/bash/br
-
 # Flutter setup
 export PATH=/usr/bin/flutter/bin:$PATH
 export CHROME_EXECUTABLE=/usr/bin/google-chrome-stable
 export PATH=$JAVA_HOME/bin:$PATH
 export PATH="$PATH":"$HOME/.pub-cache/bin"
 
-export TERMINAL=kitty
-export QT_QPA_PLATFORMTHEME=qt5ct
-export VOLTA_HOME="$HOME/.volta"
-export PATH="$VOLTA_HOME/bin:$PATH"
-
-eval $(thefuck --alias)
+source /home/zeyad/.config/broot/launcher/bash/br

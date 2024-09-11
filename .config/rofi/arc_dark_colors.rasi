@@ -1,6 +1,6 @@
 /*******************************************************
  * ROFI Arc Dark colors for EndeavourOS
- * Maintainer: joekamprad [joekamprad //a_t// endeavouros.com]
+ * Maintainer: joekamprad <joekamprad@endeavouros.com>
  *******************************************************/
 * {
     selected-normal-foreground:  rgba ( 249, 249, 249, 100 % );
