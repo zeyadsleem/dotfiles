@@ -20,7 +20,7 @@ return {
       "vim",
       "yaml",
       "php",
-      "ruby",
+      "templ",
     },
   },
 }

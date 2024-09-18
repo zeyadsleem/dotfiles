@@ -4,7 +4,7 @@
     "position": "top",
 
     // If height property would be not present, it'd be calculated dynamically
-    "height": 30,
+    "height": 25,
 
     "modules-left": [
         //"custom/launcher",
@@ -43,14 +43,8 @@
         "disable-scroll": true,
         "disable-markup" : false,
         "all-outputs": true,
-        "format": "  {icon}  ",
-        //"format":"{icon}",
-        "format-icons": {
-            "1": "",
-            "2": "",
-            "3": "",
-            "4": "",
-        }
+        "format": " {icon} ",
+        "format-icons": { }
     },
 
     "sway/mode": {
@@ -60,7 +54,7 @@
 
     "sway/window": {
         "format": "{}",
-        "max-length": 120
+        "max-length": 0
     },
 
     "network": {
@@ -106,8 +100,8 @@
 
     "pulseaudio": {
         "scroll-step": 2,
-        "format": "{icon} {volume}% ",
-        "format-muted":"󰝟 muted ",
+        "format": "{icon} {volume}%",
+        "format-muted":"󰝟 muted",
         "format-icons": {
             "headphones": "",
             "handsfree": "",
@@ -121,13 +115,13 @@
     },
 
     "custom/keyboard-layout": {
-      	"exec": "i=$(swaymsg -t get_inputs); echo \"\"; echo \"$i\" | grep -m1 'xkb_active_layout_name' | cut -d '\"' -f4",
-        "format": "   ",
-        // Interval set only as a fallback; use signal to update the module more immediately
-        "interval": 30,
-        // See example config for sending signal to Waybar in ~/.config/sway/config.d/input
-        "signal": 1,
-        "on-click": "~/.config/waybar/scripts/keyhint.sh",
+       "exec": "swaymsg -t get_inputs | jq -r '.[] | select(.type == \"keyboard\") | .xkb_active_layout_name' | awk '{if ($1 == \"Arabic\") print \"AR\"; else if ($1 == \"English\") print \"EN\"; else print $1}'",
+        "format": " {} ",
+        "interval": 1,
+        "on-click": "swaymsg input type:keyboard xkb_switch_layout next",
+        "on-scroll-up": "swaymsg input type:keyboard xkb_switch_layout next",
+        "on-scroll-down": "swaymsg input type:keyboard xkb_switch_layout prev",
+        "tooltip": false
     },
 
     "battery": {

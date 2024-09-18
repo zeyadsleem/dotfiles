@@ -110,7 +110,7 @@ setopt no_auto_menu  # require an extra TAB press to open the completion menu
 # export editor
 export EDITOR='nvim'
 export BROWSER='google-chrome-stable'
-export TERMINAL='kitty'
+export TERM=tmux
 
 alias cd='z'
 alias c='clear'
@@ -124,6 +124,9 @@ alias px='pnpx'
 alias t='tmux'
 alias ta='t a'
 alias gpt='tgpt'
+alias editor-config='~/.config/scripts/editorconfig-cli.sh'
+alias live='live-server'
+alias blackbox='gpt --provider blackboxai'
 alias android-emulator-run='gmtool admin start "Custom Phone"'
 alias android-emulator-stop='gmtool admin stop "Custom Phone"'
 
@@ -234,3 +237,6 @@ export PATH=$JAVA_HOME/bin:$PATH
 export PATH="$PATH":"$HOME/.pub-cache/bin"
 
 source /home/zeyad/.config/broot/launcher/bash/br
+
+# Turso
+export PATH="$PATH:/home/zeyad/.turso"

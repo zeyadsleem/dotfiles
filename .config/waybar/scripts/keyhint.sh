@@ -1,2 +1,0 @@
-#!/bin/sh
-yad --title="EndeavourOS Sway-WM keybindings:" --no-buttons --geometry=400x345-15-400 --list --column=key: --column=description: --column=command: "ESC" "close this app" "" "=" "modkey" "(set mod Mod4)" "+enter" "Terminal" "(Foot)" "+d" "Application Menu" "(Fuzzel)" "+p" "Activities" "(Fuzzel)" "+o" "" "Open Broswer" "+n" "" "Open Files" "+q" "close focused app" "(kill)" "[Shift]+Print-key" "screenshot" "(grim)" "+Shift+e" "power-menu" "(Fuzzel)" "+t" "open keybinding helper" "full list"

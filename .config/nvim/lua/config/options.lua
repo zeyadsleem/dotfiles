@@ -4,6 +4,9 @@
 
 -- vim.opt.relativenumber = false
 -- vim.opt.number = false
+vim.opt.list = false
+vim.opt.listchars:append("space:⋅")
+vim.opt.listchars:append("eol:↴")
 
 vim.opt.termguicolors = true
 vim.opt.guifont = "DejaVu Sans Mono:h11"
