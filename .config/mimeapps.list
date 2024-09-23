@@ -1,0 +1,15 @@
+[Added Associations]
+image/jpeg=mirage.desktop;feh.desktop;
+text/plain=xed.desktop;
+video/mp4=mpv.desktop;vlc.desktop;
+inode/directory=vlc.desktop;mpv.desktop;
+image/png=feh.desktop;mirage.desktop;
+
+[Default Applications]
+x-scheme-handler/http=google-chrome.desktop
+x-scheme-handler/https=google-chrome.desktop
+x-scheme-handler/postman=Postman.desktop
+x-scheme-handler/discord-1176718791388975124=discord-1176718791388975124.desktop
+video/mp4=vlc.desktop
+image/png=feh.desktop
+x-scheme-handler/discord-1038970224050962582=nuclear.desktop

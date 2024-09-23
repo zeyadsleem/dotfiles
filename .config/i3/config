@@ -135,8 +135,6 @@ bindsym $mod+q kill
 bindsym $mod+Shift+e exec --no-startup-id ~/.config/i3/scripts/powermenu
 
 # Lock the system
-# lock with a picture:
-#bindsym $mod+l exec --no-startup-id i3lock -i  ~/.config/i3/i3-lock-screen.png -p default|win -t
 # lock by blurring the screen:
 bindsym $mod+o exec --no-startup-id ~/.config/i3/scripts/blur-lock
 
@@ -307,17 +305,11 @@ exec --no-startup-id xset -dpms
 # https://wiki.archlinux.org/title/Session_lock#xautolock
 exec --no-startup-id xautolock -time 60 -locker "systemctl suspend"
 
-# Desktop notifications
-# dunst config used ~/.config/dunst/dunstrc
-# set alternative config if needed:
 exec --no-startup-id /usr/bin/dunst --config ~/.config/dunst/dunstrc &
 
 # Autostart apps as you like
 exec --no-startup-id sleep 2 && kitty
 exec --no-startup-id sleep 5 && google-chrome-stable
-
-# add picom to autostart
-# exec --no-startup-id picom
 
 ######################################
 # color settings for bar and windows #
@@ -346,7 +338,7 @@ client.urgent           $urgent         $urgent         $white          $urgent 
 bar {
   font pango: Noto Sans Regular 10
   status_command i3blocks -c ~/.config/i3/i3blocks.conf
-  position top
+  position bottom
   strip_workspace_numbers yes
   colors {
     separator          $accent
@@ -368,8 +360,7 @@ bindsym $mod+d exec --no-startup-id rofi -modi drun -show drun \
 		-config ~/.config/rofi/rofidmenu.rasi
 
 ## rofi bindings to manage emoji
-bindsym $mod+m exec --no-startup-id rofi -modi emoji -show emoji \
-  -config ~/.config/rofi/rofidmenu.rasi
+bindsym $mod+m exec --no-startup-id bemoji -t
 
 ## rofi bindings to manage clipboard (install rofi-greenclip from the AUR)
 exec --no-startup-id greenclip daemon>/dev/null
