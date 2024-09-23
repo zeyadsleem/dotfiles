@@ -117,14 +117,14 @@ alias c='clear'
 alias ls='exa -laH --group-directories-first --icons --git'
 alias l='exa -aH --group-directories-first --icons --git'
 alias lsa='exa'
-alias tree='exa -T --group-directories-first --icons --git'
+alias lt="exa --tree --level=2  --icons --git"
 alias v=$EDITOR
 alias pn='pnpm'
 alias px='pnpx'
 alias t='tmux'
 alias ta='t a'
 alias gpt='tgpt'
-alias editor-config='~/.local/share/scripts/editorconfig-cli.sh'
+alias editor-config='~/.local/bin/scripts/editorconfig-cli.sh'
 alias live='live-server'
 alias blackbox='gpt --provider blackboxai'
 alias android-emulator-run='gmtool admin start "Custom Phone"'
@@ -219,11 +219,6 @@ export QT_QPA_PLATFORMTHEME=qt5ct
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
 
-# Added by `rbenv init` on 20 ماي, 2024 EEST 08:24:30 ص
-eval "$(rbenv init - zsh)"
-export GEM_HOME="$HOME/.gem"
-export PATH="$HOME/.gem/bin:$PATH"
-
 # Add laravel 
 export PATH="$HOME/.config/composer/vendor/bin:$PATH"
 
@@ -233,6 +228,7 @@ export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
 # Flutter setup
 export PATH=/usr/bin/flutter/bin:$PATH
 export CHROME_EXECUTABLE=/usr/bin/google-chrome-stable
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 export PATH=$JAVA_HOME/bin:$PATH
 export PATH="$PATH":"$HOME/.pub-cache/bin"
 
@@ -240,3 +236,6 @@ source /home/zeyad/.config/broot/launcher/bash/br
 
 # Turso
 export PATH="$PATH:/home/zeyad/.turso"
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"

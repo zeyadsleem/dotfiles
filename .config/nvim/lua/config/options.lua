@@ -4,6 +4,9 @@
 
 -- vim.opt.relativenumber = false
 -- vim.opt.number = false
+
+vim.o.shell = "/usr/bin/zsh"
+
 vim.opt.list = false
 vim.opt.listchars:append("space:⋅")
 vim.opt.listchars:append("eol:↴")
