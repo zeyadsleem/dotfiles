@@ -322,46 +322,41 @@ exec --no-startup-id sleep 5 && google-chrome-stable
 ######################################
 # color settings for bar and windows #
 ######################################
-
 # Define colors variables:
-set $darkbluetrans	#08052be6
-set $darkblue		#08052b
-set $lightblue		#5294e2
-set $urgentred		#e53935
-set $white		#ffffff
-set $black		#000000
-set $purple		#e345ff
-set $darkgrey		#383c4a
-set $grey		#b0b5bd
-set $mediumgrey		#8b8b8b
-set $yellowbrown	#e1b700
+set $darkbg         #2c2c2c
+set $lightbg        #3c3c3c
+set $text           #d0d0d0
+set $inactive_text  #909090
+set $urgent         #a54242
+set $white          #ffffff
+set $black          #000000
+set $accent         #5f819d
+set $inactive_bg    #2c2c2c
 
 # define colors for windows:
-#class		        	border		bground		text		indicator	child_border
-client.focused		    	$lightblue	$darkblue	$white		$mediumgrey	$mediumgrey
-client.unfocused	    	$darkblue	$darkblue	$grey		$darkgrey	$darkgrey
-client.focused_inactive		$darkblue	$darkblue	$grey		$black		$black
-client.urgent		    	$urgentred	$urgentred	$white		$yellowbrown	$yellowbrown
+#class                  border          bground         text            indicator       child_border
+client.focused          $accent         $accent         $white          $accent         $accent
+client.unfocused        $inactive_bg    $inactive_bg    $inactive_text  $inactive_bg    $inactive_bg
+client.focused_inactive $lightbg        $lightbg        $inactive_text  $lightbg        $lightbg
+client.urgent           $urgent         $urgent         $white          $urgent         $urgent
 
 ############################################
 # bar settings (input comes from i3blocks) #
 ############################################
-
 bar {
   font pango: Noto Sans Regular 10
   status_command i3blocks -c ~/.config/i3/i3blocks.conf
   position top
   strip_workspace_numbers yes
-
   colors {
-  separator          $purple
-  background         $darkgrey
-  statusline         $white
-  focused_workspace	$mediumgrey	   	$grey		$darkgrey	$purple
-  active_workspace	$lightblue      	$mediumgrey	$darkgrey	$purple
-  inactive_workspace	$darkgrey   		$darkgrey	$grey		$purple
-  urgent_workspace	$urgentred	    	$urgentred	$white		$purple
-}
+    separator          $accent
+    background         $darkbg
+    statusline         $text
+    focused_workspace  $accent         $accent         $white          $accent
+    active_workspace   $lightbg        $lightbg        $text           $accent
+    inactive_workspace $inactive_bg    $inactive_bg    $inactive_text  $accent
+    urgent_workspace   $urgent         $urgent         $white          $accent
+  }
 }
 
 #####################################
@@ -381,5 +376,3 @@ exec --no-startup-id greenclip daemon>/dev/null
 bindsym $mod+c exec --no-startup-id rofi -modi "clipboard:greenclip print" -show clipboard \
 		-config ~/.config/rofi/rofidmenu.rasi
 
-# auto stop genymotion
-exec --no-startup-id systemd-inhibit --what=sleep ~/.config/i3/scripts/stop_genymotion.sh

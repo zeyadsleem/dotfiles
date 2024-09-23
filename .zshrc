@@ -110,7 +110,7 @@ setopt no_auto_menu  # require an extra TAB press to open the completion menu
 # export editor
 export EDITOR='nvim'
 export BROWSER='google-chrome-stable'
-export TERM=tmux
+export TERM="xterm-256color"
 
 alias cd='z'
 alias c='clear'
