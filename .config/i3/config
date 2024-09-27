@@ -293,7 +293,7 @@ exec --no-startup-id "setxkbmap -model pc104 -layout us,ara -variant , -option g
 exec --no-startup-id xrandr --output eDP-1 --off --output HDMI-1 --primary --mode 1280x1024 --pos 0x0 --rotate normal
 
 # set wallpaper
-exec --no-startup-id feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
+exec --no-startup-id sleep 2 feh --bg-scale ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
 
 # set powersavings for display:
 exec --no-startup-id xset s 480 dpms 600 600 600

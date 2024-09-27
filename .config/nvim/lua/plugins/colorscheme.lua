@@ -1,30 +1,33 @@
 return {
   {
-    "scottmckendry/cyberdream.nvim",
-    lazy = false,
+    "Mofiqul/vscode.nvim",
     priority = 1000,
-    opts = function(_, opts)
-      opts.transparent = true
-      opts.italic_comments = true
-      opts.borderless_telescope = false
+    config = function()
+      local c = require("vscode.colors").get_colors()
+      require("vscode").setup({
+        style = "dark",
+        transparent = false,
+        disable_nvimtree_bg = true,
+        color_overrides = {
+          vscLineNumber = "#FFFFFF",
+        },
+        group_overrides = {
+          Identifier = { fg = c.vscLightBlue, bg = "NONE" },
+        },
+        extra_groups = {
+          "CmpItemKindFunction",
+          "CmpItemKindMethod",
+          "CmpItemKindVariable",
+          "CmpItemKindKeyword",
+        },
+      })
+      vim.cmd([[colorscheme vscode]])
     end,
   },
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "cyberdream",
+      colorscheme = "vscode",
     },
-  },
-
-  -- modicator (auto color line number based on vim mode)
-  {
-    "mawkler/modicator.nvim",
-    dependencies = "scottmckendry/cyberdream.nvim",
-    init = function()
-      -- These are required for Modicator to work
-      vim.o.cursorline = false
-      vim.o.termguicolors = true
-    end,
-    opts = {},
   },
 }
