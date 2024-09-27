@@ -109,7 +109,7 @@ setopt no_auto_menu  # require an extra TAB press to open the completion menu
 
 # export editor
 export EDITOR='nvim'
-export BROWSER='google-chrome-stable'
+export BROWSER='/usr/bin/google-chrome-stable'
 export TERM="xterm-256color"
 
 alias cd='z'
@@ -219,23 +219,19 @@ export QT_QPA_PLATFORMTHEME=qt5ct
 export VOLTA_HOME="$HOME/.volta"
 export PATH="$VOLTA_HOME/bin:$PATH"
 
-# Add laravel 
-export PATH="$HOME/.config/composer/vendor/bin:$PATH"
-
 # Add go PATH
 export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
 
 # Flutter setup
-export PATH=/usr/bin/flutter/bin:$PATH
 export CHROME_EXECUTABLE=/usr/bin/google-chrome-stable
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 export PATH=$JAVA_HOME/bin:$PATH
-export PATH="$PATH":"$HOME/.pub-cache/bin"
 
 source /home/zeyad/.config/broot/launcher/bash/br
 
 # Turso
 export PATH="$PATH:/home/zeyad/.turso"
 
-# Generated for envman. Do not edit.
-[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+# Initialize asdf
+. /opt/asdf-vm/asdf.sh
+. "/home/zeyad/.deno/env"

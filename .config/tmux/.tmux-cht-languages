@@ -1,7 +1,4 @@
 golang
-solidity
-vlang
-v
 nodejs
 javascript
 tmux
@@ -14,8 +11,6 @@ rust
 python
 bash
 php
-haskell
-ArnoldC
 css
 html
-gdb
+racket

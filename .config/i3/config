@@ -294,6 +294,7 @@ exec --no-startup-id xrandr --output eDP-1 --off --output HDMI-1 --primary --mod
 
 # set wallpaper
 exec --no-startup-id feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
+exec --no-startup-id sleep 1 feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
 
 # set powersavings for display:
 exec --no-startup-id xset s 480 dpms 600 600 600
