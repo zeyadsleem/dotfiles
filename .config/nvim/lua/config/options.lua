@@ -5,6 +5,10 @@
 -- vim.opt.relativenumber = false
 -- vim.opt.number = false
 
+vim.g.lazyvim_php_lsp = "intelephense"
+
+vim.opt.cmdheight = 0
+
 vim.o.shell = "/usr/bin/zsh"
 
 vim.opt.list = false

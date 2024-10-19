@@ -124,7 +124,8 @@ alias px='pnpx'
 alias t='tmux'
 alias ta='t a'
 alias gpt='tgpt'
-alias editor-config='~/.local/bin/scripts/editorconfig-cli.sh'
+alias add-editor-config='~/.local/bin/scripts/editorconfig-cli.sh'
+alias add-phpcs='~/.local/bin/scripts/add-phpcs.sh'
 alias live='live-server'
 alias blackbox='gpt --provider blackboxai'
 alias android-emulator-run='gmtool admin start "Custom Phone"'
@@ -235,3 +236,6 @@ export PATH="$PATH:/home/zeyad/.turso"
 # Initialize asdf
 . /opt/asdf-vm/asdf.sh
 . "/home/zeyad/.deno/env"
+
+# php laravel
+export PATH="$PATH:$HOME/.config/composer/vendor/bin"
