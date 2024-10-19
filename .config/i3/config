@@ -286,15 +286,15 @@ exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id numlockx on
 
 # configure multiple keyboard layouts and hotkey to switch (Alt+Shift in this example)
-exec --no-startup-id "setxkbmap -model pc104 -layout us,ara -variant , -option grp:alt_shift_toggle"
+exec --no-startup-id setxkbmap -model pc104 -layout us,ara -variant , -option grp:alt_shift_toggle
 
 # start a script to setup displays
 # uncomment the next line, use arandr to setup displays and save the file as monitor:
 exec --no-startup-id xrandr --output eDP-1 --off --output HDMI-1 --primary --mode 1280x1024 --pos 0x0 --rotate normal
 
 # set wallpaper
-exec --no-startup-id feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
-exec --no-startup-id sleep 1 feh --bg-fill ~/Pictures/kalen-emsley-Bkci_8qcdvQ-unsplash.jpg
+exec --no-startup-id feh --bg-fill ~/.config/background.jpg
+exec --no-startup-id sleep 1 feh --bg-fill ~/.config/background.jpg
 
 # set powersavings for display:
 exec --no-startup-id xset s 480 dpms 600 600 600

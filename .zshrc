@@ -111,6 +111,9 @@ setopt no_auto_menu  # require an extra TAB press to open the completion menu
 export EDITOR='nvim'
 export BROWSER='/usr/bin/google-chrome-stable'
 export TERM="xterm-256color"
+git_branch() {
+  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
+}
 
 alias cd='z'
 alias c='clear'
@@ -124,7 +127,8 @@ alias px='pnpx'
 alias t='tmux'
 alias ta='t a'
 alias gpt='tgpt'
-alias editor-config='~/.local/bin/scripts/editorconfig-cli.sh'
+alias add-editor-config='~/.local/bin/scripts/editorconfig-cli.sh'
+alias add-phpcs='~/.local/bin/scripts/add-phpcs.sh'
 alias live='live-server'
 alias blackbox='gpt --provider blackboxai'
 alias android-emulator-run='gmtool admin start "Custom Phone"'
@@ -162,7 +166,7 @@ alias push='git push'
 alias pushupstream='git push --set-upstream origin $(git_branch)'
 alias pull='git pull'
 alias commit='git commit -m'
-alias amend='git commit --amend'
+alias amend='git add -u && git commit --amend --no-edit'
 alias fetch='git fetch && git status'
 function st {
   git status | sed -n '/Your/,/^$/p'
@@ -235,3 +239,6 @@ export PATH="$PATH:/home/zeyad/.turso"
 # Initialize asdf
 . /opt/asdf-vm/asdf.sh
 . "/home/zeyad/.deno/env"
+
+# php laravel
+export PATH="$PATH:$HOME/.config/composer/vendor/bin"

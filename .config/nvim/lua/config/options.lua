@@ -5,7 +5,11 @@
 -- vim.opt.relativenumber = false
 -- vim.opt.number = false
 
-vim.o.shell = "/usr/bin/zsh"
+-- trern it on when you need to remove underline border
+-- vim.opt.cmdheight = 0
+
+-- vim.g.lazyvim_php_lsp = "intelephense"
+-- vim.o.shell = "/usr/bin/zsh"
 
 vim.opt.list = false
 vim.opt.listchars:append("space:⋅")
