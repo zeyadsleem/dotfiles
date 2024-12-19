@@ -112,14 +112,13 @@ mode "resize" {
   bindsym k resize shrink height 10 px or 10 ppt
   bindsym l resize grow width 10 px or 10 ppt
 
-# same bindings, but for the arrow keys
-bindsym Left resize shrink width 10 px or 10 ppt
+  # same bindings, but for the arrow keys
+  bindsym Left resize shrink width 10 px or 10 ppt
   bindsym Down resize grow height 10 px or 10 ppt
   bindsym Up resize shrink height 10 px or 10 ppt
   bindsym Right resize grow width 10 px or 10 ppt
   bindsym Escape mode "default"
 }
-bindsym $mod+r mode "resize"
 
 ######################################
 # keybindings for different actions: #
@@ -236,10 +235,12 @@ bindsym $mod+p exec --no-startup-id /usr/local/bin/switch-audio-port
 bindsym $mod+w exec --no-startup-id /usr/bin/google-chrome-stable
 bindsym $mod+n exec --no-startup-id /usr/bin/thunar
 
-#screenshot
+#run clipboard on start
 exec --no-startup-id greenclip daemon
-bindsym Print exec --no-startup-id maim -s | xclip -selection clipboard -t image/png
-bindsym Print+Shift exec --no-startup-id maim | xclip -selection clipboard -t image/png
+
+#screenshot
+bindsym Print exec --no-startup-id ~/.config/i3/scripts/capture_screenshot.sh
+bindsym Shift+Print exec --no-startup-id ~/.config/i3/scripts/capture_screenshot.sh region
 
 # Power Profiles menu switcher (rofi)
 bindsym $mod+Shift+p exec --no-startup-id ~/.config/i3/scripts/power-profiles

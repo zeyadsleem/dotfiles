@@ -1,15 +1,20 @@
 [Added Associations]
-image/jpeg=mirage.desktop;feh.desktop;
+application/pdf=google-chrome.desktop;
+image/jpeg=feh-2.desktop;mirage.desktop;feh.desktop;
+image/png=feh.desktop;mirage.desktop;
+image/x-xfig=figma-linux.desktop;org.inkscape.Inkscape.desktop;
+inode/directory=vlc.desktop;mpv.desktop;
 text/plain=xed.desktop;
 video/mp4=mpv.desktop;vlc.desktop;
-inode/directory=vlc.desktop;mpv.desktop;
-image/png=feh.desktop;mirage.desktop;
 
 [Default Applications]
+image/jpeg=feh-2.desktop;
+image/png=feh.desktop
+image/x-xfig=org.inkscape.Inkscape.desktop
+video/mp4=vlc.desktop
+x-scheme-handler/discord-1038970224050962582=nuclear.desktop
+x-scheme-handler/discord-1176718791388975124=discord-1176718791388975124.desktop
+x-scheme-handler/figma=figma-linux.desktop
 x-scheme-handler/http=google-chrome.desktop
 x-scheme-handler/https=google-chrome.desktop
 x-scheme-handler/postman=Postman.desktop
-x-scheme-handler/discord-1176718791388975124=discord-1176718791388975124.desktop
-video/mp4=vlc.desktop
-image/png=feh.desktop
-x-scheme-handler/discord-1038970224050962582=nuclear.desktop

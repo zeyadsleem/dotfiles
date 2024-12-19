@@ -209,6 +209,10 @@ esac
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
+# Java
+export JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
+export PATH="$JAVA_HOME/bin:$PATH"
+
 # Android Studio
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
@@ -226,19 +230,8 @@ export PATH="$VOLTA_HOME/bin:$PATH"
 # Add go PATH
 export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
 
-# Flutter setup
-export CHROME_EXECUTABLE=/usr/bin/google-chrome-stable
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
-export PATH=$JAVA_HOME/bin:$PATH
-
 source /home/zeyad/.config/broot/launcher/bash/br
 
 # Turso
 export PATH="$PATH:/home/zeyad/.turso"
 
-# Initialize asdf
-. /opt/asdf-vm/asdf.sh
-. "/home/zeyad/.deno/env"
-
-# php laravel
-export PATH="$PATH:$HOME/.config/composer/vendor/bin"
