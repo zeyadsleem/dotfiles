@@ -1,73 +1,53 @@
 [global]
     monitor = 0
-
     follow = none
-    width = 300
-    height = 300
+    width = 250
+    height = 100
     origin = bottom-right
-    offset = 30x40
+    offset = 20x20
     scale = 0
-
     notification_limit = 5
     progress_bar = true
-    progress_bar_height = 10
-
+    progress_bar_height = 8
     progress_bar_frame_width = 1
-    progress_bar_min_width = 150
-    progress_bar_max_width = 300
-
+    progress_bar_min_width = 100
+    progress_bar_max_width = 200
     indicate_hidden = yes
-    transparency = 16
+    transparency = 10  # Reduced transparency for better readability
     separator_height = 2
-    padding = 8
-    horizontal_padding = 8
-    text_icon_padding = 0
+    padding = 6
+    horizontal_padding = 6
+    text_icon_padding = 2
     frame_width = 1
     frame_color = "#909090"
     separator_color = auto
     sort = yes
     idle_threshold = 0
-
-    font = Noto Sans Regular 9
-
+    font = Noto Sans Regular 10
     line_height = 0
     markup = full
     format = "<b>%s</b>\n%b"
-
     alignment = left
-
     vertical_alignment = center
-
     show_age_threshold = 60
-
     ellipsize = middle
-
     ignore_newline = no
-
     stack_duplicates = true
-
     hide_duplicate_count = true
-
     show_indicators = no
-
     icon_position = left
     min_icon_size = 0
     max_icon_size = 32
     icon_path = /usr/share/icons/Qogir/16/status:/usr/share/icons/Qogir/16/devices/:/usr/share/icons/Qogir/24/panel/:/usr/share/icons/Qogir/16/apps/:/usr/share/pixmaps/
-    
+
     sticky_history = false
     history_length = 0
-
     dmenu = /usr/bin/dmenu -p dunst:
-
     browser = /usr/bin/xdg-open
-
     always_run_script = true
-
     title = Dunst
     class = Dunst
-
-    corner_radius = 7
+    corner_radius = 5
     ignore_dbusclose = false
     force_xwayland = false
     force_xinerama = false
@@ -79,21 +59,21 @@
     per_monitor_dpi = false
 
 [urgency_low]
-    background = "#28143c"
-    foreground = "#ffffff"
+    background = "#d58b8b"  # Darker muted pinkish background for low urgency
+    foreground = "#333333"  # Dark text color for better contrast and readability
     timeout = 5
     icon = /usr/share/icons/Qogir/16/status/package-installed-outdated.svg
 
 [urgency_normal]
-    background = "#28143c"
-    foreground = "#ffffff"
+    background = "#d58b8b"  # Darker muted pinkish background for normal urgency
+    foreground = "#333333"  # Dark text color for better contrast
     timeout = 5
     icon = /usr/share/icons/Qogir/16/emblems/emblem-question.svg
 
 [urgency_critical]
-    background = "#28143c"
-    foreground = "#ffffff"
-    frame_color = "#ff7f7f"
+    background = "#c66f6f"  # Even darker pink background for critical urgency
+    foreground = "#333333"  # Dark text color for critical notifications
+    frame_color = "#ff4d4d"  # Darker red frame for critical notifications
     timeout = 120
     icon = /usr/share/icons/Qogir/16/actions/dialog-warning.svg
 
