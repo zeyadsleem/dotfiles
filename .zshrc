@@ -202,12 +202,16 @@ case ":$PATH:" in
 esac
 # pnpm end
 
+# Js/Ts server run time
 # bun completions
 [ -s "/home/zeyad/.bun/_bun" ] && source "/home/zeyad/.bun/_bun"
 
-# bun
+# Bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Deno
+. "/home/zeyad/.deno/env"
 
 # Java
 export JAVA_HOME="/usr/lib/jvm/java-21-openjdk"
@@ -234,4 +238,3 @@ source /home/zeyad/.config/broot/launcher/bash/br
 
 # Turso
 export PATH="$PATH:/home/zeyad/.turso"
-
