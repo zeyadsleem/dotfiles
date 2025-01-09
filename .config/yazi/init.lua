@@ -1,3 +1,8 @@
+---@diagnostic disable: undefined-global
+
+require("git"):setup()
+
+---@return unknown
 -- https://yazi-rs.github.io/docs/tips#show-symlink-in-status-bar
 function Status:name()
 	local h = cx.active.current.hovered
@@ -27,19 +32,13 @@ function Status:owner()
 	})
 end
 
-function Status:render(area)
-	self.area = area
-
-	local left = ui.Line({ self:mode(), self:size(), self:name() })
-	local right = ui.Line({
-		self:owner(),
-		self:permissions(),
-		self:percentage(),
-		self:position(),
-	})
-	return {
-		ui.Paragraph(area, { left }),
-		ui.Paragraph(area, { right }):align(ui.Paragraph.RIGHT),
-		table.unpack(Progress:render(area, right:width())),
-	}
+function Entity:icon()
+	local icon = self._file:icon()
+	if not icon then
+		return ui.Line("")
+	elseif self._file:is_hovered() then
+		return ui.Line(icon.text .. "  ")
+	else
+		return ui.Line(icon.text .. "  "):style(icon.style)
+	end
 end

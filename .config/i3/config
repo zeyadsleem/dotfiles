@@ -231,10 +231,6 @@ bindsym XF86AudioPrev exec --no-startup-id playerctl previous
 # Redirect sound to headphones
 bindsym $mod+p exec --no-startup-id /usr/local/bin/switch-audio-port
 
-## App shortcuts
-bindsym $mod+w exec --no-startup-id /usr/bin/google-chrome-stable
-bindsym $mod+n exec --no-startup-id /usr/bin/thunar
-
 #run clipboard on start
 exec --no-startup-id greenclip daemon
 
@@ -308,10 +304,6 @@ exec --no-startup-id xset -dpms
 exec --no-startup-id xautolock -time 60 -locker "systemctl suspend"
 
 exec --no-startup-id /usr/bin/dunst --config ~/.config/dunst/dunstrc &
-
-# Autostart apps as you like
-exec --no-startup-id sleep 2 && kitty
-exec --no-startup-id sleep 5 && google-chrome-stable
 
 ######################################
 # color settings for bar and windows #

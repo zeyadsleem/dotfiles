@@ -107,10 +107,12 @@ setopt no_auto_menu  # require an extra TAB press to open the completion menu
 
 # start my custom configuration
 
-# export editor
-export EDITOR='nvim'
-export BROWSER='/usr/bin/google-chrome-stable'
-export TERM="xterm-256color"
+# man page color setup
+export BAT_THEME="Monokai Extended Bright"
+export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=\"$BAT_THEME\"'"
+export MANROFFOPT="-c"
+export GROFF_NO_SGR=1 
+
 git_branch() {
   git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
 }
@@ -214,7 +216,7 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 . "/home/zeyad/.deno/env"
 
 # Java
-export JAVA_HOME="/usr/lib/jvm/java-21-openjdk"
+export JAVA_HOME="/usr/lib/jvm/java-17-openjdk/"
 export PATH="$JAVA_HOME/bin:$PATH"
 
 # Android Studio
@@ -227,9 +229,8 @@ export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
 
 export QT_QPA_PLATFORMTHEME=qt5ct
 
-# nodejs version manger (Volta)
-export VOLTA_HOME="$HOME/.volta"
-export PATH="$VOLTA_HOME/bin:$PATH"
+# nodejs version manger (fnm)
+eval "$(fnm env --use-on-cd --shell zsh)"
 
 # Add go PATH
 export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
@@ -238,3 +239,12 @@ source /home/zeyad/.config/broot/launcher/bash/br
 
 # Turso
 export PATH="$PATH:/home/zeyad/.turso"
+
+# Add Asdf 
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+
+# initialise completions with ZSH's compinit
+autoload -Uz compinit && compinit
+
+# add term arabic support
+export LANG=ar_SA.UTF-8
