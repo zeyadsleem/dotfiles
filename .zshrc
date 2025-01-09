@@ -106,6 +106,11 @@ setopt glob_dots     # no special treatment for file names with a leading dot
 setopt no_auto_menu  # require an extra TAB press to open the completion menu
 
 # start my custom configuration
+# man page color setup
+export BAT_THEME="Monokai Extended Bright"
+export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=\"$BAT_THEME\"'"
+export MANROFFOPT="-c"
+export GROFF_NO_SGR=1 
 
 # export editor
 export EDITOR='nvim'
