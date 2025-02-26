@@ -129,8 +129,6 @@ alias px='pnpx'
 alias t='tmux'
 alias ta='t a'
 alias gpt='tgpt'
-alias add-editor-config='~/.local/bin/scripts/editorconfig-cli.sh'
-alias add-phpcs='~/.local/bin/scripts/add-phpcs.sh'
 alias live='live-server'
 alias blackbox='gpt --provider blackboxai'
 alias android-emulator-run='gmtool admin start "Custom Phone"'
@@ -232,6 +230,12 @@ export QT_QPA_PLATFORMTHEME=qt5ct
 # nodejs version manger (fnm)
 eval "$(fnm env --use-on-cd --shell zsh)"
 
+# Add Asdf 
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+
+# initialise completions with ZSH's compinit
+autoload -Uz compinit && compinit
+
 # Add go PATH
 export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
 
@@ -239,12 +243,8 @@ source /home/zeyad/.config/broot/launcher/bash/br
 
 # Turso
 export PATH="$PATH:/home/zeyad/.turso"
+export GUILE_AUTO_COMPILE=0
 
-# Add Asdf 
-export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-
-# initialise completions with ZSH's compinit
-autoload -Uz compinit && compinit
-
-# add term arabic support
-export LANG=ar_SA.UTF-8
+# Php 
+export PATH="$HOME/.config/composer/vendor/bin:$PATH"
+export PHP_CS_FIXER_IGNORE_ENV=1
