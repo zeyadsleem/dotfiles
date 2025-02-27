@@ -248,3 +248,8 @@ export GUILE_AUTO_COMPILE=0
 # Php 
 export PATH="$HOME/.config/composer/vendor/bin:$PATH"
 export PHP_CS_FIXER_IGNORE_ENV=1
+
+# Open cursor 
+function cursor {
+  (nohup /usr/bin/cursor "$@" > /dev/null 2>&1 &)
+}
