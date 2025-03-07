@@ -1,8 +1,7 @@
 return {
-  -- إعداد LSP باستخدام intelephense
   {
     "neovim/nvim-lspconfig",
-    dependencies = { "nvim-telescope/telescope.nvim" }, -- إضافة Telescope كتبعية
+    dependencies = { "nvim-telescope/telescope.nvim" },
     opts = {
       servers = {
         intelephense = {
@@ -21,7 +20,6 @@ return {
           },
         },
       },
-      -- إعداد تعيين المفاتيح لـ Code Actions باستخدام Telescope
       setup = {
         intelephense = function(_, opts)
           vim.keymap.set("n", "<leader>ca", "<cmd>Telescope lsp_code_actions<CR>", {
@@ -37,19 +35,17 @@ return {
     },
   },
 
-  -- إعداد none-ls للتنسيق وفحص الأخطاء
   {
     "nvimtools/none-ls.nvim",
     optional = true,
     opts = function(_, opts)
       local nls = require("null-ls")
       opts.sources = opts.sources or {}
-      table.insert(opts.sources, nls.builtins.formatting.phpcbf) -- للتنسيق باستخدام phpcbf
-      table.insert(opts.sources, nls.builtins.diagnostics.phpcs) -- لفحص الأخطاء باستخدام phpcs
+      table.insert(opts.sources, nls.builtins.formatting.phpcbf)
+      table.insert(opts.sources, nls.builtins.diagnostics.phpcs)
     end,
   },
 
-  -- التأكد من تثبيت Telescope
   {
     "nvim-telescope/telescope.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },

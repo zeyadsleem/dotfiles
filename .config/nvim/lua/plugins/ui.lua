@@ -1,5 +1,4 @@
 return {
-  -- خط العمود الافتراضي لتوجيه طول السطر
   {
     "lukas-reineke/virt-column.nvim",
     opts = {
@@ -9,39 +8,36 @@ return {
     },
   },
 
-  -- تحسين واجهة الرسائل والأوامر (معطل افتراضيًا كما في إعداداتك)
   {
     "folke/noice.nvim",
     enabled = false,
     opts = {
       cmdline = {
-        view = "cmdline_popup", -- واجهة أفضل للأوامر عند تفعيلها
+        view = "cmdline_popup",
       },
       messages = {
-        view = "mini", -- عرض الرسائل بشكل مصغر
+        view = "mini",
       },
     },
   },
 
-  -- إظهار حالة LSP بشكل مرئي
   {
     "j-hui/fidget.nvim",
     opts = {
       notification = {
         window = {
-          winblend = 0, -- بدون شفافية كما في إعداداتك السابقة
+          winblend = 0,
           border = "rounded",
         },
       },
       progress = {
         display = {
-          done_icon = "✓", -- أيقونة أنيقة عند الانتهاء
+          done_icon = "✓",
         },
       },
     },
   },
 
-  -- نظام الإشعارات المخصص
   {
     "rcarriga/nvim-notify",
     opts = {
@@ -56,12 +52,11 @@ return {
       on_open = function(win)
         vim.api.nvim_win_set_config(win, { zindex = 100 })
       end,
-      stages = "fade", -- تأثير بسيط للظهور والاختفاء
-      background_colour = "#1e1e2e", -- لون خلفية متناسق
+      stages = "fade",
+      background_colour = "#1e1e2e",
     },
   },
 
-  -- إدارة التبويبات
   {
     "akinsho/bufferline.nvim",
     opts = {
@@ -69,15 +64,14 @@ return {
         mode = "tabs",
         show_buffer_close_icons = false,
         show_close_icon = false,
-        separator_style = "thin", -- فواصل أنيقة بين التبويبات
-        color_icons = true, -- ألوان للأيقونات لتسهيل التمييز
-        diagnostics = "nvim_lsp", -- إظهار تشخيصات LSP على التبويبات
-        always_show_bufferline = false, -- إخفاء الشريط عندما يكون هناك ملف واحد فقط
+        separator_style = "thin",
+        color_icons = true,
+        diagnostics = "nvim_lsp",
+        always_show_bufferline = false,
       },
     },
   },
 
-  -- إضافة شريط حالة أنيق (لم يكن في إعداداتك السابقة)
   {
     "nvim-lualine/lualine.nvim",
     opts = {
@@ -85,31 +79,15 @@ return {
         theme = "auto",
         component_separators = { left = "│", right = "│" },
         section_separators = { left = "", right = "" },
-        globalstatus = true, -- شريط حالة موحد
+        globalstatus = true,
       },
       sections = {
         lualine_a = { "mode" },
         lualine_b = { "branch", "diff" },
-        lualine_c = { { "filename", path = 1 } }, -- إظهار المسار النسبي
+        lualine_c = { { "filename", path = 1 } },
         lualine_x = { "diagnostics", "encoding", "filetype" },
         lualine_y = { "progress" },
         lualine_z = { "location" },
-      },
-    },
-  },
-
-  -- دعم Git (لم يكن في إعداداتك السابقة)
-  {
-    "lewis6991/gitsigns.nvim",
-    opts = {
-      signs = {
-        add = { text = "+" },
-        change = { text = "~" },
-        delete = { text = "_" },
-      },
-      current_line_blame = false, -- إظهار معلومات الـ blame في السطر الحالي
-      current_line_blame_opts = {
-        delay = 500,
       },
     },
   },

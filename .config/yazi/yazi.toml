@@ -18,5 +18,6 @@ sort_dir_first = true
 show_hidden = true
 
 [preview]
-max_width = 3024  # default = 600
-max_height = 1964 # default = 900
+max_width = 3024
+max_height = 1964
+cache_dir = "~/.cache/yazi"

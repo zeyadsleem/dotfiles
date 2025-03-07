@@ -1,0 +1,19 @@
+### Input configuration
+#
+# Touchpad configuration
+input type:touchpad {
+    dwt enabled
+    tap enabled
+    natural_scroll enabled
+}
+
+# Enable numlock by default
+input type:keyboard xkb_numlock enabled
+
+# Set keyboard layout to US and Arabic with Alt+Shift toggle
+input "type:keyboard" {
+    xkb_layout "us,ara"
+    xkb_options "grp:alt_shift_toggle"
+}
+
+bindsym Alt+Shift_L exec "pkill -RTMIN+1 waybar"
