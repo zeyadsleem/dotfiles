@@ -1,128 +1,65 @@
-# Personal Zsh configuration file. It is strongly recommended to keep all
-# shell customization and configuration (including exported environment
-# variables such as PATH) in this file or in files sourced from it.
-#
-# Documentation: https://github.com/romkatv/zsh4humans/blob/v5/README.md.
+# Personal Zsh Configuration
+# See: https://github.com/romkatv/zsh4humans/blob/v5/README.md
 
-# Periodic auto-update on Zsh startup: 'ask' or 'no'.
-# You can manually run `z4h update` to update everything.
-zstyle ':z4h:' auto-update      'no'
-# Ask whether to auto-update this often; has no effect if auto-update is 'no'.
-zstyle ':z4h:' auto-update-days '28'
-
-# Keyboard type: 'mac' or 'pc'.
-zstyle ':z4h:bindkey' keyboard  'pc'
-
-# Start tmux if not already in tmux.
-zstyle ':z4h:' start-tmux no
-
-# Check if tmux is already running
-if ! tmux has-session 2>/dev/null; then
-  # Start tmux if not already in tmux.
-  zstyle ':z4h:' start-tmux command tmux -u new -A -D -t z4h
-fi
-
-# Whether to move prompt to the bottom when zsh starts and on Ctrl+L.
+# z4h Settings
+zstyle ':z4h:' auto-update 'yes'
 zstyle ':z4h:' prompt-at-bottom 'no'
-
-# Mark up shell's output with semantic information.
+zstyle ':z4h:' auto-update-days '28'
+zstyle ':z4h:bindkey' keyboard 'pc'
 zstyle ':z4h:' term-shell-integration 'yes'
-
-# Right-arrow key accepts one character ('partial-accept') from
-# command autosuggestions or the whole thing ('accept')?
 zstyle ':z4h:autosuggestions' forward-char 'accept'
+zstyle ':z4h:fzf-complete' recurse-dirs 'yes'
+zstyle ':z4h:ssh:' enable 'no'
+zstyle ':z4h:ssh:example-hostname1' enable 'yes'
+zstyle ':z4h:' start-tmux command tmux -u new -A -D -t z4h
+zstyle ':z4h:ssh:' send-extra-files '/.nanorc' '/.env.zsh'
 
-# Recursively traverse directories when TAB-completing files.
-zstyle ':z4h:fzf-complete' recurse-dirs 'no'
-
-# Enable direnv to automatically source .envrc files.
-zstyle ':z4h:direnv'         enable 'no'
-# Show "loading" and "unloading" notifications from direnv.
-zstyle ':z4h:direnv:success' notify 'yes'
-
-# Enable ('yes') or disable ('no') automatic teleportation of z4h over
-# SSH when connecting to these hosts.
-zstyle ':z4h:ssh:example-hostname1'   enable 'yes'
-zstyle ':z4h:ssh:*.example-hostname2' enable 'no'
-# The default value if none of the overrides above match the hostname.
-zstyle ':z4h:ssh:*'                   enable 'no'
-
-# Send these files over to the remote host when connecting over SSH to the
-# enabled hosts.
-zstyle ':z4h:ssh:*' send-extra-files '~/.nanorc' '~/.env.zsh'
-
-# Clone additional Git repositories from GitHub.
-#
-# This doesn't do anything apart from cloning the repository and keeping it
-# up-to-date. Cloned files can be used after `z4h init`. This is just an
-# example. If you don't plan to use Oh My Zsh, delete this line.
-z4h install ohmyzsh/ohmyzsh || return
-
-# Install or update core components (fzf, zsh-autosuggestions, etc.) and
-# initialize Zsh. After this point console I/O is unavailable until Zsh
-# is fully initialized. Everything that requires user interaction or can
-# perform network I/O must be done above. Everything else is best done below.
+# Initialization
 z4h init || return
 
-# Extend PATH.
-path=(~/bin $path)
-
-# Export environment variables.
+# Environment Variables
 export GPG_TTY=$TTY
+export MANROFFOPT="-c"
+export PHP_CS_FIXER_IGNORE_ENV=1
+export BAT_THEME="Monokai Extended Bright"
+export PNPM_HOME="/home/zeyad/.local/share/pnpm"
+export BUN_INSTALL="$HOME/.bun"
+export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=\"$BAT_THEME\"'"
+export PATH="$HOME/bin:$PNPM_HOME:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 
-# Source additional local files if they exist.
+# Tool Setup
 z4h source ~/.env.zsh
+eval "$(zoxide init zsh)"
+eval "$(thefuck --alias)"
+. "/home/zeyad/.deno/env" # deno
+autoload -Uz compinit && compinit
+[ -s "/home/zeyad/.bun/_bun" ] && source "/home/zeyad/.bun/_bun"
+eval "$(fnm env --use-on-cd --shell zsh)"
 
-# Use additional Git repositories pulled in with `z4h install`.
-#
-# This is just an example that you should delete. It does nothing useful.
-z4h source ohmyzsh/ohmyzsh/lib/diagnostics.zsh  # source an individual file
-z4h load   ohmyzsh/ohmyzsh/plugins/emoji-clock  # load a plugin
-
-# Define key bindings.
-z4h bindkey z4h-backward-kill-word  Ctrl+Backspace     Ctrl+H
+# Key Bindings
+z4h bindkey redo Alt+/
+z4h bindkey undo Ctrl+/ Shift+Tab
+z4h bindkey z4h-cd-back Alt+Left
+z4h bindkey z4h-cd-up Alt+Up
+z4h bindkey z4h-cd-down Alt+Down
+z4h bindkey z4h-cd-forward Alt+Right
+z4h bindkey z4h-backward-kill-word Ctrl+Backspace Ctrl+H
 z4h bindkey z4h-backward-kill-zword Ctrl+Alt+Backspace
 
-z4h bindkey undo Ctrl+/ Shift+Tab  # undo the last command line change
-z4h bindkey redo Alt+/             # redo the last undone command line change
+# Shell Options
+setopt glob_dots no_auto_menu
 
-z4h bindkey z4h-cd-back    Alt+Left   # cd into the previous directory
-z4h bindkey z4h-cd-forward Alt+Right  # cd into the next directory
-z4h bindkey z4h-cd-up      Alt+Up     # cd into the parent directory
-z4h bindkey z4h-cd-down    Alt+Down   # cd into a child directory
+# Aliases
 
-# Autoload functions.
-autoload -Uz zmv
-
-# Define functions and completions.
-function md() { [[ $# == 1 ]] && mkdir -p -- "$1" && cd -- "$1" }
-compdef _directories md
-
-# Define named directories: ~w <=> Windows home directory on WSL.
-[[ -z $z4h_win_home ]] || hash -d w=$z4h_win_home
-
-# Set shell options: http://zsh.sourceforge.net/Doc/Release/Options.html.
-setopt glob_dots     # no special treatment for file names with a leading dot
-setopt no_auto_menu  # require an extra TAB press to open the completion menu
-
-# start my custom configuration
-
-# man page color setup
-export BAT_THEME="Monokai Extended Bright"
-export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=\"$BAT_THEME\"'"
-export MANROFFOPT="-c"
-export GROFF_NO_SGR=1 
-
-git_branch() {
-  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'
-}
-
-alias cd='z'
+## Directory navigation and listing
 alias c='clear'
+alias cd='z'
 alias ls='exa -laH --group-directories-first --icons --git'
 alias l='exa -aH --group-directories-first --icons --git'
-alias lsa='exa'
-alias lt="exa --tree --level=2  --icons --git"
+alias lt='exa --tree --level=2 --icons --git'
+alias zf='z $(zoxide query -l | fzf)'
+
+## Editors and tools
 alias v=$EDITOR
 alias pn='pnpm'
 alias px='pnpx'
@@ -130,124 +67,82 @@ alias t='tmux'
 alias ta='t a'
 alias gpt='tgpt'
 alias live='live-server'
-alias blackbox='gpt --provider blackboxai'
+
+## Android emulator
 alias android-emulator-run='gmtool admin start "Custom Phone"'
 alias android-emulator-stop='gmtool admin stop "Custom Phone"'
 
-# zoxide
-eval "$(zoxide init zsh)"
-
-# thefuck
-eval $(thefuck --alias)
-
-# cht.sh cheat sheet
-cht() {
-    eval cht.sh "$@" | less
-}
-
-# lazyGit 
-lg()
-{
-    export LAZYGIT_NEW_DIR_FILE=~/.lazygit/newdir
-
-    lazygit "$@"
-
-    if [ -f $LAZYGIT_NEW_DIR_FILE ]; then
-            cd "$(cat $LAZYGIT_NEW_DIR_FILE)"
-            rm -f $LAZYGIT_NEW_DIR_FILE > /dev/null
-    fi
-}
-
-# git alias 
+# Git commands
+# General
 alias g='git'
-alias clean='git clean -xdf'
-alias clone='gh repo clone'
-alias push='git push'
-alias pushupstream='git push --set-upstream origin $(git_branch)'
-alias pull='git pull'
-alias commit='git commit -m'
-alias amend='git add -u && git commit --amend --no-edit'
-alias fetch='git fetch && git status'
-function st {
-  git status | sed -n '/Your/,/^$/p'
-  git status -s && echo
-  git log --pretty=format:"%h - <%an> %s (%cr)" --date=relative -3 && echo
-}
+alias fetch='git fetch && git log HEAD..origin/$(git_branch) --oneline && git status -sb'
+
+# Commits
 alias addall='git add -A'
-alias br='git branch -vv'
-alias co='git checkout'
+alias wip='git add -A && git commit -m "WIP"'
 alias unstage='git reset HEAD'
-alias log='git log --pretty=format:"%h - <%an> %s (%cr)" --date=relative -10'
+alias undo='git reset --soft HEAD^'
+alias cm='git commit -m'
+alias amend='git add -u && git commit --amend'
+alias commit='git commit -m "$(date "+%Y-%m-%d %H:%M:%S") - "'
+
+# Branches
+alias br='git branch -vv'
+alias bd='git branch -D'
+alias bm='git branch -m'
+alias co='git checkout'
+alias bnew='git checkout -b'
+
+# Remote
+alias pu='git push'
+alias pull='git pull'
+alias remote='git remote -v'
+alias pullr='git pull --rebase'
+alias pushupstream='git push --set-upstream origin $(git_branch)'
+
+# Stash
 alias stash='git stash save'
 alias unstash='git stash pop'
 alias stashes='git stash list'
+
+# Logs and Diff
+alias diff='git diff --color-words'
+alias log='git log --graph --pretty=format:"%h - <%an> %s (%cr)" --date=relative -10'
+
+## Advanced
+alias clean='git clean -xdf'
+alias clone='gh repo clone'
 alias pick='git cherry-pick'
-alias trackedbranch='git rev-parse --abbrev-ref --symbolic-full-name @{u}'
+alias pickf='git cherry-pick $(git log --oneline -50 | fzf --preview "git show --color-words {1}" | cut -d" " -f1)'
 
-# add yazi terminal file manger
-function yy() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-	yazi "$@" --cwd-file="$tmp"
-	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-		cd -- "$cwd"
-	fi
-	rm -f -- "$tmp"
+# Functions
+md() {
+  [[ $# == 1 ]] && mkdir -p -- "$1" && cd -- "$1"
 }
+compdef _directories md
 
-# pnpm
-export PNPM_HOME="/home/zeyad/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
-
-# Js/Ts server run time
-# bun completions
-[ -s "/home/zeyad/.bun/_bun" ] && source "/home/zeyad/.bun/_bun"
-
-# Bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# Deno
-. "/home/zeyad/.deno/env"
-
-# Java
-export JAVA_HOME="/usr/lib/jvm/java-17-openjdk/"
-export PATH="$JAVA_HOME/bin:$PATH"
-
-# Android Studio
-export ANDROID_HOME=$HOME/Android/Sdk
-export PATH=$PATH:$ANDROID_HOME/emulator
-export PATH=$PATH:$ANDROID_HOME/tools
-export PATH=$PATH:$ANDROID_HOME/tools/bin
-export PATH=$PATH:$ANDROID_HOME/platform-tools
-export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
-
-export QT_QPA_PLATFORMTHEME=qt5ct
-
-# nodejs version manger (fnm)
-eval "$(fnm env --use-on-cd --shell zsh)"
-
-# Add Asdf 
-export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-
-# initialise completions with ZSH's compinit
-autoload -Uz compinit && compinit
-
-# Add go PATH
-export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
-
-# Turso
-export PATH="$PATH:/home/zeyad/.turso"
-export GUILE_AUTO_COMPILE=0
-
-# Php 
-export PATH="$HOME/.config/composer/vendor/bin:$PATH"
-export PHP_CS_FIXER_IGNORE_ENV=1
-
-# Open cursor 
-function cursor {
+cursor() {
   (nohup /usr/bin/cursor "$@" > /dev/null 2>&1 &)
 }
+
+st() {
+  git status -sb
+  git log --oneline --decorate --color=always -3
+}
+
+lg() {
+  export LAZYGIT_NEW_DIR_FILE=~/.lazygit/newdir
+  lazygit "$@"
+  [ -f $LAZYGIT_NEW_DIR_FILE ] && cd "$(cat $LAZYGIT_NEW_DIR_FILE)" && rm -f $LAZYGIT_NEW_DIR_FILE
+}
+
+yy() {
+  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+  yazi "$@" --cwd-file="$tmp"
+  [ -n "$(cat -- "$tmp")" ] && cd "$(cat -- "$tmp")"
+  rm -f -- "$tmp"
+}
+
+# Autoload
+autoload -Uz zmv
+[[ -z $z4h_win_home ]] || hash -d w=$z4h_win_home
