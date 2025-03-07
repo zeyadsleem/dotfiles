@@ -1,0 +1,3 @@
+#!/bin/bash
+pkill swaybg
+swaybg -i "${HOME}/.config/background.jpg" -m fill &

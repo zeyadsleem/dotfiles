@@ -239,8 +239,6 @@ autoload -Uz compinit && compinit
 # Add go PATH
 export PATH="$PATH:$(go env GOBIN):$(go env GOPATH)/bin"
 
-source /home/zeyad/.config/broot/launcher/bash/br
-
 # Turso
 export PATH="$PATH:/home/zeyad/.turso"
 export GUILE_AUTO_COMPILE=0
