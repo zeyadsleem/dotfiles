@@ -1,22 +1,19 @@
 {
     "layer": "top",
     "position": "bottom",
-    "spacing": 16,
-
-    // Configuration - modules-left
+    "spacing": 8,
+    "height": 18,
     "modules-left": [
         "custom/launcher",
         "sway/workspaces",
         "sway/mode",
         "sway/window"
     ],
-
     "custom/launcher": {
         "format": "<span size='x-large'></span>",
         "on-click": "exec nwg-drawer",
         "tooltip": false
     },
-
     "sway/workspaces": {
         "disable-scroll": true,
         "all-outputs": true,
@@ -32,22 +29,17 @@
             "10": "10"
         }
     },
-
     "sway/mode": {
         "format": "<span style=\"italic\">{}</span>",
         "tooltip": false
     },
-
     "sway/window": {
         "format": "{}",
         "max-length": 120
     },
-
-    // Configuration - modules-center
     "modules-center": [
         "network"
     ],
-
     "network": {
         "format-disabled": " Disabled",
         "format-wifi": " {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣",
@@ -58,8 +50,6 @@
         "on-click": "footclient -T waybar_nmtui -e nmtui",
         "interval": 2
     },
-
-    // Configuration - modules-right
     "modules-right": [
         "custom/keyboard-layout",
         "idle_inhibitor",
@@ -72,7 +62,6 @@
         "tray",
         "custom/power"
     ],
-
     "custom/keyboard-layout": {
         "exec": "~/.config/waybar/scripts/keyboard_layout.sh",
         "format": "{}",
@@ -81,7 +70,6 @@
         "return-type": "json",
         "exec-on-event": true
     },
-
     "idle_inhibitor": {
         "format": "{icon}",
         "format-icons": {
@@ -91,7 +79,6 @@
         "tooltip-format-activated": "Idle Inhibitor Activated",
         "tooltip-format-deactivated": "Idle Inhibitor Deactivated"
     },
-
     "cpu": {
         "interval": 5,
         "format": "{usage:>3}%",
@@ -101,17 +88,15 @@
         },
         "on-click": "footclient -T waybar_htop -e htop"
     },
-
     "memory": {
         "interval": 5,
-        "format": "  {:>3}%",
+        "format": " {:>3}%",
         "on-click": "footclient -T waybar_htop -e htop",
         "states": {
             "warning": 70,
             "critical": 90
         }
     },
-
     "backlight": {
         "format": "{icon} {percent}%",
         "format-icons": ["󰄰", "󰪞", "󰪟", "󰪠", "󰪡", "󰪢", "󰪣", "󰪤", "󰪥"],
@@ -119,7 +104,6 @@
         "on-scroll-down": "brightnessctl -c backlight set 5%-",
         "on-scroll-up": "brightnessctl -c backlight set +5%"
     },
-
     "pulseaudio": {
         "scroll-step": 2,
         "format": "{icon} {volume}%",
@@ -135,7 +119,6 @@
         },
         "on-click": "pavucontrol"
     },
-
     "battery": {
         "states": {
             "warning": 30,
@@ -144,7 +127,6 @@
         "format": "{icon} {capacity}%",
         "format-icons": ["", "", "", "", ""]
     },
-
     "clock": {
         "format": "󰅐 {:%H:%M}",
         "format-alt": "󰅐 {:%OI:%M %p}",
@@ -164,12 +146,10 @@
             "on-scroll-down": "shift_down"
         }
     },
-
     "tray": {
         "icon-size": 16,
         "spacing": 10
     },
-
     "custom/power": {
         "format": "⏻",
         "on-click": "exec ~/.config/sway/scripts/power_menu.sh",

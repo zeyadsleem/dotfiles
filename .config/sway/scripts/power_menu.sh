@@ -9,26 +9,32 @@ confirm_action() {
 }
 
 case $SELECTION in
-    *"󰌾 Lock"*)
-        gtklock;;
-    *"󰤄 Suspend"*)
-        if confirm_action "Suspend"; then
-            systemctl suspend
-        fi;;
-    *"󰍃 Log out"*)
-        if confirm_action "Log out"; then
-            swaymsg exit
-        fi;;
-    *" Reboot"*)
-        if confirm_action "Reboot"; then
-            systemctl reboot
-        fi;;
-    *" Reboot to UEFI"*)
-        if confirm_action "Reboot to UEFI"; then
-            systemctl reboot --firmware-setup
-        fi;;
-    *"󰐥 Shutdown"*)
-        if confirm_action "Shutdown"; then
-            systemctl poweroff
-        fi;;
+*"󰌾 Lock"*)
+    gtklock
+    ;;
+*"󰤄 Suspend"*)
+    if confirm_action "Suspend"; then
+        systemctl suspend
+    fi
+    ;;
+*"󰍃 Log out"*)
+    if confirm_action "Log out"; then
+        swaymsg exit
+    fi
+    ;;
+*" Reboot"*)
+    if confirm_action "Reboot"; then
+        systemctl reboot
+    fi
+    ;;
+*" Reboot to UEFI"*)
+    if confirm_action "Reboot to UEFI"; then
+        systemctl reboot --firmware-setup
+    fi
+    ;;
+*"󰐥 Shutdown"*)
+    if confirm_action "Shutdown"; then
+        systemctl poweroff
+    fi
+    ;;
 esac

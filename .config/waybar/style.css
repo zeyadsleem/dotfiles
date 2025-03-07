@@ -17,7 +17,6 @@
     70% {
         color: white;
     }
-
     to {
         color: white;
         background-color: orange;
@@ -28,7 +27,6 @@
     70% {
       color: white;
     }
-
     to {
         color: white;
         background-color: red;
@@ -69,7 +67,7 @@
 #battery,
 #clock,
 #tray {
-    padding:0.5rem 0.6rem;
+    padding:0 4px;
     margin: 1px 0px;
 }
 
@@ -135,7 +133,7 @@
 
 #memory.warning {
     color: orange;
- }
+}
 
 #memory.critical {
     color: red;
