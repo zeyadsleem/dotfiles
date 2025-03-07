@@ -1,7 +1,7 @@
 {
     "layer": "top",
     "position": "bottom",
-    "spacing": 8,
+    "spacing": 12,
     "height": 18,
     "modules-left": [
         "custom/launcher",
@@ -37,19 +37,19 @@
         "format": "{}",
         "max-length": 120
     },
-    "modules-center": [
-        "network"
-    ],
-    "network": {
-        "format-disabled": " Disabled",
-        "format-wifi": " {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣",
-        "tooltip-format-wifi": "{essid}",
-        "format-ethernet": "󰈀 {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣",
-        "tooltip-format-ethernet": "{ifname}: {ipaddr}/{cidr}",
-        "format-disconnected": " Disconnected",
-        "on-click": "footclient -T waybar_nmtui -e nmtui",
-        "interval": 2
-    },
+    // "modules-center": [
+    //     "network"
+    // ],
+    // "network": {
+    //     "format-disabled": " Disabled",
+    //     "format-wifi": " {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣",
+    //     "tooltip-format-wifi": "{essid}",
+    //     "format-ethernet": "󰈀 {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣",
+    //     "tooltip-format-ethernet": "{ifname}: {ipaddr}/{cidr}",
+    //     "format-disconnected": " Disconnected",
+    //     "on-click": "footclient -T waybar_nmtui -e nmtui",
+    //     "interval": 2
+    // },
     "modules-right": [
         "custom/keyboard-layout",
         "idle_inhibitor",
@@ -99,7 +99,17 @@
     },
     "backlight": {
         "format": "{icon} {percent}%",
-        "format-icons": ["󰄰", "󰪞", "󰪟", "󰪠", "󰪡", "󰪢", "󰪣", "󰪤", "󰪥"],
+        "format-icons": [
+            "󰄰",
+            "󰪞",
+            "󰪟",
+            "󰪠",
+            "󰪡",
+            "󰪢",
+            "󰪣",
+            "󰪤",
+            "󰪥"
+        ],
         "tooltip-format": "Backlight (Scroll): {percent:}%",
         "on-scroll-down": "brightnessctl -c backlight set 5%-",
         "on-scroll-up": "brightnessctl -c backlight set +5%"
@@ -115,7 +125,11 @@
             "phone": "",
             "portable": "",
             "car": "",
-            "default": ["󰕿", "󰖀", "󰕾"]
+            "default": [
+                "󰕿",
+                "󰖀",
+                "󰕾"
+            ]
         },
         "on-click": "pavucontrol"
     },
@@ -125,7 +139,13 @@
             "critical": 15
         },
         "format": "{icon} {capacity}%",
-        "format-icons": ["", "", "", "", ""]
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            ""
+        ]
     },
     "clock": {
         "format": "󰅐 {:%H:%M}",
