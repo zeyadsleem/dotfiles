@@ -8,7 +8,7 @@ zstyle ':z4h:' auto-update-days '28'
 zstyle ':z4h:bindkey' keyboard 'pc'
 zstyle ':z4h:' term-shell-integration 'yes'
 zstyle ':z4h:autosuggestions' forward-char 'accept'
-zstyle ':z4h:fzf-complete' recurse-dirs 'yes'
+zstyle ':z4h:fzf-complete' recurse-dirs 'no'
 zstyle ':z4h:ssh:' enable 'no'
 zstyle ':z4h:ssh:example-hostname1' enable 'yes'
 zstyle ':z4h:' start-tmux command tmux -u new -A -D -t z4h
@@ -94,7 +94,7 @@ alias co='git checkout'
 alias bnew='git checkout -b'
 
 # Remote
-alias pu='git push'
+alias push='git push'
 alias pull='git pull'
 alias remote='git remote -v'
 alias pullr='git pull --rebase'
