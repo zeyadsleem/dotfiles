@@ -1,5 +1,61 @@
 return {
-  { "lukas-reineke/virt-column.nvim", opts = {} },
+  {
+    "lukas-reineke/virt-column.nvim",
+    opts = {
+      char = { "┆" },
+      virtcolumn = "80",
+      highlight = { "NonText" },
+    },
+  },
+
+  {
+    "folke/noice.nvim",
+    enabled = false,
+    opts = {
+      cmdline = {
+        view = "cmdline_popup",
+      },
+      messages = {
+        view = "mini",
+      },
+    },
+  },
+
+  {
+    "j-hui/fidget.nvim",
+    opts = {
+      notification = {
+        window = {
+          winblend = 0,
+          border = "rounded",
+        },
+      },
+      progress = {
+        display = {
+          done_icon = "✓",
+        },
+      },
+    },
+  },
+
+  {
+    "rcarriga/nvim-notify",
+    opts = {
+      timeout = 500,
+      render = "compact",
+      max_height = function()
+        return math.floor(vim.o.lines * 0.75)
+      end,
+      max_width = function()
+        return math.floor(vim.o.columns * 0.25)
+      end,
+      on_open = function(win)
+        vim.api.nvim_win_set_config(win, { zindex = 100 })
+      end,
+      stages = "fade",
+      background_colour = "#1e1e2e",
+    },
+  },
 
   {
     "akinsho/bufferline.nvim",

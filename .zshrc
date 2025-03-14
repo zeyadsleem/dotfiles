@@ -23,7 +23,6 @@ z4h init || return
 # Environment Variables
 export GPG_TTY=$TTY
 export MANROFFOPT="-c"
-export PHP_CS_FIXER_IGNORE_ENV=1
 export BAT_THEME="Monokai Extended Bright"
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 export BUN_INSTALL="$HOME/.bun"

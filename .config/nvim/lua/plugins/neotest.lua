@@ -1,7 +1,7 @@
 return {
-  { "olimorris/neotest-phpunit" },
-  {
-    "nvim-neotest/neotest",
-    opts = { adapters = { "neotest-phpunit" } },
-  },
+  -- { "olimorris/neotest-phpunit" },
+  -- {
+  --   "nvim-neotest/neotest",
+  --   opts = { adapters = { "neotest-phpunit" } },
+  -- },
 }
