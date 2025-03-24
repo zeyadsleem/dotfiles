@@ -27,12 +27,11 @@ export BAT_THEME="Monokai Extended Bright"
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 export BUN_INSTALL="$HOME/.bun"
 export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=\"$BAT_THEME\"'"
-export PATH="$HOME/bin:$PNPM_HOME:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+export PATH="$HOME/bin:$PNPM_HOME:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH"
 
 # Tool Setup
 z4h source ~/.env.zsh
 eval "$(zoxide init zsh)"
-eval "$(thefuck --alias)"
 . "/home/zeyad/.deno/env" # deno
 autoload -Uz compinit && compinit
 [ -s "/home/zeyad/.bun/_bun" ] && source "/home/zeyad/.bun/_bun"
@@ -58,7 +57,7 @@ alias c='clear'
 alias cd='z'
 alias ls='exa -laH --group-directories-first --icons --git'
 alias l='exa -aH --group-directories-first --icons --git'
-alias lt='exa --tree --level=2 --icons --git'
+alias lt='exa -a --tree --level=2 --icons --git'
 alias zf='z $(zoxide query -l | fzf)'
 
 ## Editors and tools
@@ -69,6 +68,7 @@ alias t='tmux'
 alias ta='t a'
 alias gpt='tgpt'
 alias live='live-server'
+alias docker='podman'
 
 ## Android emulator
 alias android-emulator-run='gmtool admin start "Custom Phone"'
