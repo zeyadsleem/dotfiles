@@ -32,3 +32,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   end,
 })
 vim.lsp.inlay_hint.enable(true)
+
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+  border = "rounded",
+})
