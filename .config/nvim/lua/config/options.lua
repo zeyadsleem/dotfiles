@@ -1,7 +1,7 @@
 -- Options are automatically loaded before lazy.nvim startup
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
 
--- trern it on when you need to remove underline border
+-- Turn it on when you need to remove underline border
 -- vim.opt.cmdheight = 0
 
 -- Add any additional options here
@@ -24,6 +24,10 @@ vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 
+-- LSP Server to use for PHP.
+-- Set to "intelephense" to use intelephense instead of phpactor.
+vim.g.lazyvim_php_lsp = "intelephense"
+
 -- add custom color to inlay hints
 vim.api.nvim_create_autocmd("ColorScheme", {
   pattern = "*",
@@ -34,5 +38,16 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 vim.lsp.inlay_hint.enable(true)
 
 vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+  border = "rounded",
+})
+
+vim.diagnostic.config({
+  float = {
+    border = "rounded",
+    source = true,
+  },
+})
+
+vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
   border = "rounded",
 })
