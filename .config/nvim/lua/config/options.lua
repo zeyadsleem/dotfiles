@@ -1,10 +1,3 @@
--- Options are automatically loaded before lazy.nvim startup
--- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
-
--- Turn it on when you need to remove underline border
--- vim.opt.cmdheight = 0
-
--- Add any additional options here
 vim.opt.number = true
 vim.opt.relativenumber = false
 vim.opt.ambiwidth = "single"
@@ -35,19 +28,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
     vim.api.nvim_set_hl(0, "LspInlayHint", { fg = "#a0a0a0", force = true })
   end,
 })
+
 vim.lsp.inlay_hint.enable(true)
 
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-  border = "rounded",
-})
-
-vim.diagnostic.config({
-  float = {
-    border = "rounded",
-    source = true,
-  },
-})
-
-vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-  border = "rounded",
-})
+vim.o.winborder = "rounded"
