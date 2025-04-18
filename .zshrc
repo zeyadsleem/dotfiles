@@ -27,7 +27,8 @@ export BAT_THEME="Monokai Extended Bright"
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 export BUN_INSTALL="$HOME/.bun"
 export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=\"$BAT_THEME\"'"
-export PATH="$HOME/bin:$PNPM_HOME:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH"
+export PATH="$HOME/bin:$PNPM_HOME:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH:$HOME/Android/Sdk/platform-tools:$PATH"
+export PHP_CS_FIXER_IGNORE_ENV=1
 
 # Tool Setup
 z4h source ~/.env.zsh

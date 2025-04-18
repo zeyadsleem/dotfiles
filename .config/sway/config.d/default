@@ -209,6 +209,8 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
     # Delete an entry from the clipboard manager
     bindsym $mod+x exec cliphist list | fuzzel -d -w 50 -l 15 -t cc9393ff -S cc9393ff -p "Select an entry to delete it from cliphist:  "| cliphist delete
     # Note: you can clear all cliphist entries by running `cliphist wipe`
+    
+    # Launch the Emoji picker
 
 #
 # Screenshots
