@@ -12,10 +12,10 @@ zstyle ':z4h:fzf-complete' recurse-dirs 'no'
 zstyle ':z4h:ssh:' enable 'no'
 zstyle ':z4h:ssh:example-hostname1' enable 'yes'
 zstyle ':z4h:ssh:' send-extra-files '/.nanorc' '/.env.zsh'
-zstyle ':z4h:' start-tmux no
-if ! tmux has-session 2>/dev/null; then
-  zstyle ':z4h:' start-tmux command tmux -u new -A -D -t z4h
-fi
+# zstyle ':z4h:' start-tmux no
+# if ! tmux has-session 2>/dev/null; then
+#   zstyle ':z4h:' start-tmux command tmux -u new -A -D -t z4h
+# fi
 
 # Initialization
 z4h init || return
