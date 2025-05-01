@@ -21,9 +21,7 @@ zstyle ':z4h:ssh:' send-extra-files '/.nanorc' '/.env.zsh'
 z4h init || return
 
 # Environment Variables
-export GPG_TTY=$TTY
 export MANROFFOPT="-c"
-export BAT_THEME="Monokai Extended Bright"
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 export BUN_INSTALL="$HOME/.bun"
 export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=\"$BAT_THEME\"'"
