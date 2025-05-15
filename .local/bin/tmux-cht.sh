@@ -9,7 +9,7 @@ read -p "Enter Query: " query
 
 if grep -qs "$selected" ~/.config/tmux/.tmux-cht-languages; then
     query=$(echo $query | tr ' ' '+')
-    tmux neww bash -c "curl -s cht.sh/$selected/$query | most"
+    tmux neww bash -c "curl -s cht.sh/$selected/$query | moar"
 else
-    tmux neww bash -c "curl -s cht.sh/$selected~$query | most"
+    tmux neww bash -c "curl -s cht.sh/$selected~$query | moar"
 fi

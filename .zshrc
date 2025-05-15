@@ -22,9 +22,9 @@ z4h init || return
 
 # Environment Variables
 export MANROFFOPT="-c"
+export MANPAGER=moar
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 export BUN_INSTALL="$HOME/.bun"
-export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=\"$BAT_THEME\"'"
 export PATH="$HOME/bin:$PNPM_HOME:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH:$HOME/Android/Sdk/platform-tools:$PATH"
 export PHP_CS_FIXER_IGNORE_ENV=1
 
@@ -71,7 +71,6 @@ alias docker='podman'
 
 ## Android emulator
 alias android-emulator-run='gmtool admin start "Custom Phone"'
-alias android-emulator-stop='gmtool admin stop "Custom Phone"'
 
 # Git commands
 # General
