@@ -12,23 +12,12 @@ vim.opt.guifont = "DejaVu Sans Mono:h11"
 vim.opt.encoding = "utf-8"
 vim.opt.fileencoding = "utf-8"
 
-vim.opt.number = true
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
+vim.o.winborder = "rounded"
 
--- LSP Server to use for PHP.
+vim.lsp.inlay_hint.enable(false)
+
 -- Set to "intelephense" to use intelephense instead of phpactor.
 vim.g.lazyvim_php_lsp = "intelephense"
-
--- add custom color to inlay hints
-vim.api.nvim_create_autocmd("ColorScheme", {
-  pattern = "*",
-  callback = function()
-    vim.api.nvim_set_hl(0, "LspInlayHint", { fg = "#a0a0a0", force = true })
-  end,
-})
-
-vim.lsp.inlay_hint.enable(true)
-
-vim.o.winborder = "rounded"
