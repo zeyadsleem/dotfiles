@@ -70,6 +70,7 @@
     "modules-right": [
         "custom/keyboard-layout",
         "idle_inhibitor",
+        "custom/next_prayer",
         "cpu",
         "memory",
         "backlight",
@@ -79,6 +80,14 @@
         "tray",
         "custom/power"
     ],
+
+
+    "custom/next_prayer": {
+        "exec": "~/.config/sway/scripts/next_prayer.py",
+        "interval": 60,
+        "format": "{}",
+        "tooltip": "الصلاة القادمة"
+    },
 
     "custom/keyboard-layout": {
       	"exec": "i=$(swaymsg -t get_inputs); echo \"\"; echo \"$i\" | grep -m1 'xkb_active_layout_name' | cut -d '\"' -f4",

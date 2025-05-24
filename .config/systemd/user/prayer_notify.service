@@ -1,0 +1,9 @@
+[Unit]
+Description=Prayer notification service
+
+[Service]
+ExecStart=%h/.config/sway/scripts/prayer_notify.py
+Restart=always
+
+[Install]
+WantedBy=default.target

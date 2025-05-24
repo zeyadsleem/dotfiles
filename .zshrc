@@ -1,6 +1,9 @@
 # Personal Zsh Configuration
 # See: https://github.com/romkatv/zsh4humans/blob/v5/README.md
 
+setopt INC_APPEND_HISTORY
+setopt SHARE_HISTORY
+
 # z4h Settings
 zstyle ':z4h:' auto-update 'yes'
 zstyle ':z4h:' prompt-at-bottom 'no'
