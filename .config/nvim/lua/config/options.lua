@@ -12,6 +12,7 @@ vim.opt.guifont = "DejaVu Sans Mono:h11"
 vim.opt.encoding = "utf-8"
 vim.opt.fileencoding = "utf-8"
 
+vim.opt.cmdheight = 0
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true

@@ -24,6 +24,7 @@ zstyle ':z4h:ssh:' send-extra-files '/.nanorc' '/.env.zsh'
 z4h init || return
 
 # Environment Variables
+export BROWSER=google-chrome-stable
 export MANROFFOPT="-c"
 export MANPAGER=moar
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
