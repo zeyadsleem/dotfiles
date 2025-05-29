@@ -42,7 +42,7 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
     bindsym $mod+f1 exec gtklock
 
     # Activities
-    bindsym $mod+p exec ~/.config/sway/scripts/window_switcher.sh
+    bindsym $mod+p exec cerebro
 
     # Move windows by holding down $mod and left mouse button.
     # Resize them with right mouse button + $mod.
