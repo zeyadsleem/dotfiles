@@ -205,7 +205,7 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
     bindsym $mod+n exec thunar
 
     # Launch the browser
-    bindsym $mod+o exec google-chrome-stable
+    bindsym $mod+o exec brave
 
     # Launch the clipboard manager
     bindsym $mod+c exec cliphist list | fuzzel -d -w 50 -l 15 -p "Select from clipboard:  " | cliphist decode | wl-copy
