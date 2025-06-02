@@ -27,9 +27,10 @@ z4h init || return
 export BROWSER=brave
 export MANROFFOPT="-c"
 export MANPAGER=moar
+export JS_RUNTIMES="/home/zeyad/.jsvu/bin/"
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 export BUN_INSTALL="$HOME/.bun"
-export PATH="$HOME/bin:$PNPM_HOME:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH:$HOME/Android/Sdk/platform-tools:$PATH"
+export PATH="$HOME/bin:$PNPM_HOME:$JS_RUNTIMES:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH:$HOME/Android/Sdk/platform-tools:$PATH"
 export PHP_CS_FIXER_IGNORE_ENV=1
 
 # Tool Setup
