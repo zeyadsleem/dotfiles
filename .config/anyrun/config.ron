@@ -1,0 +1,22 @@
+Config(
+  x: Fraction(0.5),
+  y: Absolute(300),
+  width: Absolute(800),
+  height: Absolute(0),
+  hide_icons: false, 
+  ignore_exclusive_zones: false, 
+  layer: Overlay, 
+  hide_plugin_info: false, 
+  close_on_click: false,
+  show_results_immediately: true,
+  max_entries: None,
+  
+  plugins: [
+    "libsymbols.so",
+    "libwebsearch.so",
+    "librink.so",
+    "libapplications.so",
+    "libtranslate.so",
+  ],
+)
+
