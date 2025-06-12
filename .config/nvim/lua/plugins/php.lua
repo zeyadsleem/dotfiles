@@ -1,21 +1,53 @@
 return {
   {
+    -- Set Laravel Pint as the default PHP formatter with PHP CS Fixer as a fall back.
+    "stevearc/conform.nvim",
+    optional = true,
+    opts = {},
+  },
+  {
+    -- Remove phpcs linter.
+    "mfussenegger/nvim-lint",
+    optional = true,
+    opts = {
+      linters_by_ft = {
+        php = {},
+      },
+    },
+  },
+  {
+    -- Add neotest-pest plugin for running PHP tests.
+    -- A package is also available for PHPUnit if needed.
+    "nvim-neotest/neotest",
+    dependencies = { "V13Axel/neotest-pest" },
+    opts = { adapters = { "neotest-pest" } },
+  },
+  {
+    -- Add a Treesitter parser for Laravel Blade to provide Blade syntax highlighting.
     "nvim-treesitter/nvim-treesitter",
     opts = function(_, opts)
-      opts.ensure_installed = opts.ensure_installed or {}
-      vim.list_extend(opts.ensure_installed, { "php", "blade" })
+      vim.list_extend(opts.ensure_installed, {
+        "blade",
+        "php_only",
+      })
+    end,
+    config = function(_, opts)
+      vim.filetype.add({
+        pattern = {
+          [".*%.blade%.php"] = "blade",
+        },
+      })
 
+      require("nvim-treesitter.configs").setup(opts)
       local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-      if not parser_config.blade then
-        parser_config.blade = {
-          install_info = {
-            url = "https://github.com/EmranMR/tree-sitter-blade",
-            files = { "src/parser.c" },
-            branch = "main",
-          },
-          filetype = "blade",
-        }
-      end
+      parser_config.blade = {
+        install_info = {
+          url = "https://github.com/EmranMR/tree-sitter-blade",
+          files = { "src/parser.c" },
+          branch = "main",
+        },
+        filetype = "blade",
+      }
     end,
   },
 }

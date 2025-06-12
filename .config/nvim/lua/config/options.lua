@@ -1,24 +1,18 @@
-vim.opt.number = true
-vim.opt.relativenumber = false
-vim.opt.ambiwidth = "single"
-vim.opt.termbidi = true
+local opt = vim.opt
 
-vim.opt.list = false
-vim.opt.listchars:append("space:⋅")
-vim.opt.listchars:append("eol:↴")
+opt.tabstop = 4
+opt.shiftwidth = 4
+opt.expandtab = true
 
-vim.opt.termguicolors = true
-vim.opt.guifont = "DejaVu Sans Mono:h11"
-vim.opt.encoding = "utf-8"
-vim.opt.fileencoding = "utf-8"
-
-vim.opt.cmdheight = 0
-vim.opt.tabstop = 4
-vim.opt.shiftwidth = 4
-vim.opt.expandtab = true
+opt.ambiwidth = "single"
+opt.termbidi = true
+opt.list = false
+opt.listchars:append("space:⋅")
+opt.listchars:append("eol:↴")
+opt.termguicolors = true
+opt.guifont = "DejaVu Sans Mono:h11"
+opt.encoding = "utf-8"
+opt.fileencoding = "utf-8"
+opt.cmdheight = 0
 vim.o.winborder = "rounded"
-
-vim.lsp.inlay_hint.enable(false)
-
--- Set to "intelephense" to use intelephense instead of phpactor.
 vim.g.lazyvim_php_lsp = "intelephense"

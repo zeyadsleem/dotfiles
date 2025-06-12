@@ -1,29 +1,19 @@
 return {
   "stevearc/oil.nvim",
-  opts = {
-    view_options = {
-      show_hidden = true,
-      is_hidden_file = function(name, bufnr)
-        return name:match("^%.") ~= nil
+  dependencies = { "nvim-tree/nvim-web-devicons" },
+  keys = {
+    {
+      "-",
+      function()
+        require("oil").open()
       end,
-      is_always_hidden = function(name, bufnr)
-        return false
-      end,
-      natural_order = "fast",
-      case_insensitive = false,
-      sort = {
-        { "type", "asc" },
-        { "name", "asc" },
-      },
-    },
-
-    float = {
-      get_win_title = nil,
-      preview_split = "right",
-      override = function(conf)
-        return conf
-      end,
+      desc = "[F]ormat buffer",
     },
   },
-  vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" }),
+  opts = {
+    default_file_explorer = true,
+    view_options = {
+      show_hidden = true,
+    },
+  },
 }
