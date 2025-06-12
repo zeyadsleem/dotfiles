@@ -13,11 +13,13 @@ for_window [window_role="About"] floating enable
 for_window [title="File Operation Progress"] floating enable, border pixel 1, sticky enable, resize set width 40 ppt height 30 ppt
 for_window [app_id="floating_shell_portrait"] floating enable, border pixel 1, sticky enable, resize set width 30 ppt height 40 ppt
 for_window [title="Picture in picture"] floating enable, sticky enable
-for_window [title="waybar_btop"] floating enable, resize set width 70 ppt height 80 ppt
+for_window [title="waybar_btop"] floating enable, resize set width 90 ppt height 80 ppt
 for_window [title="waybar_nmtui"] floating enable
 for_window [title="Save File"] floating enable
 for_window [app_id="firefox" title="Firefox — Sharing Indicator"] kill
+for_window [app_id="brave" title="Brave — Sharing Indicator"] kill
 
 # Inhibit idle
 for_window [app_id="firefox"] inhibit_idle fullscreen
 for_window [app_id="Chromium"] inhibit_idle fullscreen
+for_window [app_id="brave"] inhibit_idle fullscreen

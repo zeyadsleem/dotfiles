@@ -11,7 +11,7 @@ set $right l
 set $term kitty
 
 # Application launcher
-set $launcher fuzzel
+set $launcher anyrun
 
 # Application menu
 set $menu nwg-drawer
