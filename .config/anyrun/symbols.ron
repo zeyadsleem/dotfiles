@@ -1,7 +1,9 @@
 Config(
   prefix: "",
   symbols: {
+    "shrug": "¯\\_(ツ)_/¯",
     "heart": "❤️",
+    "tableflip": "(╯°□°）╯︵ ┻━┻",
   },
   max_entries: 5,
 )

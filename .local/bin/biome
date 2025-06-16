@@ -1,0 +1,21 @@
+#!/bin/bash
+
+cat >.biomerc.json <<EOF
+{
+  "rules": {
+    "accessibility/noAccessKey": "error",
+    "accessibility/noAriaHiddenOnFocusable": "error",
+    "accessibility/noTargetBlankWithoutRel": "error",
+    "accessibility/altText": "warn",
+    "complexity/noEmptyBlock": "error",
+    "complexity/preferForOf": "warn",
+    "complexity/maxFunctionComplexity": ["error", 10]
+  },
+  "formatter": {
+    "indentWidth": 4,
+    "lineWidth": 80
+  }
+}
+EOF
+
+echo "Biome configuration file '.biomerc.json' has been created successfully."

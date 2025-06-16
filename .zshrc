@@ -4,6 +4,14 @@
 setopt INC_APPEND_HISTORY
 setopt SHARE_HISTORY
 
+# Un track this
+export HISTORY_IGNORE="(ls|clear|c|l|exit)"
+
+zshaddhistory() {
+  emulate -L zsh
+  [[ $1 != ${~HISTORY_IGNORE} ]]
+}
+
 # z4h Settings
 zstyle ':z4h:' auto-update 'yes'
 zstyle ':z4h:' prompt-at-bottom 'no'

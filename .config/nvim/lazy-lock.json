@@ -23,7 +23,6 @@
   "mini.pairs": { "branch": "main", "commit": "69864a2efb36c030877421634487fd90db1e4298" },
   "mini.surround": { "branch": "main", "commit": "365f98d842face0876e95f05d6e48fbfcc08e351" },
   "neotest": { "branch": "master", "commit": "ef492755730e59e1d8122c461abbd086bee4c76b" },
-  "neotest-pest": { "branch": "main", "commit": "b665a4881c706eea476fcaf79a21996e9b65514d" },
   "neotest-python": { "branch": "master", "commit": "34c9f6f3dc53fc462ea658b5071238037f95f7aa" },
   "noice.nvim": { "branch": "main", "commit": "0427460c2d7f673ad60eb02b35f5e9926cf67c59" },
   "nui.nvim": { "branch": "main", "commit": "de740991c12411b663994b2860f1a4fd0937c130" },
