@@ -38,7 +38,7 @@ export MANPAGER=moar
 export JS_RUNTIMES="/home/zeyad/.jsvu/bin/"
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 export BUN_INSTALL="$HOME/.bun"
-export PATH="$HOME/bin:$PNPM_HOME:$JS_RUNTIMES:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH:$HOME/Android/Sdk/platform-tools:$PATH"
+export PATH="$HOME/.local/share/gem/ruby/3.4.0/bin:$HOME/bin:$PNPM_HOME:$JS_RUNTIMES:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH:$HOME/Android/Sdk/platform-tools"
 export PHP_CS_FIXER_IGNORE_ENV=1
 
 # Tool Setup
