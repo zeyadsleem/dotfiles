@@ -4,6 +4,12 @@ exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 # Import environment variables for user systemd service manager
 exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK
 
+# Start dbus session
+exec --no-startup-id dbus-launch --exit-with-session
+
+# Start gnome-keyring daemon with needed components
+exec --no-startup-id gnome-keyring-daemon --start --components=pkcs11,secrets,ssh
+
 # Update dbus environments with display variables
 exec hash dbus-update-activation-environment 2>/dev/null && \
      dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK
@@ -21,7 +27,7 @@ exec autotiling
 # cliphist
 exec wl-paste --type text --watch cliphist store
 exec wl-paste --type image --watch cliphist store
-     
+
 # Network Applet
 exec nm-applet --indicator
 
@@ -35,4 +41,4 @@ exec eos-welcome --startdelay=3
 # exec python3 ~/.config/sway/scripts/swayfader.py
 
 # nwg-drawer
-exec_always nwg-drawer -r -c 6 -is 60 -mb 10 - ml 20 -mr 20 -mt 10                             
+exec_always nwg-drawer -r -c 6 -is 60 -mb 10 -ml 20 -mr 20 -mt 10

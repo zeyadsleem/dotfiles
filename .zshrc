@@ -1,6 +1,12 @@
 # Personal Zsh Configuration
 # See: https://github.com/romkatv/zsh4humans/blob/v5/README.md
 
+if [ -z "$TMUX" ] && [ -n "$DISPLAY" ] && [ -z "$SSH_CONNECTION" ]; then
+  if ! tmux has-session -t z4h 2>/dev/null; then
+    env TERM=xterm-256color tmux new-session -s z4h
+  fi
+fi
+
 setopt INC_APPEND_HISTORY
 setopt SHARE_HISTORY
 

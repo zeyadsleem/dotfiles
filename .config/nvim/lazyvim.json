@@ -1,7 +1,8 @@
 {
   "extras": [
-    "lazyvim.plugins.extras.ai.supermaven",
+    "lazyvim.plugins.extras.ai.copilot",
     "lazyvim.plugins.extras.coding.luasnip",
+    "lazyvim.plugins.extras.coding.mini-snippets",
     "lazyvim.plugins.extras.coding.mini-surround",
     "lazyvim.plugins.extras.formatting.biome",
     "lazyvim.plugins.extras.lang.clangd",
