@@ -11,7 +11,7 @@ set $right l
 set $term wezterm
 
 # Application launcher
-set $launcher anyrun
+set $launcher fuzzel
 
 # Application menu
 set $menu nwg-drawer
