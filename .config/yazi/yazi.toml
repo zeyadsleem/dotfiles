@@ -3,6 +3,6 @@ ratio = [0, 1, 2]
 show_hidden = true
 
 [[plugin.prepend_fetchers]]
-id   = "git"
+id = "git"
 name = "*"
-run  = "git"
+run = "git"

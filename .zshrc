@@ -44,7 +44,8 @@ export MANPAGER=moar
 export JS_RUNTIMES="/home/zeyad/.jsvu/bin/"
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 export BUN_INSTALL="$HOME/.bun"
-export PATH="$HOME/.local/share/gem/ruby/3.4.0/bin:$HOME/bin:$PNPM_HOME:$JS_RUNTIMES:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH:$HOME/Android/Sdk/platform-tools"
+export ANDROID_HOME="$HOME/Android/Sdk"
+export PATH="$HOME/.local/share/gem/ruby/3.4.0/bin:$HOME/bin:$PNPM_HOME:$JS_RUNTIMES:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH:$ANDROID_HOME/platform-tools"
 export PHP_CS_FIXER_IGNORE_ENV=1
 
 # Tool Setup
@@ -73,8 +74,10 @@ setopt glob_dots no_auto_menu
 ## Directory navigation and listing
 alias c='clear'
 alias cd='z'
+alias ...='cd ../..'
+alias ....='cd ../../..'
 alias ls='exa -laH --group-directories-first --icons --git'
-alias l='exa -aH --group-directories-first --icons --git'
+alias l='exa -aH --group-directories-first --icons'
 alias lt='exa -a --tree --level=2 --icons --git'
 alias zf='z $(zoxide query -l | fzf)'
 
@@ -98,11 +101,10 @@ alias fetch='git fetch && git log HEAD..origin/$(git_branch) --oneline && git st
 # Commits
 alias addall='git add -A'
 alias wip='git add -A && git commit -m "WIP"'
+alias commit='git commit -m'
 alias unstage='git reset HEAD'
 alias undo='git reset --soft HEAD^'
-alias cm='git commit -m'
 alias amend='git add -u && git commit --amend'
-alias commit='git commit -m "$(date "+%Y-%m-%d %H:%M:%S") - "'
 
 # Branches
 alias br='git branch -vv'
@@ -138,10 +140,6 @@ md() {
   [[ $# == 1 ]] && mkdir -p -- "$1" && cd -- "$1"
 }
 compdef _directories md
-
-cursor() {
-  (nohup /usr/bin/cursor "$@" > /dev/null 2>&1 &)
-}
 
 st() {
   git status -sb
