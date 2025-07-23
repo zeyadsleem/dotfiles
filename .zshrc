@@ -51,7 +51,6 @@ export PHP_CS_FIXER_IGNORE_ENV=1
 # Tool Setup
 z4h source ~/.env.zsh
 eval "$(zoxide init zsh)"
-. "/home/zeyad/.deno/env" # deno
 autoload -Uz compinit && compinit
 [ -s "/home/zeyad/.bun/_bun" ] && source "/home/zeyad/.bun/_bun"
 eval "$(fnm env --use-on-cd --shell zsh)"
