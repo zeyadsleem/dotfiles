@@ -2,8 +2,7 @@ local wezterm = require 'wezterm'
 
 local config = {}
 
-config.font_size = 11.8
-config.line_height = 1.2
+config.font_size = 12
 config.font = wezterm.font_with_fallback {
 	{ family = 'JetBrainsMono Nerd Font' },
 	{ family = 'DejaVu Sans Mono' },
@@ -38,7 +37,7 @@ config.colors = {
 	},
 }
 
-config.window_padding = { left = 10, right = 10, top = 1, bottom = 1 }
+config.window_padding = { left = 3, right = 3, top = 1, bottom = 1 }
 config.cursor_blink_rate = 0
 config.bidi_enabled = true
 config.scrollback_lines = 10000

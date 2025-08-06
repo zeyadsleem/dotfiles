@@ -19,7 +19,6 @@ opt.encoding = "utf-8"
 opt.fileencoding = "utf-8"
 opt.cmdheight = 0
 vim.o.winborder = "rounded"
-vim.g.lazyvim_php_lsp = "intelephense"
 vim.cmd([[
   autocmd FileType * setlocal formatoptions-=c formatoptions-=o
 ]])
