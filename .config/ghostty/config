@@ -1,0 +1,16 @@
+font-family = "JetBrains Mono Nerd Font"
+font-size = 12
+
+theme = "Afterglow"
+cursor-style-blink = false
+scrollback-limit = 10000
+window-padding-x = 3
+window-padding-y = 1
+window-padding-balance = true 
+resize-overlay-duration = 200ms
+shell-integration-features = no-cursor,sudo,no-title
+cursor-style = block
+# background-opacity = 0.96
+mouse-hide-while-typing = true
+mouse-scroll-multiplier = 2
+window-colorspace = "display-p3"
