@@ -2,17 +2,34 @@ return {
   "ibhagwan/fzf-lua",
   cmd = "FzfLua",
   opts = {
+    winopts = {
+      height = 0.85,
+      width = 0.9,
+      row = 0.3,
+      col = 0.5,
+      preview = {
+        layout = "horizontal",
+        horizontal = "right:55%",
+        vertical = "down:45%",
+        border = "border",
+        title = false,
+        hidden = "nohidden",
+      },
+      border = "rounded",
+      fullscreen = false,
+    },
     files = {
       prompt = "Files❯ ",
-      cwd_prompt = false,
       previewer = "builtin",
+      cwd_prompt = false,
+      fd_opts = "--hidden --no-ignore-vcs",
       file_ignore_patterns = {
         "%.git/",
         "node_modules/",
         "venv/",
         "%.venv/",
         "%.pdm%-build/",
-        "pycache/",
+        "__pycache__",
         "%.DS_Store",
         "%.mypy_cache/",
         "%.pytest_cache/",
@@ -23,7 +40,12 @@ return {
         ["alt-i"] = require("fzf-lua").actions.toggle_ignore,
         ["alt-h"] = require("fzf-lua").actions.toggle_hidden,
       },
-      fd_opts = "--hidden --no-ignore-vcs", -- Show hidden files by default
+    },
+    grep = {
+      prompt = "Rg❯ ",
+      input_prompt = "Grep for❯ ",
+      previewer = "builtin",
+      rg_opts = "--column --line-number --no-heading --color=always --smart-case --hidden --no-ignore-vcs",
     },
   },
 }
