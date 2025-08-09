@@ -22,3 +22,4 @@ vim.o.winborder = "rounded"
 vim.cmd([[
   autocmd FileType * setlocal formatoptions-=c formatoptions-=o
 ]])
+vim.g.lazyvim_php_lsp = "intelephense"
