@@ -10,6 +10,9 @@ exec --no-startup-id dbus-launch --exit-with-session
 # Start gnome-keyring daemon with needed components
 exec --no-startup-id gnome-keyring-daemon --start --components=pkcs11,secrets,ssh
 
+# Start kanshi monitor manager
+exec_always --no-startup-id systemctl --user restart kanshi.service
+
 # Update dbus environments with display variables
 exec hash dbus-update-activation-environment 2>/dev/null && \
      dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK

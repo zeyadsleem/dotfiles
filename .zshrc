@@ -1,17 +1,13 @@
 # Personal Zsh Configuration
 # See: https://github.com/romkatv/zsh4humans/blob/v5/README.md
 
-if [ -z "$TMUX" ] && [ -n "$DISPLAY" ] && [ -z "$SSH_CONNECTION" ]; then
-  if ! tmux has-session -t z4h 2>/dev/null; then
-    env TERM=xterm-256color tmux new-session -s z4h
-  fi
-fi
+zstyle ':z4h:' start-tmux 'yes'
 
 setopt INC_APPEND_HISTORY
 setopt SHARE_HISTORY
-
-# Un track this
 export HISTORY_IGNORE="(ls|clear|c|l|exit)"
+HISTSIZE=100000
+SAVEHIST=100000
 
 zshaddhistory() {
   emulate -L zsh
@@ -45,8 +41,22 @@ export JS_RUNTIMES="/home/zeyad/.jsvu/bin/"
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 export BUN_INSTALL="$HOME/.bun"
 export ANDROID_HOME="$HOME/Android/Sdk"
-export PATH="$HOME/.local/share/gem/ruby/3.4.0/bin:$HOME/bin:$PNPM_HOME:$JS_RUNTIMES:$BUN_INSTALL/bin:$(go env GOBIN):$(go env GOPATH)/bin:$HOME/.turso:$HOME/.config/composer/vendor/bin:$PATH:$ANDROID_HOME/platform-tools"
+typeset -U path PATH
+path=(
+  $HOME/.local/share/gem/ruby/3.4.0/bin
+  $HOME/.config/composer/vendor/bin:$PATH
+  $HOME/bin
+  $PNPM_HOME
+  $JS_RUNTIMES
+  $BUN_INSTALL/bin
+  $(go env GOBIN)
+  $(go env GOPATH)/bin
+  $HOME/.turso
+  $ANDROID_HOME/platform-tools
+  $path
+)
 export PHP_CS_FIXER_IGNORE_ENV=1
+export QT_QPA_PLATFORM=xcb
 
 # Tool Setup
 z4h source ~/.env.zsh
@@ -90,7 +100,7 @@ alias gpt='tgpt'
 alias live='live-server'
 
 ## Android emulator
-alias android-emulator-run='gmtool admin start "Custom Phone"'
+alias android-emulator-run='QT_QPA_PLATFORM=xcb gmtool admin start "Custom Phone"'
 
 # Git commands
 # General
