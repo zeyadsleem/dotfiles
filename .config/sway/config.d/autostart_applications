@@ -44,4 +44,4 @@ exec eos-welcome --startdelay=3
 # exec python3 ~/.config/sway/scripts/swayfader.py
 
 # nwg-drawer
-exec_always nwg-drawer -r -c 6 -is 60 -mb 10 -ml 20 -mr 20 -mt 10
+exec_always nwg-drawer -r -c 6 -is 48 -mb 10 -ml 15 -mr 15 -mt 10

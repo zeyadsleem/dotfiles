@@ -1,38 +1,42 @@
 window {
-    background-color: rgba (38, 18, 57, 0.9);
-    color: #eceff4;
-    border-radius: 30px
+  background-color: rgba(13, 17, 23, 0.95);
+  color: #d0d7de;
+  border-radius: 10px;
+  border: 1px solid #30363d;
 }
 
-/* search entry */
 entry {
-    box-shadow: 0 0 6px 5px #2e3440;
-    background-color: rgba (0, 0, 0, 0.5)
+  box-shadow: 0 0 4px 2px #21262d;
+  background-color: rgba(33, 38, 45, 0.8);
+  color: #d0d7de;
+  border: 1px solid #444c56;
+  border-radius: 6px;
 }
 
-button, image {
-    background-color: #3b4252;
-    background: none;
-    border: none;
-    margin: 10px
+button,
+image {
+  background: none;
+  border: none;
+  margin: 8px;
+  color: #8ab4f8;
 }
 
 button:hover {
-    background-color: rgba (127, 63, 191, .4);
-    box-shadow: 0 0 6px 5px #190C26
+  background-color: rgba(138, 180, 248, 0.15);
+  box-shadow: 0 0 4px 2px #1e3a5f;
 }
 
-/* in case you wanted to give category buttons a different look */
 #category-button {
-    margin: 0 0px 0 0px
+  margin: 0;
+  color: #8ab4f8;
 }
 
 #pinned-box {
-    padding-bottom: 1px;
-    border-bottom: 1px solid gray
+  padding-bottom: 2px;
+  border-bottom: 1px solid #30363d;
 }
 
 #files-box {
-    padding: 1px;
-    border: 1px solid gray
+  padding: 2px;
+  border: 1px solid #30363d;
 }
