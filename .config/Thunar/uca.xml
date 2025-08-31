@@ -4,7 +4,7 @@
 	<icon>utilities-terminal</icon>
 	<name>Open Terminal Here</name>
 	<unique-id>1611168259857250-1</unique-id>
-	<command>sh -c &apos;cd %f; wezterm&apos;</command>
+	<command>sh -c &apos;cd %f; ghostty&apos;</command>
 	<description>Open a terminal at the current location</description>
 	<patterns>*</patterns>
 	<startup-notify/>

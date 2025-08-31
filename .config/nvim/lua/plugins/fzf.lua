@@ -46,6 +46,18 @@ return {
       input_prompt = "Grep for❯ ",
       previewer = "builtin",
       rg_opts = "--column --line-number --no-heading --color=always --smart-case --hidden --no-ignore-vcs",
+      file_ignore_patterns = {
+        "%.git/",
+        "node_modules/",
+        "venv/",
+        "%.venv/",
+        "%.pdm%-build/",
+        "__pycache__",
+        "%.DS_Store",
+        "%.mypy_cache/",
+        "%.pytest_cache/",
+        "%.ruff_cache/",
+      },
     },
   },
 }

@@ -36,16 +36,16 @@ z4h init || return
 # Environment Variables
 export BROWSER=brave
 export MANROFFOPT="-c"
-export MANPAGER=moar
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export JS_RUNTIMES="/home/zeyad/.jsvu/bin/"
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 export BUN_INSTALL="$HOME/.bun"
 export ANDROID_HOME="$HOME/Android/Sdk"
 typeset -U path PATH
 path=(
-  $HOME/.local/share/gem/ruby/3.4.0/bin
+  # $HOME/.local/share/gem/ruby/3.4.0/bin
   $HOME/.config/composer/vendor/bin:$PATH
-  $HOME/bin
+  $HOME/.npm-global/bin:$PATH
   $PNPM_HOME
   $JS_RUNTIMES
   $BUN_INSTALL/bin
@@ -63,7 +63,6 @@ z4h source ~/.env.zsh
 eval "$(zoxide init zsh)"
 autoload -Uz compinit && compinit
 [ -s "/home/zeyad/.bun/_bun" ] && source "/home/zeyad/.bun/_bun"
-eval "$(fnm env --use-on-cd --shell zsh)"
 
 # Key Bindings
 z4h bindkey redo Alt+/

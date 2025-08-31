@@ -8,7 +8,7 @@ set $up k
 set $right l
 
 # Set default terminal emulator
-set $term wezterm
+set $term ghostty
 
 # Application launcher
 set $launcher fuzzel
@@ -212,6 +212,9 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
     # Delete an entry from the clipboard manager
     bindsym $mod+x exec cliphist list | fuzzel -d -w 50 -l 15 -t cc9393ff -S cc9393ff -p "Select an entry to delete it from cliphist:  "| cliphist delete
     # Note: you can clear all cliphist entries by running `cliphist wipe`
+
+    # Pick a color and copy it to clipboard
+    bindsym $mod+i exec hyprpicker --autocopy
 
 #
 # Screenshots

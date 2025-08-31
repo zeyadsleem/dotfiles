@@ -1,0 +1,15 @@
+font-family = "Maple Mono NF"
+font-size = 12.5
+shell-integration = "zsh"
+window-padding-x = 3
+window-padding-y = 1
+window-padding-balance = true
+click-repeat-interval = 500
+confirm-close-surface = false
+window-save-state = "always"
+
+background = "#1E1E1E"
+foreground = "#D4D4D4"
+cursor-color = "#FFFFFF"
+selection-background = "#264F78"
+selection-foreground = "#1E1E1E"
