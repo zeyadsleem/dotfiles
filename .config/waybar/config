@@ -37,7 +37,7 @@
     "format-ethernet": "󰈀 {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣",
     "tooltip-format-ethernet": "{ifname}: {ipaddr}/{cidr}",
     "format-disconnected": " Disconnected",
-    "on-click": "ghostty -e nmtui",
+    "on-click": "wezterm -T waybar_nmtui -e nmtui",
     "interval": 2
   },
 
@@ -80,13 +80,13 @@
       "warning": 70,
       "critical": 90
     },
-    "on-click": "ghostty -e btop"
+    "on-click": "wezterm -T waybar_btop -e btop"
   },
 
   "memory": {
     "interval": 5,
     "format": "{:>3}%",
-    "on-click": "ghostty -e btop",
+    "on-click": "wezterm -T waybar_btop -e btop",
     "states": {
       "warning": 70,
       "critical": 90

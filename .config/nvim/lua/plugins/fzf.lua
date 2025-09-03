@@ -1,3 +1,19 @@
+local ignore_patterns = {
+  "%.git/",
+  "node_modules/",
+  "venv/",
+  "%.venv/",
+  "%.pdm%-build/",
+  "__pycache__",
+  "%.DS_Store",
+  "%.mypy_cache/",
+  "%.pytest_cache/",
+  "%.ruff_cache/",
+  "package%-lock%.json",
+  "yarn%.lock",
+  "pnpm%-lock%.yaml",
+}
+
 return {
   "ibhagwan/fzf-lua",
   cmd = "FzfLua",
@@ -20,21 +36,9 @@ return {
     },
     files = {
       prompt = "Files❯ ",
-      previewer = "builtin",
       cwd_prompt = false,
       fd_opts = "--hidden --no-ignore-vcs",
-      file_ignore_patterns = {
-        "%.git/",
-        "node_modules/",
-        "venv/",
-        "%.venv/",
-        "%.pdm%-build/",
-        "__pycache__",
-        "%.DS_Store",
-        "%.mypy_cache/",
-        "%.pytest_cache/",
-        "%.ruff_cache/",
-      },
+      file_ignore_patterns = ignore_patterns,
       actions = {
         ["default"] = require("fzf-lua").actions.file_edit_or_qf,
         ["alt-i"] = require("fzf-lua").actions.toggle_ignore,
@@ -44,20 +48,8 @@ return {
     grep = {
       prompt = "Rg❯ ",
       input_prompt = "Grep for❯ ",
-      previewer = "builtin",
       rg_opts = "--column --line-number --no-heading --color=always --smart-case --hidden --no-ignore-vcs",
-      file_ignore_patterns = {
-        "%.git/",
-        "node_modules/",
-        "venv/",
-        "%.venv/",
-        "%.pdm%-build/",
-        "__pycache__",
-        "%.DS_Store",
-        "%.mypy_cache/",
-        "%.pytest_cache/",
-        "%.ruff_cache/",
-      },
+      file_ignore_patterns = ignore_patterns,
     },
   },
 }

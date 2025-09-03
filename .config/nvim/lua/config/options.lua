@@ -12,7 +12,7 @@ opt.list = false
 opt.listchars:append("space:⋅")
 opt.listchars:append("eol:↴")
 opt.termguicolors = true
-opt.guifont = "DejaVu Sans Mono:h11"
+opt.guifont = "DejaVu Sans Mono:h10"
 opt.arabicshape = true
 opt.termguicolors = true
 opt.encoding = "utf-8"

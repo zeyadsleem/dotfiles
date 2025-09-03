@@ -18,6 +18,7 @@ for_window [title="Picture in picture"] floating enable, sticky enable
 for_window [title="waybar_btop"] floating enable, resize set width 90 ppt height 80 ppt
 for_window [title="waybar_nmtui"] floating enable
 for_window [title="Save File"] floating enable
+for_window [title="LocalSend"] floating enable
 for_window [app_id="firefox" title="Firefox — Sharing Indicator"] kill
 for_window [app_id="brave" window_type="dialog"] floating enable, resize set width 40 ppt height 40 ppt
 for_window [class="Brave-browser" window_type="dialog"] floating enable, resize set width 40 ppt height 40 ppt

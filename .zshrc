@@ -1,6 +1,4 @@
 # Personal Zsh Configuration
-# See: https://github.com/romkatv/zsh4humans/blob/v5/README.md
-
 zstyle ':z4h:' start-tmux 'yes'
 
 setopt INC_APPEND_HISTORY
@@ -44,18 +42,17 @@ export ANDROID_HOME="$HOME/Android/Sdk"
 typeset -U path PATH
 path=(
   # $HOME/.local/share/gem/ruby/3.4.0/bin
-  $HOME/.config/composer/vendor/bin:$PATH
+  # $HOME/.config/composer/vendor/bin:$PATH
   $HOME/.npm-global/bin:$PATH
   $PNPM_HOME
   $JS_RUNTIMES
   $BUN_INSTALL/bin
-  $(go env GOBIN)
-  $(go env GOPATH)/bin
+  # $(go env GOBIN)
   $HOME/.turso
   $ANDROID_HOME/platform-tools
   $path
 )
-export PHP_CS_FIXER_IGNORE_ENV=1
+# export PHP_CS_FIXER_IGNORE_ENV=1
 export QT_QPA_PLATFORM=xcb
 
 # Tool Setup
@@ -79,6 +76,8 @@ setopt glob_dots no_auto_menu
 
 # Aliases
 
+alias how='howdoi -c'
+
 ## Directory navigation and listing
 alias c='clear'
 alias cd='z'
@@ -87,7 +86,6 @@ alias ....='cd ../../..'
 alias ls='exa -laH --group-directories-first --icons --git'
 alias l='exa -aH --group-directories-first --icons'
 alias lt='exa -a --tree --level=2 --icons --git'
-alias zf='z $(zoxide query -l | fzf)'
 
 ## Editors and tools
 alias v=$EDITOR
