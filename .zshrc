@@ -75,9 +75,6 @@ z4h bindkey z4h-backward-kill-zword Ctrl+Alt+Backspace
 setopt glob_dots no_auto_menu
 
 # Aliases
-
-alias how='howdoi -c'
-
 ## Directory navigation and listing
 alias c='clear'
 alias cd='z'

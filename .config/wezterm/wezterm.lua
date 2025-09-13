@@ -43,6 +43,6 @@ config.cursor_blink_rate = 0
 config.bidi_enabled = true
 config.scrollback_lines = 10000
 config.hide_tab_bar_if_only_one_tab = true
-config.window_background_opacity = 0.99
+-- config.window_background_opacity = 0.99
 
 return config
