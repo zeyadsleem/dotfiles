@@ -58,6 +58,7 @@ export QT_QPA_PLATFORM=xcb
 # Tool Setup
 z4h source ~/.env.zsh
 eval "$(zoxide init zsh)"
+eval "$(fnm env)"
 autoload -Uz compinit && compinit
 [ -s "/home/zeyad/.bun/_bun" ] && source "/home/zeyad/.bun/_bun"
 
@@ -75,6 +76,7 @@ z4h bindkey z4h-backward-kill-zword Ctrl+Alt+Backspace
 setopt glob_dots no_auto_menu
 
 # Aliases
+alias open='gio open'
 ## Directory navigation and listing
 alias c='clear'
 alias cd='z'
@@ -91,7 +93,6 @@ alias px='pnpx'
 alias t='tmux'
 alias ta='t a'
 alias gpt='tgpt'
-alias live='live-server'
 
 ## Android emulator
 alias android-emulator-run='QT_QPA_PLATFORM=xcb gmtool admin start "Custom Phone"'
