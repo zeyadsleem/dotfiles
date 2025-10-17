@@ -3,7 +3,7 @@ zstyle ':z4h:' start-tmux 'yes'
 
 setopt INC_APPEND_HISTORY
 setopt SHARE_HISTORY
-export HISTORY_IGNORE="(ls|clear|c|l|exit)"
+export HISTORY_IGNORE="(ls|clear|c|l|v|vim|exit)"
 HISTSIZE=100000
 SAVEHIST=100000
 

@@ -328,7 +328,6 @@ highlight PmenuThumb guibg=#61afef
 " === URL Opening and Read Mode Toggle ===
 nnoremap gx :call netrw#BrowseX(expand('<cfile>'), 0)<CR>
 xnoremap gx :call netrw#BrowseX(expand('<cfile>'), 0)<CR>
-nnoremap <silent> q :setlocal number! relativenumber! signcolumn=yes nowrap nolinebreak list<CR>
 
 " === UltiSnips Snippet Expansion ===
 let g:UltiSnipsExpandTrigger="<C-j>"
