@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Configuration file name
+FILE_NAME=".vimspector.json"
+
+echo "Attempting to create or update Vimspector configuration file ($FILE_NAME)..."
+
+# Check if the file already exists
+if [ -f "$FILE_NAME" ]; then
+    read -p "The file $FILE_NAME already exists. Do you want to overwrite it with the default Node.js configuration? (y/n): " confirm
+    if [ "$confirm" != "y" ]; then
+        echo "Operation cancelled. $FILE_NAME was not modified."
+        exit 1
+    fi
+fi
+
+# Use a here-document (heredoc) to write the JSON content.
+# The single quotes on <<'EOF' prevent shell variable expansion, ensuring ${file} is written literally.
+cat > "$FILE_NAME" <<'EOF'
+{
+  "configurations": {
+    "Run current file (Node.js)": {
+      "adapter": "vscode-node",
+      "configuration": {
+        "request": "launch",
+        "protocol": "auto",
+        "program": "${file}",
+        "cwd": "${workspaceFolder}",
+        "outputCapture": "std",
+        "console": "integratedTerminal",
+        "runtimeExecutable": "node"
+      },
+      "breakpoints": {
+        "exception": {
+          "all": "Y",
+          "uncaught": "Y"
+        }
+      }
+    }
+  }
+}
+EOF
+
+# Verify creation and output status
+if [ -f "$FILE_NAME" ]; then
+    echo "---"
+    echo "SUCCESS: Vimspector configuration file created successfully for Node.js debugging."
+    echo "Location: $(pwd)/$FILE_NAME"
+    echo "To run it, make sure Vimspector is installed in Vim, then press <F9> to set a breakpoint, and <F5> to start debugging."
+    echo "---"
+else
+    echo "ERROR: Failed to create Vimspector configuration file $FILE_NAME."
+    exit 1
+fi
