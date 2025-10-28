@@ -27,6 +27,10 @@ Plug 'tpope/vim-rhubarb'
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
 Plug 'yegappan/mru'
 Plug 'kyazdani42/nvim-web-devicons'
+" SQL Support
+Plug 'tpope/vim-dadbod'
+Plug 'kristijanhusak/vim-dadbod-ui'
+Plug 'kristijanhusak/vim-dadbod-completion'
 call plug#end()
 
 " === Performance Settings ===
@@ -53,6 +57,8 @@ set incsearch nohlsearch
 set cursorline signcolumn=yes
 set clipboard=unnamedplus
 set undofile undodir=~/.vim/undo//
+set undolevels=10000
+set undoreload=10000
 set noswapfile nobackup
 set directory=~/.vim/swp//
 set hidden
@@ -101,7 +107,8 @@ let g:coc_global_extensions = [
     \ 'coc-html',
     \ 'coc-css',
     \ 'coc-emmet',
-    \ 'coc-snippets'
+    \ 'coc-snippets',
+    \ 'coc-sql'
     \ ]
 
 augroup AutoFormat
@@ -110,6 +117,41 @@ augroup AutoFormat
     autocmd BufWritePre *.js,*.jsx,*.ts,*.tsx,*.json,*.css,*.scss,*.html silent! call CocAction('runCommand', 'prettier.forceFormatDocument')
     autocmd BufWritePre *.ts,*.tsx silent! call CocAction('runCommand', 'tsserver.organizeImports')
 augroup END
+
+" === SQL Specific Settings ===
+augroup SQLSettings
+    autocmd!
+    autocmd BufNewFile,BufRead *.db setfiletype sql
+    autocmd BufNewFile,BufRead *.sqlite setfiletype sql
+    autocmd BufNewFile,BufRead *.sqlite3 setfiletype sql
+    autocmd FileType sql setlocal tabstop=2 shiftwidth=2 expandtab
+    autocmd FileType sql setlocal commentstring=--\ %s
+augroup END
+
+" === Dadbod SQL Configuration ===
+let g:db_ui_use_nerd_fonts = 1
+let g:db_ui_show_database_icon = 1
+let g:db_ui_force_echo_notifications = 1
+let g:db_ui_win_position = 'left'
+let g:db_ui_winwidth = 40
+let g:db_ui_save_location = '~/.local/share/db_ui'
+let g:db_ui_tmp_query_location = '~/.local/share/db_ui/tmp'
+let g:db_ui_use_nvim_notify = 0
+let g:db_ui_execute_on_save = 0
+
+" Dadbod keybindings
+nnoremap <leader>db :DBUIToggle<CR>
+nnoremap <leader>df :DBUIFindBuffer<CR>
+nnoremap <leader>dr :DBUIRenameBuffer<CR>
+nnoremap <leader>dl :DBUILastQueryInfo<CR>
+
+" Execute SQL query
+autocmd FileType sql nnoremap <buffer> <leader>x :DB<CR>
+autocmd FileType sql vnoremap <buffer> <leader>x :DB<CR>
+
+" === Dadbod Completion ===
+autocmd FileType sql,mysql,plsql setlocal omnifunc=vim_dadbod_completion#omni
+autocmd FileType sql,mysql,plsql inoremap <buffer> <C-Space> <C-x><C-o>
 
 " === NERDTree File Explorer ===
 nnoremap <leader>e :NERDTreeToggle<CR>
@@ -148,7 +190,7 @@ let g:NERDTreeHighlightFolders = 1
 let g:NERDTreeSyntaxDisableDefaultExtensions = 0
 let g:NERDTreeSyntaxDisableDefaultExactMatches = 0
 let g:NERDTreeSyntaxDisableDefaultPatternMatches = 0
-let g:NERDTreeSyntaxEnabledExtensions = ['js', 'ts', 'jsx', 'tsx', 'html', 'css', 'json', 'md', 'py', 'vim', 'rb']
+let g:NERDTreeSyntaxEnabledExtensions = ['js', 'ts', 'jsx', 'tsx', 'html', 'css', 'json', 'md', 'py', 'vim', 'rb', 'sql']
 let g:NERDTreeSyntaxEnabledExactMatches = ['node_modules', 'dist', 'build', '.git']
 
 autocmd StdinReadPre * let s:std_in=1
@@ -257,10 +299,13 @@ nnoremap <leader>g :RgWithNERDTree<CR>
 nnoremap <leader>b :Buffers<CR>
 nnoremap <leader>/ :BLines<CR>
 
-" === Undotree and EasyAlign ===
+" === Undotree Configuration ===
 nnoremap <leader>u :UndotreeToggle<CR>
 let g:undotree_SetFocusWhenToggle = 1
+let g:undotree_WindowLayout = 2
+let g:undotree_ShortIndicators = 1
 
+" === EasyAlign ===
 xmap ga <Plug>(EasyAlign)
 nmap ga <Plug>(EasyAlign)
 

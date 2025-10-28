@@ -45,3 +45,7 @@ exec eos-welcome --startdelay=3
 
 # nwg-drawer
 exec_always nwg-drawer -r -c 6 -is 48 -mb 10 -ml 15 -mr 15 -mt 10
+
+# KDEconnect
+exec_always kdeconnectd
+exec_always kdeconnect-indicator

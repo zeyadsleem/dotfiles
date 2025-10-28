@@ -1,29 +1,37 @@
 # Custom windowing rules
-for_window [class="Yad" instance="yad"] floating enable
-for_window [app_id="yad"] floating enable
-for_window [app_id="blueman-manager"] floating enable, resize set width 40 ppt height 30 ppt
-for_window [app_id="pavucontrol"] floating enable, resize set width 40 ppt height 30 ppt
-for_window [app_id="nm-connection-editor"] floating enable
-for_window [app_id="Calculator"] floating enable
-for_window [window_role="pop-up"] floating enable
-for_window [window_role="bubble"] floating enable
-for_window [window_role="task_dialog"] floating enable
-for_window [window_role="Preferences"] floating enable
-for_window [window_type="dialog"] floating enable
-for_window [window_type="menu"] floating enable
-for_window [window_role="About"] floating enable
-for_window [title="File Operation Progress"] floating enable, border pixel 1, sticky enable, resize set width 40 ppt height 30 ppt
-for_window [app_id="floating_shell_portrait"] floating enable, border pixel 1, sticky enable, resize set width 30 ppt height 40 ppt
-for_window [title="Picture in picture"] floating enable, sticky enable
-for_window [title="waybar_btop"] floating enable, resize set width 90 ppt height 80 ppt
-for_window [title="waybar_nmtui"] floating enable
-for_window [title="Save File"] floating enable
-for_window [title="LocalSend"] floating enable
-for_window [app_id="firefox" title="Firefox — Sharing Indicator"] kill
-for_window [app_id="brave" window_type="dialog"] floating enable, resize set width 40 ppt height 40 ppt
-for_window [class="Brave-browser" window_type="dialog"] floating enable, resize set width 40 ppt height 40 ppt
+for_window [window_role="splash"] floating enable, move position center
+for_window [window_role="pop-up"] floating enable, move position center
+for_window [window_role="bubble"] floating enable, move position center
+for_window [window_role="task_dialog"] floating enable, move position center
+for_window [window_role="Preferences"] floating enable, move position center
+for_window [window_type="dialog"] floating enable, move position center
+for_window [window_type="menu"] floating enable, move position center
+for_window [window_role="About"] floating enable, move position center
 
-# Inhibit idle
+for_window [app_id="yad"] floating enable, move position center
+for_window [class="Yad"] floating enable, move position center
+
+for_window [app_id="blueman-manager"] floating enable, resize set width 55 ppt height 45 ppt, move position center
+for_window [app_id="pavucontrol"] floating enable, resize set width 55 ppt height 45 ppt, move position center
+for_window [class="Pavucontrol"] floating enable, resize set width 55 ppt height 45 ppt, move position center
+for_window [app_id="nm-connection-editor"] floating enable, resize set width 55 ppt height 55 ppt, move position center
+for_window [app_id="qalculate-gtk"] floating enable, resize set width 35 ppt height 45 ppt, move position center
+
+for_window [app_id="digikam" title="digiKam"] floating enable, move position center
+for_window [app_id="digikam" title="showKam"] floating enable, move position center
+
+for_window [title="File Operation Progress"] floating enable, border pixel 1, sticky enable, resize set width 50 ppt height 40 ppt, move position center
+for_window [app_id="floating_shell_portrait"] floating enable, border pixel 1, sticky enable, resize set width 40 ppt height 55 ppt, move position center
+for_window [title="Picture in picture"] floating enable, sticky enable, move position center
+for_window [title="waybar_btop"] floating enable, resize set width 95 ppt height 90 ppt, move position center
+for_window [title="waybar_nmtui"] floating enable, resize set width 70 ppt height 70 ppt, move position center
+for_window [title="Save File"] floating enable, move position center
+for_window [title="LocalSend"] floating enable, resize set width 50 ppt height 60 ppt, move position center
+
+for_window [app_id="firefox" title="Firefox — Sharing Indicator"] kill
+for_window [app_id="brave" window_type="dialog"] floating enable, resize set width 45 ppt height 45 ppt, move position center
+for_window [class="Brave-browser" window_type="dialog"] floating enable, resize set width 45 ppt height 45 ppt, move position center
+
 for_window [app_id="firefox"] inhibit_idle fullscreen
 for_window [app_id="Chromium"] inhibit_idle fullscreen
 for_window [app_id="brave"] inhibit_idle fullscreen
