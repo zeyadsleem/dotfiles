@@ -1,0 +1,48 @@
+window {
+    background-color: rgba(25, 25, 30, 0.95);
+    border-radius: 5px;
+    border: 1px solid #6272a4;
+    padding: 16px;
+}
+
+#container {
+    margin: 8px;
+}
+
+image {
+    color: #e3e3ea;
+    margin-right: 12px;
+}
+
+label {
+    color: #e3e3ea;
+    font-size: 14px;
+    font-family: JetBrainsMono;
+    margin-bottom: 8px;
+}
+
+progressbar {
+    min-height: 8px;
+    border-radius: 4px;
+    background-color: rgba(40, 42, 54, 0.6);
+}
+
+progressbar progress {
+    background-color: #6272a4;
+    border-radius: 4px;
+}
+
+/* Volume specific */
+.volume progressbar progress {
+    background-color: #7aa2f7;
+}
+
+/* Brightness specific */
+.brightness progressbar progress {
+    background-color: #e0af68;
+}
+
+/* Caps Lock specific */
+.capslock {
+    color: #ff5555;
+}

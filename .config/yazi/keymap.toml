@@ -1,0 +1,15 @@
+[[mgr.prepend_keymap]]
+on   = "l"
+run  = "plugin smart-enter"
+desc = "Enter the child directory, or open the file"
+
+[[mgr.prepend_keymap]]
+on   = "<Enter>"
+run  = "plugin smart-enter"
+desc = "Enter directory or choose file"
+
+# Quit normally without choosing
+[[mgr.prepend_keymap]]
+on   = "q"
+run  = "close"
+desc = "Close yazi"

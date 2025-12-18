@@ -1,0 +1,62 @@
+#!/bin/bash
+# Simple VM creation with ISO
+
+VM_NAME="${1:-ubuntu-vm}"
+ISO="${2:-ubuntu-22.04.5-live-server-amd64.iso}"
+MEMORY="${3:-2048}"
+VCPUS="${4:-2}"
+DISK_SIZE="${5:-20}"
+
+echo "🚀 Creating VM: $VM_NAME"
+echo "   ISO: $ISO"
+echo "   Memory: ${MEMORY}MB, vCPUs: $VCPUS, Disk: ${DISK_SIZE}GB"
+
+# Check if ISO exists
+if [ ! -f "$ISO" ]; then
+    echo "❌ ISO file not found: $ISO"
+    echo ""
+    echo "Download Ubuntu Server:"
+    echo "  wget https://releases.ubuntu.com/22.04/ubuntu-22.04.5-live-server-amd64.iso"
+    echo ""
+    echo "Or Debian:"
+    echo "  wget https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.8.0-amd64-netinst.iso"
+    exit 1
+fi
+
+# Create VM
+echo "⚙️  Creating VM..."
+sudo virt-install \
+  --name $VM_NAME \
+  --memory $MEMORY \
+  --vcpus $VCPUS \
+  --disk size=$DISK_SIZE \
+  --cdrom $ISO \
+  --os-variant ubuntu22.04 \
+  --network network=default \
+  --graphics vnc,listen=0.0.0.0 \
+  --noautoconsole
+
+echo ""
+echo "✅ VM created! Opening viewer..."
+echo ""
+echo "📌 Installation steps:"
+echo "   1. Follow the installer prompts"
+echo "   2. Create your username/password"
+echo "   3. Wait for installation to complete"
+echo "   4. Reboot when prompted"
+echo ""
+echo "🔧 Connect to VM:"
+echo "   virt-viewer $VM_NAME       # Graphical console"
+echo "   sudo virsh console $VM_NAME    # Text console (after install)"
+echo ""
+echo "🔧 Manage VM:"
+echo "   sudo virsh start $VM_NAME      # Start"
+echo "   sudo virsh shutdown $VM_NAME   # Stop"
+echo "   sudo virsh list --all          # List all VMs"
+echo ""
+
+# Try to open viewer
+sleep 2
+virt-viewer $VM_NAME &>/dev/null &
+
+echo "🎉 Installation started!"

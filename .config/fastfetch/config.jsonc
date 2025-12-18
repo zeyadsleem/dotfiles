@@ -1,0 +1,78 @@
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+
+    "logo": {
+        "type": "chafa",
+        "source": "/home/zeyad/.face",
+        "width": 44,
+        "height": 22,
+    },
+
+    "chafa": {
+        "symbols": "ascii",
+        "canvasMode": "truecolor",
+        "colorSpace": "rgb",
+        "ditherMode": "bayer",
+        "colorExtractor": "average",
+        "preprocessing": "none",
+    },
+
+    "modules": [
+        {
+            "type": "custom",
+            "format": "{#magenta}╔══════════════════════════╗{#}",
+        },
+        {
+            "type": "custom",
+            "format": "{#cyan}        Z E Y A D  {#}",
+        },
+        {
+            "type": "custom",
+            "format": "{#magenta}╚══════════════════════════╝{#}",
+        },
+
+        "break",
+
+        {
+            "type": "title",
+            "format": "{#blue}{user-name}{#} @ {#magenta}{host-name}{#}",
+        },
+
+        "separator",
+
+        { "type": "os", "key": " ", "keyColor": "blue" },
+        { "type": "kernel", "key": " ", "keyColor": "cyan" },
+        { "type": "uptime", "key": "󰔟 ", "keyColor": "green" },
+        { "type": "packages", "key": "󰏖 ", "keyColor": "magenta" },
+        { "type": "shell", "key": " ", "keyColor": "yellow" },
+
+        "break",
+
+        { "type": "wm", "key": " ", "keyColor": "blue" },
+        { "type": "de", "key": " ", "keyColor": "cyan" },
+        { "type": "theme", "key": "󰉼 ", "keyColor": "magenta" },
+        { "type": "icons", "key": "󰀻 ", "keyColor": "red" },
+        { "type": "cursor", "key": "󰇀 ", "keyColor": "yellow" },
+
+        "break",
+
+        { "type": "display", "key": "󰍹 ", "keyColor": "green" },
+        { "type": "cpu", "key": "󰻠 ", "keyColor": "blue" },
+        { "type": "gpu", "key": "󰢮 ", "keyColor": "cyan" },
+        { "type": "memory", "key": "󰍛 ", "keyColor": "magenta" },
+        { "type": "disk", "key": "󰋊 ", "keyColor": "yellow" },
+
+        "break",
+
+        { "type": "battery", "key": "󰁹 ", "keyColor": "green" },
+        { "type": "wifi", "key": "󰖩 ", "keyColor": "blue" },
+
+        "break",
+
+        {
+            "type": "colors",
+            "paddingLeft": 2,
+            "symbol": "circle",
+        },
+    ],
+}

@@ -1,0 +1,90 @@
+# =============================================================================
+# Core Floating Rules by Window Type
+# =============================================================================
+
+for_window [window_type="dialog"] floating enable, border pixel 1
+for_window [window_type="utility"] floating enable, border pixel 1
+for_window [window_type="toolbar"] floating enable, border pixel 1
+for_window [window_type="splash"] floating enable, border pixel 1
+for_window [window_type="menu"] floating enable, border pixel 1
+for_window [window_type="dropdown_menu"] floating enable, border pixel 1
+for_window [window_type="popup_menu"] floating enable, border pixel 1
+for_window [window_type="tooltip"] floating enable, border pixel 1
+for_window [window_type="notification"] floating enable, border pixel 1
+
+# Window roles
+for_window [window_role="task_dialog"] floating enable, border pixel 1
+for_window [window_role="Preferences"] floating enable, border pixel 1
+for_window [window_role="pop-up"] floating enable, border pixel 1
+for_window [window_role="bubble"] floating enable, border pixel 1
+for_window [window_role="dialog"] floating enable, border pixel 1
+
+# =============================================================================
+# Generic Dialog Patterns
+# =============================================================================
+
+# File dialogs
+for_window [title="(?i)(open file|choose file|select (file|folder)|save (file|as))"] \
+    floating enable, border pixel 1, resize set 700 500
+
+# =============================================================================
+# Specific Applications
+# =============================================================================
+
+# Pomodoro timer
+for_window [app_id="org.gnome.Solanum"] floating enable, resize set 400 500
+for_window [class="org.gnome.Solanum"] floating enable, resize set 400 500
+
+# File Managers
+for_window [app_id="thunar"] floating enable, resize set 900 650
+for_window [class="Thunar"] floating enable, resize set 900 650
+
+# System Tools
+for_window [app_id="pavucontrol"] floating enable
+for_window [class="Pavucontrol"] floating enable
+for_window [app_id="nm-connection-editor"] floating enable
+for_window [class="Nm-connection-editor"] floating enable
+for_window [app_id="blueman-manager"] floating enable
+for_window [class="Blueman-manager"] floating enable
+
+# Calculators
+for_window [app_id="qalculate-gtk"] floating enable, sticky enable, border pixel 1, resize set 400 500
+for_window [class="Qalculate-gtk"] floating enable, sticky enable, border pixel 1, resize set 400 500
+
+# Password Managers
+for_window [title="Bitwarden"] floating enable, resize set 800 700
+for_window [app_id="org.keepassxc.KeePassXC"] floating enable, resize set 900 750
+for_window [title="(?i)keepass"] floating enable, resize set 900 750
+
+# Waybar popups
+for_window [title="waybar_btop"] floating enable, sticky enable, border pixel 1, resize set 1100 800
+for_window [title="waybar_nmtui"] floating enable, sticky enable, border pixel 1, resize set 800 600
+
+# Firewall tools
+for_window [title="About Firewall Applet"] floating enable, sticky enable, border pixel 1, resize set 400 450
+for_window [title="^Firewall"] floating enable, border pixel 1
+
+# Image Viewers
+for_window [app_id="imv"] floating enable
+
+# Archive Managers
+for_window [app_id="org.gnome.FileRoller"] floating enable
+for_window [class="File-roller"] floating enable
+
+# =============================================================================
+# Browser Rules
+# =============================================================================
+
+# Chromium / Brave dialogs
+for_window [app_id="brave" window_type="dialog"] floating enable, border pixel 1
+for_window [app_id="chromium" window_type="dialog"] floating enable, border pixel 1
+
+# =============================================================================
+# Floating Defaults - Keep Everything Centered
+# =============================================================================
+
+for_window [floating] move position center
+
+# PIP smart rule
+for_window [title="(?i)picture.in.picture"] \
+    floating enable, sticky enable, border pixel 1, resize set 480 270, move position 68 ppt 65 ppt

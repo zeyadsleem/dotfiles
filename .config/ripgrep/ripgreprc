@@ -1,0 +1,6 @@
+# Show hidden files/folders
+--hidden
+
+# Exclude specific directories
+--glob=!.git/
+--glob=!node_modules/

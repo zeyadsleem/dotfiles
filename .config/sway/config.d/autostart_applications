@@ -1,0 +1,40 @@
+# Polkit authentication agent
+exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+
+# D-Bus session
+exec --no-startup-id dbus-launch --exit-with-session
+
+# Export environment for systemd/dbus services
+exec --no-startup-id dbus-update-activation-environment --systemd \
+    DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
+
+# GNOME keyring daemon (required for ProtonVPN)
+exec --no-startup-id gnome-keyring-daemon --start --components=secrets,ssh
+
+# Kanshi monitor manager
+exec_always --no-startup-id kanshi
+
+# Idle configuration
+exec swayidle idlehint 1
+exec_always swayidle -w before-sleep "$HOME/.local/bin/lock-if-not-running.sh"
+
+# Desktop notifications
+exec mako
+
+# Clipboard history
+exec wl-paste --type text --watch cliphist store
+exec wl-paste --type image --watch cliphist store
+
+# Network and firewall applets
+exec nm-applet --indicator
+exec sleep 2 && firewall-applet
+
+# App launcher
+exec_always nwg-drawer -r -c 6 -is 48 -mb 15 -ml 18 -mr 18 -mt 15
+
+# ProtonVPN tray (start minimized, no GUI popup)
+exec --no-startup-id protonvpn-app
+# exec --no-startup-id protonvpn-app --start-minimized
+
+# Window autotiling
+exec autotiling

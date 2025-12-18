@@ -1,0 +1,10 @@
+#output HDMI-A-1 res 1280x1024 pos 0 0
+#output eDP-1 res 1366x768 pos 1280 200
+
+#workspace 1 output HDMI-A-1
+#workspace 2 output eDP-1
+
+# output eDP-1 disable
+# output HDMI-A-1 pos 1366 0 res 1280x1024
+
+# workspace 1 output HDMI-A-1

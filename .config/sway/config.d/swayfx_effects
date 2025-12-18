@@ -1,0 +1,26 @@
+# SwayFX Effects Configuration
+
+# Shadows
+shadows enable
+shadows_on_csd enable
+shadow_blur_radius 5
+shadow_color #0000007F
+
+# Blur
+blur enable
+blur_xray disable
+blur_passes 2
+blur_radius 5
+
+# Corner radius
+corner_radius 5
+
+# Dim inactive windows
+default_dim_inactive 0.1
+
+# Layer effects
+layer_effects "waybar" blur enable; shadows enable; corner_radius 5
+layer_effects "notifications" blur enable; shadows enable; corner_radius 5
+layer_effects "nwg-drawer" blur enable; shadows enable; corner_radius 5
+layer_effects "fuzzel" blur enable; shadows enable; corner_radius 5
+layer_effects "swayosd" blur enable; shadows enable; corner_radius 5
