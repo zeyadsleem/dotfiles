@@ -65,7 +65,7 @@ function commit() {
 }
 
 alias amend='git commit --amend'
-alias amendall='git add -A && git commit --amend --no-edit -n'
+alias amendall='git commit --amend --no-edit --allow-empty --allow-empty-message '
 
 # Branching & Checkout
 alias br='git branch -vv'
@@ -142,8 +142,15 @@ alias ta='tmux attach'
 # DEVELOPMENT TOOLS
 # =============================================================================
 alias v='nvim'        # Neovim editor
-alias pn='pnpm'       # Fast npm alternative
+alias pn="pnpm"
 alias px='pnpx'       # Execute pnpm packages
+alias pni="pnpm install"
+alias pna="pnpm add"
+alias pnr="pnpm run"
+alias pnu="pnpm update"
+alias pnv="pnpm env list"
+# alias pn20="pnpm env use 20.11.1"
+# alias pn21="pnpm env use 21.7.3"
 
 # =============================================================================
 # SYSTEM UTILITIES
@@ -213,6 +220,13 @@ function serve() {
 function topcmd() {
     history | awk '{CMD[$2]++} END {for (a in CMD) print CMD[a], a}' |
     sort -nr | head -20
+}
+
+pnpm-auto() {
+  if [[ -f package.json ]]; then
+    local node_version=$(node -p "require('./package.json').engines?.node || '20.11.1'")
+    pnpm env use $node_version
+  fi
 }
 
 # =============================================================================
