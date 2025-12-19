@@ -55,22 +55,6 @@ elif [ -f ~/.fzf/shell/completion.zsh ]; then
   source ~/.fzf/shell/completion.zsh
 fi
 
-# Enhanced history widget
-fzf-history-widget-enhanced() {
-  local selected
-  setopt localoptions noglobsubst noposixbuiltins pipefail no_aliases 2> /dev/null
-  selected="$(fc -rl 1 | awk '{ cmd=$0; sub(/^[ \t]*[0-9]+\**[ \t]+/, "", cmd); if (!seen[cmd]++) print $0 }' |
-    FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} $FZF_DEFAULT_OPTS -n2..,.. --tiebreak=index --bind=ctrl-r:toggle-sort,ctrl-z:ignore $FZF_CTRL_R_OPTS --query=${(qqq)LBUFFER} +m" fzf)"
-  local ret=$?
-  if [ -n "$selected" ]; then
-    local num=$(echo "$selected" | head -1 | awk '{print $1}' | sed 's/[^0-9]//g')
-    LBUFFER="$(fc -ln $num $num | sed 's/^[ \t]*//')"
-  fi
-  zle reset-prompt
-  return $ret
-}
-zle -N fzf-history-widget-enhanced
-
 # Plugins
 zinit light zsh-users/zsh-completions
 zinit light Aloxaf/fzf-tab
@@ -175,5 +159,18 @@ bindkey '^/' undo
 bindkey '^[/' redo
 bindkey '^[[C' forward-char
 bindkey '^ ' autosuggest-accept
+
+# PATH Configuration
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="/usr/local/bin:$PATH"
+export PATH="$HOME/bin:$PATH"
+export PATH="$HOME/go/bin/:$PATH"
+# pnpm
+export PNPM_HOME="/home/zeyad/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
 
 autoload -Uz zmv
