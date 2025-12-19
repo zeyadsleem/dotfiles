@@ -118,6 +118,10 @@ zshaddhistory() {
   [[ $1 != ${~HISTORY_IGNORE} ]]
 }
 
+# Man pages with colors using bat
+export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=TokyoNight'"
+export MANROFFOPT="-c"
+
 # Shell Options
 setopt AUTO_CD GLOB_DOTS COMPLETE_IN_WORD ALWAYS_TO_END EXTENDED_GLOB NO_BEEP INTERACTIVE_COMMENTS COMPLETE_ALIASES
 
