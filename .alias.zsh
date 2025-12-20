@@ -138,6 +138,7 @@ alias pnv="pnpm env list"
 # SYSTEM UTILITIES
 alias open='gio open'
 alias c='clear'
+alias gpt='tgpt'
 
 if command -v systemctl &>/dev/null; then
     alias sctl='sudo systemctl'
