@@ -1,18 +1,12 @@
 #!/usr/bin/env bash
-# =============================================================================
 # Shell Configuration - Aliases & Functions
-# =============================================================================
 
-# =============================================================================
 # SAFETY - Prevent Accidental File Operations
-# =============================================================================
-alias rm='rm -i'      # Confirm before removing
-alias mv='mv -i'      # Confirm before moving/overwriting
-alias cp='cp -i'      # Confirm before copying/overwriting
+alias rm='rm -i'
+alias mv='mv -i'
+alias cp='cp -i'
 
-# =============================================================================
 # NAVIGATION - Directory Movement
-# =============================================================================
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
@@ -26,21 +20,16 @@ function md() {
 alias du='du -h'
 alias cd='z'          # Uses zoxide for smart directory jumping
 
-# =============================================================================
 # FILE LISTING - Enhanced with eza/bat
-# =============================================================================
 command -v eza &>/dev/null && {
-    alias ls='eza -lAh --icons --git'
-    alias l='eza -aH --icons'
-    alias lt='eza -lAh --icons --tree --level=2'
+    alias ls='eza -la --icons --git'
+    alias l='eza -a --icons'
+    alias lt='eza -la --icons --tree --level=2'
 }
 
 command -v bat &>/dev/null && alias cat='bat --style=plain'
 
-# =============================================================================
 # GIT - Version Control Shortcuts
-# =============================================================================
-
 # Helper Functions
 function git_branch() {
     git rev-parse --abbrev-ref HEAD
@@ -105,9 +94,7 @@ function odd() {
     git difftool -y -d "$1".."$2"
 }
 
-# =============================================================================
 # KUBERNETES - Container Orchestration
-# =============================================================================
 alias k='kubectl'
 alias kget='kubectl get'
 alias kdesc='kubectl describe'
@@ -132,15 +119,11 @@ function kexec() {
     fi
 }
 
-# =============================================================================
 # TMUX - Terminal Multiplexer
-# =============================================================================
 alias t='tmux -2'
 alias ta='tmux attach'
 
-# =============================================================================
 # DEVELOPMENT TOOLS
-# =============================================================================
 alias v='nvim'        # Neovim editor
 alias pn="pnpm"
 alias px='pnpx'       # Execute pnpm packages
@@ -152,9 +135,7 @@ alias pnv="pnpm env list"
 # alias pn20="pnpm env use 20.11.1"
 # alias pn21="pnpm env use 21.7.3"
 
-# =============================================================================
 # SYSTEM UTILITIES
-# =============================================================================
 alias open='gio open'
 alias c='clear'
 
@@ -163,10 +144,7 @@ if command -v systemctl &>/dev/null; then
     alias jctl='sudo journalctl'
 fi
 
-# =============================================================================
 # ADVANCED FUNCTIONS
-# =============================================================================
-
 # LazyGit - Terminal UI for Git
 function lg() {
     export LAZYGIT_NEW_DIR_FILE=~/.lazygit/newdir
@@ -223,7 +201,3 @@ pnpm-auto() {
     pnpm env use $node_version
   fi
 }
-
-# =============================================================================
-# END OF CONFIGURATION
-# =============================================================================
