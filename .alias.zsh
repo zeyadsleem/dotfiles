@@ -211,11 +211,6 @@ function extract() {
     esac
 }
 
-# Simple HTTP Server
-function serve() {
-    python3 -m http.server "${1:-8000}" 2>/dev/null
-}
-
 # Most Used Commands
 function topcmd() {
     history | awk '{CMD[$2]++} END {for (a in CMD) print CMD[a], a}' |
