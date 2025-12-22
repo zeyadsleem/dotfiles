@@ -30,7 +30,7 @@ if command -v fd &> /dev/null; then
   export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 fi
 
-export FZF_CTRL_T_OPTS="--preview 'bat --theme=TokyoNight --color=always --style=numbers --line-range=:500 {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {}'"
 
 export FZF_ALT_C_OPTS="--preview 'eza --tree --level=3 --color=always --icons --git {} | head -200'"
 
@@ -119,7 +119,7 @@ zshaddhistory() {
 }
 
 # Man pages with colors using bat
-export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=TokyoNight'"
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANROFFOPT="-c"
 
 # Shell Options

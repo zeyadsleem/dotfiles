@@ -120,7 +120,7 @@ function kexec() {
 }
 
 # TMUX - Terminal Multiplexer
-alias t='tmux -2'
+alias t='tmux'
 alias ta='tmux attach'
 
 # DEVELOPMENT TOOLS
