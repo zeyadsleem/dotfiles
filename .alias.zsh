@@ -134,6 +134,7 @@ alias pnu="pnpm update"
 alias pnv="pnpm env list"
 # alias pn20="pnpm env use 20.11.1"
 # alias pn21="pnpm env use 21.7.3"
+alias docker='podman'
 
 # SYSTEM UTILITIES
 alias open='gio open'
