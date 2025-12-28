@@ -1,15 +1,12 @@
+# Export environment for systemd/dbus services
+exec hash dbus-update-activation-environment 2>/dev/null && \
+     dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
+
 # Polkit authentication agent
 exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 
-# D-Bus session
-exec --no-startup-id dbus-launch --exit-with-session
-
-# Export environment for systemd/dbus services
-exec --no-startup-id dbus-update-activation-environment --systemd \
-    DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
-
-# GNOME keyring daemon (required for ProtonVPN)
-exec --no-startup-id gnome-keyring-daemon --start --components=secrets,ssh
+# GNOME keyring daemon
+exec gnome-keyring-daemon --start --components=secrets,ssh
 
 # Kanshi monitor manager
 exec_always --no-startup-id kanshi
