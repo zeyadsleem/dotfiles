@@ -1,14 +1,27 @@
 return {
-  "nvim-lualine/lualine.nvim",
-  opts = function(_, opts)
-    opts.sections = opts.sections or {}
-    opts.sections.lualine_x = {
-      "filetype",
-    }
-    opts.sections.lualine_y = {}
-    opts.sections.lualine_z = {
-      "location",
-    }
-    return opts
-  end,
+  {
+    "nvim-lualine/lualine.nvim",
+    opts = {
+      options = {
+        component_separators = "",
+        section_separators = { left = "", right = "" },
+      },
+      sections = {
+        lualine_a = { { "mode", separator = { left = "" }, right_padding = 2 } },
+        lualine_y = {
+          { "progress", separator = " ", padding = { left = 1, right = 0 } },
+          { "location", padding = { left = 0, right = 1 } },
+        },
+        lualine_z = {
+          {
+            function()
+              return " "
+            end,
+            padding = { left = 0, right = 0 },
+            separator = { right = "" },
+          },
+        },
+      },
+    },
+  },
 }

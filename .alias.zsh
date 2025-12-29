@@ -24,7 +24,7 @@ alias cd='z'          # Uses zoxide for smart directory jumping
 command -v eza &>/dev/null && {
     alias ls='eza -la --icons --git'
     alias l='eza -a --icons'
-    alias lt='eza -la --icons --tree --level=2'
+    alias lt='eza -la --icons --tree --level=2 --ignore-glob="**/node_modules|**/.git"'
 }
 
 command -v bat &>/dev/null && alias cat='bat --style=plain'
