@@ -1,23 +1,74 @@
 return {
-  {
-    "nvim-lualine/lualine.nvim",
-    opts = {
+  "nvim-lualine/lualine.nvim",
+  event = "VeryLazy",
+  config = function()
+    -- stylua: ignore
+    local colors = {
+      insert_mode_bg   = '#61afef',
+      visual_mode_bg   = '#e5c07b',
+      inactive_bg      = '#4b5263',
+      fg               = '#abb2bf',
+      replace_mode_bg  = '#e06c75',
+      normal_mode_bg   = '#98c379',
+      secondary_bg     = '#3e4451',
+    }
+
+    local bubbles_theme = {
+      normal = {
+        a = { fg = colors.inactive_bg, bg = colors.normal_mode_bg },
+        b = { fg = colors.fg, bg = colors.secondary_bg },
+        c = { fg = colors.fg },
+      },
+
+      insert = { a = { fg = colors.inactive_bg, bg = colors.insert_mode_bg } },
+      visual = { a = { fg = colors.inactive_bg, bg = colors.visual_mode_bg } },
+      replace = { a = { fg = colors.inactive_bg, bg = colors.replace_mode_bg } },
+
+      inactive = {
+        a = { fg = colors.fg, bg = colors.inactive_bg },
+        b = { fg = colors.fg, bg = colors.inactive_bg },
+        c = { fg = colors.fg },
+      },
+    }
+
+    require("lualine").setup({
       options = {
+        theme = bubbles_theme,
         component_separators = "",
         section_separators = { left = "", right = "" },
       },
       sections = {
-        lualine_y = {
-          { "progress", separator = " ", padding = { left = 1, right = 0 } },
-          { "location", padding = { left = 0, right = 1 } },
-        },
-        lualine_z = {
+        lualine_a = { { "mode", separator = { left = "" }, right_padding = 2 } },
+        lualine_b = { "filename", "branch" },
+        lualine_c = {
           {
-            padding = { left = 0, right = 0 },
-            separator = { right = "" },
+            function()
+              local gitsigns = vim.b.gitsigns_blame_line
+              if gitsigns then
+                return gitsigns
+              end
+              return ""
+            end,
+            icon = "",
           },
+          "%=",
+        },
+        lualine_x = {},
+        lualine_y = { "filetype", "progress" },
+        lualine_z = {
+          { "location", separator = { right = "" }, left_padding = 2 },
         },
       },
-    },
-  },
+      inactive_sections = {
+        lualine_a = { "filename" },
+        lualine_b = {},
+        lualine_c = {},
+        lualine_x = {},
+        lualine_y = {},
+        lualine_z = { "location" },
+      },
+      tabline = {},
+      extensions = {},
+    })
+  end,
 }
