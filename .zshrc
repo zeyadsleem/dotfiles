@@ -166,9 +166,13 @@ bindkey '^ ' autosuggest-accept
 
 # PATH Configuration
 export PATH="$HOME/.local/bin:$PATH"
-export PATH="/usr/local/bin:$PATH"
 export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/go/bin/:$PATH"
+export PATH="$HOME/.jdks/openjdk-25.0.1/bin/:$PATH"
+
+# Turso
+export PATH="$PATH:/home/zeyad/.turso"
+
 # pnpm
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 case ":$PATH:" in
@@ -176,5 +180,7 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+. "$HOME/.cargo/env"
 
 autoload -Uz zmv

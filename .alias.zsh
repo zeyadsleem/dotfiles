@@ -36,7 +36,6 @@ function git_branch() {
 }
 
 # Basic Operations
-alias g='git'
 alias clone='git clone'
 alias fetch='git fetch && git status -s'
 alias pull='git pull && git status -s'
@@ -47,8 +46,6 @@ function pushupstream() {
 }
 
 # Staging & Committing
-alias addall='git add -A && git status -s'
-
 function commit() {
     git commit -a -m "$*"
 }
@@ -74,7 +71,6 @@ function log() {
     git log --pretty=format:"%h - <%an> %s (%cr)" --date=relative -10 "$@"
 }
 
-alias logsince='git rev-list HEAD --not'
 alias mylog='git log --pretty=format:"%h - <%an> %s (%cr)" --date=relative -10 --author=zeyad.sleem'
 
 # Stashing
@@ -95,29 +91,29 @@ function odd() {
 }
 
 # KUBERNETES - Container Orchestration
-alias k='kubectl'
-alias kget='kubectl get'
-alias kdesc='kubectl describe'
-alias klog='kubectl logs'
-alias kall='kubectl get all'
-alias kpod='kubectl get pod'
-alias kdel='kubectl delete pod'
-alias kx='kubectx'
-alias kn='kubens'
+# alias k='kubectl'
+# alias kget='kubectl get'
+# alias kdesc='kubectl describe'
+# alias klog='kubectl logs'
+# alias kall='kubectl get all'
+# alias kpod='kubectl get pod'
+# alias kdel='kubectl delete pod'
+# alias kx='kubectx'
+# alias kn='kubens'
 
-function ksecret() {
-    kubectl get secret "$@" -o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{{"\n"}}{{end}}'
-}
-
-function kexec() {
-    local pod="$1"
-    local container="$2"
-    if [ -z "$container" ]; then
-        kubectl exec -it "$pod" -- /bin/bash
-    else
-        kubectl exec -it "$pod" -c "$container" -- /bin/bash
-    fi
-}
+# function ksecret() {
+#     kubectl get secret "$@" -o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{{"\n"}}{{end}}'
+# }
+#
+# function kexec() {
+#     local pod="$1"
+#     local container="$2"
+#     if [ -z "$container" ]; then
+#         kubectl exec -it "$pod" -- /bin/bash
+#     else
+#         kubectl exec -it "$pod" -c "$container" -- /bin/bash
+#     fi
+# }
 
 # TMUX - Terminal Multiplexer
 alias t='tmux'
@@ -132,7 +128,7 @@ alias pna="pnpm add"
 alias pnr="pnpm run"
 alias pnu="pnpm update"
 alias pnv="pnpm env list"
-# alias pn20="pnpm env use 20.11.1"
+alias pn24="pnpm env use 24.12.0"
 # alias pn21="pnpm env use 21.7.3"
 alias docker='podman'
 
@@ -199,7 +195,7 @@ function topcmd() {
 
 pnpm-auto() {
   if [[ -f package.json ]]; then
-    local node_version=$(node -p "require('./package.json').engines?.node || '20.11.1'")
+    local node_version=$(node -p "require('./package.json').engines?.node || '24.12.0'")
     pnpm env use $node_version
   fi
 }
