@@ -32,6 +32,7 @@ return {
         "dist",
         "out",
         "venv",
+        "env",
         ".venv",
       },
     },
