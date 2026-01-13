@@ -11,7 +11,7 @@ if [[ ! -d $ZINIT_HOME ]]; then
 fi
 source "$ZINIT_HOME/zinit.zsh"
 
-# FZF Configuration (TokyoNight Theme)
+# FZF Configuration (Rose Pine Dawn)
 export FZF_DEFAULT_OPTS="
   --height 50%
   --layout=reverse
@@ -20,8 +20,8 @@ export FZF_DEFAULT_OPTS="
   --multi
   --preview-window=right:60%:wrap:rounded:border-bold
   --bind 'ctrl-a:select-all,ctrl-d:deselect-all,ctrl-/:toggle-preview'
-  --color=bg:#1a1b26,bg+:#24283b,fg:#a9b1d6,fg+:#c0caf5,hl:#7aa2f7,hl+:#7daea3
-  --color=info:#88909f,prompt:#f7768e,pointer:#bb9af7,marker:#9ece6a,spinner:#f7768e,header:#7aa2f7
+  --color=bg:#191724,bg+:#1f1d2e,fg:#e0def4,fg+:#908caa,hl:#c4a7e7,hl+:#c4a7e7
+  --color=info:#908caa,prompt:#eb6f92,pointer:#31748f,marker:#9ccfd8,spinner:#f6c177,header:#e0def4
 "
 
 if command -v fd &> /dev/null; then
@@ -30,7 +30,7 @@ if command -v fd &> /dev/null; then
   export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 fi
 
-export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {}'"
+export FZF_CTRL_T_OPTS="--preview 'bat --color=always --theme=rose-pine --style=numbers --line-range=:500 {}'"
 
 export FZF_ALT_C_OPTS="--preview 'eza --tree --level=3 --color=always --icons --git {} | head -200'"
 
@@ -62,18 +62,18 @@ zinit light zsh-users/zsh-autosuggestions
 zinit light zdharma-continuum/fast-syntax-highlighting
 zinit light zsh-users/zsh-history-substring-search
 
-# Syntax Highlighting Styles (TokyoNight)
+# Syntax Highlighting Styles (Rose Pine Dawn)
 typeset -A FAST_HIGHLIGHT_STYLES
 FAST_HIGHLIGHT_STYLES[default]='none'
-FAST_HIGHLIGHT_STYLES[unknown-token]='fg=#f7768e,bold'
-FAST_HIGHLIGHT_STYLES[reserved-word]='fg=#bb9af7,bold'
-FAST_HIGHLIGHT_STYLES[alias]='fg=#7aa2f7'
-FAST_HIGHLIGHT_STYLES[command]='fg=#7aa2f7,bold'
-FAST_HIGHLIGHT_STYLES[path]='fg=#9ece6a,underline'
-FAST_HIGHLIGHT_STYLES[globbing]='fg=#bb9af7'
-FAST_HIGHLIGHT_STYLES[option]='fg=#e0af68'
-FAST_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#9ece6a'
-FAST_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#9ece6a'
+FAST_HIGHLIGHT_STYLES[unknown-token]='fg=#d7827e,bold'
+FAST_HIGHLIGHT_STYLES[reserved-word]='fg=#7a5ccc,bold'
+FAST_HIGHLIGHT_STYLES[alias]='fg=#286983'
+FAST_HIGHLIGHT_STYLES[command]='fg=#286983,bold'
+FAST_HIGHLIGHT_STYLES[path]='fg=#56949f,underline'
+FAST_HIGHLIGHT_STYLES[globbing]='fg=#7a5ccc'
+FAST_HIGHLIGHT_STYLES[option]='fg=#ea9d34'
+FAST_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#56949f'
+FAST_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#56949f'
 
 # Completion System & FZF-Tab
 autoload -Uz compinit
@@ -88,21 +88,19 @@ zstyle ':completion:*:git-checkout:*' sort false
 zstyle ':completion:*:descriptions' format '[%d]'
 
 # FZF-Tab Settings
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
-zstyle ':fzf-tab:complete:z:*' fzf-preview 'eza -1 --color=always $realpath'
+zstyle ':fzf-tab:*' fzf-flags --border=rounded --height=50% --preview-window=rounded:border-bold --color=bg:#191724,fg:#e0def4
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --theme rose-pine $realpath'
+zstyle ':fzf-tab:complete:z:*' fzf-preview 'eza -1 --color=always --theme rose-pine $realpath'
 zstyle ':fzf-tab:*' switch-group ',' '.'
 zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview '[[ $group == "[process ID]" ]] && ps --pid=$word -o cmd --no-headers -w -w'
 zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-flags --preview-window=down:3:wrap
 zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'SYSTEMD_COLORS=1 systemctl status $word'
-zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview 'git diff $word | delta'
-zstyle ':fzf-tab:complete:git-log:*' fzf-preview 'git log --color=always $word'
-zstyle ':fzf-tab:complete:git-show:*' fzf-preview 'git show --color=always $word | delta'
+zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview 'git diff $word | delta --theme=rose-pine'
+zstyle ':fzf-tab:complete:git-log:*' fzf-preview 'git log --color=always --theme=rose-pine $word'
+zstyle ':fzf-tab:complete:git-show:*' fzf-preview 'git show --color=always --theme=rose-pine $word | delta'
 zstyle ':fzf-tab:complete:(-command-|[^ ]*):*' fzf-preview 'echo ${(P)word}'
 zstyle ':fzf-tab:complete:(\\|*/|)man:*' fzf-preview 'man $word'
 zstyle ':fzf-tab:*' continuous-trigger '/'
-
-# FZF_DEFAULT_OPTS
-zstyle ':fzf-tab:*' fzf-flags --border=rounded --height=50% --preview-window=rounded:border-bold
 
 # History
 HISTFILE=~/.zsh_history
@@ -118,9 +116,11 @@ zshaddhistory() {
   [[ $1 != ${~HISTORY_IGNORE} ]]
 }
 
-# Man pages with colors using bat
-export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export MANPAGER="sh -c 'col -bx | bat -l man -p --theme=rose-pine'"
 export MANROFFOPT="-c"
+
+# Bat theme
+export BAT_THEME="rose-pine"
 
 # Shell Options
 setopt AUTO_CD GLOB_DOTS COMPLETE_IN_WORD ALWAYS_TO_END EXTENDED_GLOB NO_BEEP INTERACTIVE_COMMENTS COMPLETE_ALIASES
@@ -139,7 +139,7 @@ ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 ZSH_AUTOSUGGEST_USE_ASYNC=1
 ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#9893a5'
 ZSH_AUTOSUGGEST_HISTORY_IGNORE="$HISTORY_IGNORE"
 
 # Keybindings
@@ -184,3 +184,7 @@ esac
 . "$HOME/.cargo/env"
 
 autoload -Uz zmv
+
+# Colorls for Rose Pine Dawn
+export LS_COLORS="$(vivid generate rose-pine 2>/dev/null || echo '')"
+export DIR_COLORS="$LS_COLORS"

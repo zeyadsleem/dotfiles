@@ -1,15 +1,15 @@
 window {
-    background-color: rgba(13, 17, 23, 0.95);
-    color: #d0d7de;
+    background-color: rgba(25, 23, 36, 0.95);
+    color: #e0def4;
     border-radius: 5px;
-    border: 1px solid #30363d;
+    border: 1px solid #6e6a86;
 }
 
 entry {
-    box-shadow: 0 0 4px 2px #21262d;
-    background-color: rgba(33, 38, 45, 0.8);
-    color: #d0d7de;
-    border: 1px solid #444c56;
+    box-shadow: 0 0 4px 2px #26233a;
+    background-color: rgba(38, 35, 58, 0.8);
+    color: #e0def4;
+    border: 1px solid #6e6a86;
     border-radius: 6px;
 }
 
@@ -18,25 +18,25 @@ image {
     background: none;
     border: none;
     margin: 2px;
-    color: #8ab4f8;
+    color: #c4a7e7;
 }
 
 button:hover {
-    background-color: rgba(138, 180, 248, 0.15);
-    box-shadow: 0 0 4px 2px #1e3a5f;
+    background-color: rgba(196, 167, 231, 0.15);
+    box-shadow: 0 0 4px 2px #26233a;
 }
 
 #category-button {
     margin: 0;
-    color: #8ab4f8;
+    color: #c4a7e7;
 }
 
 #pinned-box {
     padding-bottom: 0px;
-    border-bottom: 0px solid #30363d;
+    border-bottom: 0px solid #6e6a86;
 }
 
 #files-box {
     padding: 0px;
-    border: 0px solid #30363d;
+    border: 0px solid #6e6a86;
 }

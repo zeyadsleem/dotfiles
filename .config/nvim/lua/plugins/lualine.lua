@@ -4,13 +4,13 @@ return {
   config = function()
     -- stylua: ignore
     local colors = {
-      insert_mode_bg   = '#61afef',
-      visual_mode_bg   = '#e5c07b',
-      inactive_bg      = '#4b5263',
-      fg               = '#abb2bf',
-      replace_mode_bg  = '#e06c75',
-      normal_mode_bg   = '#98c379',
-      secondary_bg     = '#3e4451',
+      insert_mode_bg   = '#eb6f92',
+      visual_mode_bg   = '#f6c177',
+      inactive_bg      = '#1f1d2e',
+      fg               = '#e0def4',
+      replace_mode_bg  = '#c4a7e7',
+      normal_mode_bg   = '#9ccfd8',
+      secondary_bg     = '#26233a',
     }
 
     local bubbles_theme = {

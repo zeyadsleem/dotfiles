@@ -5,21 +5,21 @@
 }
 
 window {
-    background-color: rgba(25, 25, 30, 0.95);
-    color: #e3e3ea;
+    background-color: rgba(35, 33, 54, 0.95);
+    color: #e0def4;
 }
 
 /* Clock section */
 #clock-label {
     font-size: 84px;
     font-weight: 800;
-    color: #e3e3ea;
+    color: #e0def4;
     margin-bottom: 8px;
 }
 
 #date-label {
     font-size: 24px;
-    color: #a9b1d6;
+    color: #c4a7e7;
     margin-bottom: 50px;
 }
 
@@ -30,16 +30,16 @@ window {
 
 /* User info section */
 #userinfo-box {
-    background-color: rgba(40, 42, 54, 0.6);
+    background-color: rgba(31, 29, 46, 0.6);
     border-radius: 5px;
     padding: 20px;
-    border: 1px solid #6272a4;
+    border: 1px solid #44415a;
     margin-top: 60px;
     margin-bottom: 20px;
 }
 
 #userinfo-box label {
-    color: #e3e3ea;
+    color: #e0def4;
     font-size: 8px;
 }
 
@@ -50,10 +50,10 @@ window {
 /* Input field */
 #input-field {
     border-radius: 5px;
-    background-color: rgba(40, 42, 54, 0.6);
-    border: 1px solid #6272a4;
+    background-color: rgba(31, 29, 46, 0.6);
+    border: 1px solid #44415a;
     padding: 2px 10px;
-    color: #e3e3ea;
+    color: #e0def4;
     letter-spacing: 2px;
     font-size: 14px;
     margin-top: 10px;
@@ -61,25 +61,25 @@ window {
 }
 
 #input-field:focus {
-    border-color: #a9b1d6;
-    box-shadow: 0 0 0 2px rgba(169, 177, 214, 0.3);
+    border-color: #c4a7e7;
+    box-shadow: 0 0 0 2px rgba(196, 167, 231, 0.3);
 }
 
 /* Unlock button */
 #unlock-button {
     background: none;
-    background-color: rgba(40, 42, 54, 0.6);
-    border: 1px solid #6272a4;
+    background-color: rgba(31, 29, 46, 0.6);
+    border: 1px solid #44415a;
     padding: 6px 12px;
     border-radius: 5px;
-    color: #e3e3ea;
+    color: #e0def4;
     transition: all 0.2s ease;
     margin-top: 0px;
 }
 
 #unlock-button:hover {
-    background-color: rgba(98, 114, 164, 0.4);
-    box-shadow: 0 0 8px rgba(98, 114, 164, 0.3);
+    background-color: rgba(110, 106, 134, 0.4);
+    box-shadow: 0 0 8px rgba(110, 106, 134, 0.3);
 }
 
 /* Powerbar section */
@@ -89,18 +89,18 @@ window {
 
 #powerbar-box button {
     background: none;
-    background-color: rgba(40, 42, 54, 0.6);
-    border: 1px solid #6272a4;
+    background-color: rgba(31, 29, 46, 0.6);
+    border: 1px solid #44415a;
     border-radius: 5px;
     margin: 2px 4px;
     padding: 4px 8px;
-    color: #e3e3ea;
+    color: #e0def4;
     transition: all 0.2s ease;
 }
 
 #powerbar-box button:hover {
-    background-color: rgba(98, 114, 164, 0.4);
-    box-shadow: 0 0 8px rgba(98, 114, 164, 0.3);
+    background-color: rgba(110, 106, 134, 0.4);
+    box-shadow: 0 0 8px rgba(110, 106, 134, 0.3);
 }
 
 /* Input label */

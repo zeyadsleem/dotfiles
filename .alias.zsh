@@ -122,7 +122,7 @@ alias ta='tmux attach'
 # DEVELOPMENT TOOLS
 alias v='nvim'        # Neovim editor
 alias pn="pnpm"
-alias px='pnpx'       # Execute pnpm packages
+alias dlx='pnpm dlx'       # Execute pnpm packages
 alias pni="pnpm install"
 alias pna="pnpm add"
 alias pnr="pnpm run"
