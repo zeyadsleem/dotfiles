@@ -26,6 +26,7 @@ return {
         "node_modules",
         "pnpm-lock.yaml",
         "package-lock.json",
+        "bun.lcok",
         ".git",
         "target",
         "build",

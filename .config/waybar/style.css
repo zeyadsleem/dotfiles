@@ -54,6 +54,34 @@
     border-radius: 8px;
 }
 
+#mode:active,
+#network:active,
+#custom-keyboard:active,
+#idle_inhibitor:active,
+#cpu:active,
+#memory:active,
+#backlight:active,
+#pulseaudio:active,
+#battery:active,
+#clock:active,
+#tray:active {
+    background-color: rgba(40, 42, 54, 0.8);
+}
+
+#mode:hover,
+#network:hover,
+#custom-keyboard:hover,
+#idle_inhibitor:hover,
+#cpu:hover,
+#memory:hover,
+#backlight:hover,
+#pulseaudio:hover,
+#battery:hover,
+#clock:hover,
+#tray:hover {
+    background-color: rgba(40, 42, 54, 0.75);
+}
+
 #custom-launcher {
     margin-left: 4px;
     margin-right: 2px;
