@@ -38,7 +38,7 @@ export FZF_CTRL_R_OPTS="
   --preview 'echo {}'
   --preview-window up:3:hidden:wrap
   --bind 'ctrl-/:toggle-preview'
-  --bind 'ctrl-y:execute-silent(echo -n {2..} | xclip -selection clipboard)+abort'
+  --bind 'ctrl-y:execute-silent(echo -n {2..} | wl-copy)+abort'
   --header 'Press CTRL-Y to copy command into clipboard'
   --color header:italic
 "
@@ -78,6 +78,7 @@ FAST_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#56949f'
 # Completion System & FZF-Tab
 autoload -Uz compinit
 compinit
+zinit cdreplay -q # Replay cached completions
 zstyle ':completion:*' rehash true
 zstyle ':completion:*' cache-path ~/.zsh/cache
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
@@ -99,7 +100,7 @@ zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview 'git diff $word 
 zstyle ':fzf-tab:complete:git-log:*' fzf-preview 'git log --color=always --theme=rose-pine $word'
 zstyle ':fzf-tab:complete:git-show:*' fzf-preview 'git show --color=always --theme=rose-pine $word | delta'
 zstyle ':fzf-tab:complete:(-command-|[^ ]*):*' fzf-preview 'echo ${(P)word}'
-zstyle ':fzf-tab:complete:(\\|*/|)man:*' fzf-preview 'man $word'
+zstyle ':fzf-tab:complete:(\|*/|)man:*' fzf-preview 'man $word'
 zstyle ':fzf-tab:*' continuous-trigger '/'
 
 # History
@@ -163,6 +164,7 @@ bindkey '^/' undo
 bindkey '^[/' redo
 bindkey '^[[C' forward-char
 bindkey '^ ' autosuggest-accept
+bindkey '^f' autosuggest-accept
 
 # PATH Configuration
 export PATH="$HOME/.local/bin:$PATH"
@@ -176,8 +178,8 @@ export PATH="$PATH:/home/zeyad/.turso"
 # pnpm
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
 case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
+  *":$PNPM_HOME:"*) ;; 
+  *) export PATH="$PNPM_HOME:$PATH" ;; 
 esac
 # pnpm end
 
@@ -188,3 +190,97 @@ autoload -Uz zmv
 # Colorls for Rose Pine Dawn
 export LS_COLORS="$(vivid generate rose-pine 2>/dev/null || echo '')"
 export DIR_COLORS="$LS_COLORS"
+
+# --- Zsh Hacks & Enhancements ---
+
+# 1. Edit Command Buffer (Ctrl+X, Ctrl+E)
+autoload -z edit-command-line
+zle -N edit-command-line
+bindkey "^X^E" edit-command-line
+
+# 2. Undo (Ensure Ctrl+_ also works for undo)
+bindkey "^_" undo
+
+# 3. Magic Space (Space key expands history like !!)
+bindkey ' ' magic-space
+
+# 4. Custom Widgets
+# Clear screen but keep the current command buffer (Ctrl+X, l)
+function clear-screen-keep-buffer() {
+    clear
+    zle redisplay
+}
+zle -N clear-screen-keep-buffer
+bindkey "^Xl" clear-screen-keep-buffer
+
+# Copy buffer to clipboard (Ctrl+X, c)
+function copy-buffer() {
+    echo -n $BUFFER | wl-copy
+}
+zle -N copy-buffer
+bindkey "^Xc" copy-buffer
+
+# 5. Bindkey -s (Insert text shortcuts)
+# Git Commit shortcut (Ctrl+X, g, c) -> inserts git commit -m "" and places cursor inside
+bindkey -s '^Xgc' 'git commit -m ""\C-b'
+
+# 6. chpwd Hooks (Actions on directory change)
+autoload -U add-zsh-hook
+
+# Automatically list files on cd
+
+function chpwd_ls() {
+
+    # Use 'eza' if available, otherwise 'ls'
+
+    if command -v eza &> /dev/null; then
+
+        eza -a --icons
+
+    else
+
+        ls -A
+
+    fi
+
+}
+
+# Hook it
+
+add-zsh-hook chpwd chpwd_ls
+
+
+
+# Automatically switch pnpm node version if package.json has engine
+
+add-zsh-hook chpwd pnpm-auto
+
+
+
+# Automatically activate Python virtual environment
+function auto_venv() {
+  local venv_dirs=("venv" ".venv" "env")
+  local found_venv=""
+
+  for dir in "${venv_dirs[@]}"; do
+    if [[ -d "$dir" && -f "$dir/bin/activate" ]]; then
+      found_venv="$dir"
+      break
+    fi
+  done
+
+  if [[ -n "$found_venv" ]]; then
+    # Activate if not already active or if it's a different one
+    if [[ "$VIRTUAL_ENV" != "$PWD/$found_venv" ]]; then
+      echo "Activating Python virtual environment: $found_venv"
+      source "$found_venv/bin/activate"
+    fi
+  elif [[ -n "$VIRTUAL_ENV" ]]; then
+    # Deactivate if we are no longer inside the project root of the active venv
+    local venv_root="${VIRTUAL_ENV:h}"
+    if [[ "$PWD" != "$venv_root"* ]]; then
+        deactivate
+    fi
+  fi
+}
+add-zsh-hook chpwd auto_venv

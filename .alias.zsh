@@ -102,9 +102,9 @@ function odd() {
 # alias kn='kubens'
 
 # function ksecret() {
-#     kubectl get secret "$@" -o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{{"\n"}}{{end}}'
+#     kubectl get secret "$@" -o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{"\n"}}{{end}}'
 # }
-#
+# 
 # function kexec() {
 #     local pod="$1"
 #     local container="$2"
@@ -199,3 +199,24 @@ pnpm-auto() {
     pnpm env use $node_version
   fi
 }
+
+# --- Zsh Hacks Aliases ---
+
+# Suffix Aliases (Open files based on extension)
+# Usage: just type 'readme.md' and it opens in nvim
+alias -s {txt,yml,yaml,toml,lua,conf,ini}=nvim
+alias -s {go,js,ts,py,c,cpp,h,hpp,css,html}=nvim
+alias -s json=jless
+alias -s md='glow -p'
+
+# Global Aliases (Expand anywhere in command)
+# Usage: some_cmd NE (appends 2> /dev/null)
+alias -g NE='2> /dev/null'
+alias -g NO='&> /dev/null'
+alias -g G='| grep'
+alias -g C='| wl-copy'
+
+# Named Directories (Fast navigation)
+# Usage: cd ~dotfiles
+hash -d dotfiles=$HOME/dotfiles
+hash -d conf=$HOME/.config
