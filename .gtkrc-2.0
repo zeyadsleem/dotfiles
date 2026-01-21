@@ -2,7 +2,7 @@
 # Any customization should be done in ~/.gtkrc-2.0.mine instead.
 
 include "/home/zeyad/.gtkrc-2.0.mine"
-gtk-theme-name="rose-pine-moon-gtk"
+gtk-theme-name="Orchis-Dark-Compact"
 gtk-icon-theme-name="Papirus-Dark"
 gtk-font-name="JetBrainsMono Nerd Font Medium 10"
 gtk-cursor-theme-name="Bibata-Modern-Ice"

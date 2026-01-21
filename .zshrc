@@ -11,18 +11,8 @@ if [[ ! -d $ZINIT_HOME ]]; then
 fi
 source "$ZINIT_HOME/zinit.zsh"
 
-# FZF Configuration (Rose Pine Dawn)
-export FZF_DEFAULT_OPTS="
-  --height 50%
-  --layout=reverse
-  --border=rounded
-  --inline-info
-  --multi
-  --preview-window=right:60%:wrap:rounded:border-bold
-  --bind 'ctrl-a:select-all,ctrl-d:deselect-all,ctrl-/:toggle-preview'
-  --color=bg:#191724,bg+:#1f1d2e,fg:#e0def4,fg+:#908caa,hl:#c4a7e7,hl+:#c4a7e7
-  --color=info:#908caa,prompt:#eb6f92,pointer:#31748f,marker:#9ccfd8,spinner:#f6c177,header:#e0def4
-"
+# Theme Configuration
+[[ -f ~/.config/themes/current/zsh/env.zsh ]] && source ~/.config/themes/current/zsh/env.zsh
 
 if command -v fd &> /dev/null; then
   export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
@@ -88,17 +78,16 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*:git-checkout:*' sort false
 zstyle ':completion:*:descriptions' format '[%d]'
 
-# FZF-Tab Settings
-zstyle ':fzf-tab:*' fzf-flags --border=rounded --height=50% --preview-window=rounded:border-bold --color=bg:#191724,fg:#e0def4
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --theme rose-pine $realpath'
-zstyle ':fzf-tab:complete:z:*' fzf-preview 'eza -1 --color=always --theme rose-pine $realpath'
+
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+zstyle ':fzf-tab:complete:z:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:*' switch-group ',' '.'
 zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview '[[ $group == "[process ID]" ]] && ps --pid=$word -o cmd --no-headers -w -w'
 zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-flags --preview-window=down:3:wrap
 zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'SYSTEMD_COLORS=1 systemctl status $word'
-zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview 'git diff $word | delta --theme=rose-pine'
-zstyle ':fzf-tab:complete:git-log:*' fzf-preview 'git log --color=always --theme=rose-pine $word'
-zstyle ':fzf-tab:complete:git-show:*' fzf-preview 'git show --color=always --theme=rose-pine $word | delta'
+zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview 'git diff $word | delta --theme=Dracula'
+zstyle ':fzf-tab:complete:git-log:*' fzf-preview 'git log --color=always $word'
+zstyle ':fzf-tab:complete:git-show:*' fzf-preview 'git show --color=always $word | delta --theme=Dracula'
 zstyle ':fzf-tab:complete:(-command-|[^ ]*):*' fzf-preview 'echo ${(P)word}'
 zstyle ':fzf-tab:complete:(\|*/|)man:*' fzf-preview 'man $word'
 zstyle ':fzf-tab:*' continuous-trigger '/'
@@ -187,9 +176,7 @@ esac
 
 autoload -Uz zmv
 
-# Colorls for Rose Pine Dawn
-export LS_COLORS="$(vivid generate rose-pine 2>/dev/null || echo '')"
-export DIR_COLORS="$LS_COLORS"
+# Colorls (Handled by Theme)
 
 # --- Zsh Hacks & Enhancements ---
 
@@ -251,8 +238,17 @@ add-zsh-hook chpwd chpwd_ls
 
 
 
-# Automatically switch pnpm node version if package.json has engine
-
+# Automatically switch pnpm node version
+function pnpm-auto() {
+  if [[ -f .nvmrc ]]; then
+    local node_version=$(< .nvmrc)
+    # Remove newlines/spaces
+    pnpm env use "${node_version//[[:space:]]/}"
+  elif [[ -f package.json ]]; then
+    local node_version=$(node -p "require('./package.json').engines?.node || '24.13.0'")
+    pnpm env use "$node_version"
+  fi
+}
 add-zsh-hook chpwd pnpm-auto
 
 

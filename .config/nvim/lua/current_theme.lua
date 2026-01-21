@@ -1,0 +1,1 @@
+/home/zeyad/dotfiles/.config/themes/current/nvim/lualine_theme.lua

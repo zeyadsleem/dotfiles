@@ -1,0 +1,42 @@
+window {
+    background-color: rgba(30, 30, 30, 0.95);
+    color: #dcdcdc;
+    border-radius: 5px;
+    border: 1px solid #5294e2;
+}
+
+entry {
+    box-shadow: 0 0 4px 2px #1e1e1e;
+    background-color: rgba(46, 46, 46, 0.8);
+    color: #dcdcdc;
+    border: 1px solid #5294e2;
+    border-radius: 6px;
+}
+
+button,
+image {
+    background: none;
+    border: none;
+    margin: 2px;
+    color: #dcdcdc;
+}
+
+button:hover {
+    background-color: rgba(82, 148, 226, 0.2);
+    box-shadow: 0 0 4px 2px #1e1e1e;
+}
+
+#category-button {
+    margin: 0;
+    color: #5294e2;
+}
+
+#pinned-box {
+    padding-bottom: 0px;
+    border-bottom: 0px solid #5294e2;
+}
+
+#files-box {
+    padding: 0px;
+    border: 0px solid #5294e2;
+}

@@ -1,0 +1,54 @@
+#!/bin/bash
+
+THEME_NAME=$1
+THEMES_DIR="$HOME/dotfiles/.config/themes"
+CURRENT_LINK="$THEMES_DIR/current"
+
+if [ -z "$THEME_NAME" ]; then
+    echo "Usage: set-theme <theme_name>"
+    echo "Available themes:"
+    ls "$THEMES_DIR" | grep -v "current"
+    exit 1
+fi
+
+if [ ! -d "$THEMES_DIR/$THEME_NAME" ]; then
+    echo "Error: Theme '$THEME_NAME' not found in $THEMES_DIR"
+    exit 1
+fi
+
+echo "Switching to theme: $THEME_NAME..."
+
+# 1. Update Symlink
+ln -sfn "$THEMES_DIR/$THEME_NAME" "$CURRENT_LINK"
+
+# 2. Reload Kitty
+# Kitty automatically reloads when config changes, but we can force it
+killall -SIGUSR1 kitty 2>/dev/null
+
+# 3. Reload Sway
+swaymsg reload 2>/dev/null
+
+# 4. Reload Tmux
+if pgrep tmux >/dev/null; then
+    tmux source-file ~/.tmux.conf
+    
+    # Update FZF colors in running tmux session
+    ENV_FILE="$THEMES_DIR/$THEME_NAME/zsh/env.zsh"
+    if [ -f "$ENV_FILE" ]; then
+        # Extract FZF_DEFAULT_OPTS value and set it in tmux
+        FZF_OPTS=$(grep "export FZF_DEFAULT_OPTS=" "$ENV_FILE" | sed 's/export FZF_DEFAULT_OPTS="//;s/"$//')
+        tmux set-environment -g FZF_DEFAULT_OPTS "$FZF_OPTS"
+    fi
+fi
+
+# 5. Apply GTK Theme (Optional: Add logic to read GTK theme name from a file inside the theme folder)
+# For now, we assume folder name maps to GTK theme or we set a default
+# You can add a 'metadata' file in each theme folder with the exact GTK theme name.
+if [ -f "$CURRENT_LINK/gtk_theme_name" ]; then
+    GTK_THEME=$(cat "$CURRENT_LINK/gtk_theme_name")
+    gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME"
+    # Also update settings.ini for legacy apps if needed
+    sed -i "s/gtk-theme-name=.*/gtk-theme-name=$GTK_THEME/" ~/.config/gtk-3.0/settings.ini
+fi
+
+echo "Theme switched successfully!"

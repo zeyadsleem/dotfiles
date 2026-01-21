@@ -128,8 +128,10 @@ alias pna="pnpm add"
 alias pnr="pnpm run"
 alias pnu="pnpm update"
 alias pnv="pnpm env list"
-alias pn24="pnpm env use 24.12.0"
-# alias pn21="pnpm env use 21.7.3"
+alias pn24="pnpm env use 24.13.0"
+alias pn10="pnpm env use 10.18.1"
+
+# Docker
 alias docker='podman'
 
 # SYSTEM UTILITIES
@@ -195,7 +197,7 @@ function topcmd() {
 
 pnpm-auto() {
   if [[ -f package.json ]]; then
-    local node_version=$(node -p "require('./package.json').engines?.node || '24.12.0'")
+    local node_version=$(node -p "require('./package.json').engines?.node || '24.13.0'")
     pnpm env use $node_version
   fi
 }
