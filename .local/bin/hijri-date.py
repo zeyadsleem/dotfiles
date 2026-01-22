@@ -25,10 +25,17 @@ def shape_text(text):
     except (subprocess.CalledProcessError, FileNotFoundError):
         return text
 
+def to_arabic_nums(text):
+    western = "0123456789"
+    eastern = "٠١٢٣٤٥٦٧٨٩"
+    table = str.maketrans(western, eastern)
+    return text.translate(table)
+
 hijri = Gregorian.today().to_hijri()
 
 # Construct the full string
-full_date = f"{hijri.day} {hijri.month_name('ar')} {hijri.year}هـ"
+full_date = f"{hijri.day} {hijri.month_name('ar')} {hijri.year} هـ"
+full_date_arabic = to_arabic_nums(full_date)
 
 # Shape it for display
-print(shape_text(full_date))
+print(shape_text(full_date_arabic))
