@@ -8,6 +8,10 @@ set $up k
 set $right l
 
 # Set default terminal emulator
+# Appearance
+font pango:JetBrainsMono Nerd Font 10
+
+# Basic definitions
 set $term wezterm
 
 # Application launcher

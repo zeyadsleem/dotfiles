@@ -112,6 +112,18 @@ export MANROFFOPT="-c"
 # Bat theme
 # export BAT_THEME="rose-pine"
 
+# =============================================================================
+# Default Applications
+# =============================================================================
+export EDITOR="nvim"
+export VISUAL="xed"
+export BROWSER="brave"
+export TERMINAL="wezterm"
+
+# =============================================================================
+# Core Environment
+# =============================================================================
+
 # Shell Options
 setopt AUTO_CD GLOB_DOTS COMPLETE_IN_WORD ALWAYS_TO_END EXTENDED_GLOB NO_BEEP INTERACTIVE_COMMENTS COMPLETE_ALIASES
 
