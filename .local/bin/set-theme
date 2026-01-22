@@ -21,9 +21,10 @@ echo "Switching to theme: $THEME_NAME..."
 # 1. Update Symlink
 ln -sfn "$THEMES_DIR/$THEME_NAME" "$CURRENT_LINK"
 
-# 2. Reload Kitty
-# Kitty automatically reloads when config changes, but we can force it
-killall -SIGUSR1 kitty 2>/dev/null
+# 2. Update WezTerm Colors
+if [ -f "$CURRENT_LINK/wezterm/colors.lua" ]; then
+    ln -sf "$CURRENT_LINK/wezterm/colors.lua" "$HOME/.config/wezterm/colors.lua"
+fi
 
 # 3. Reload Sway
 swaymsg reload 2>/dev/null
