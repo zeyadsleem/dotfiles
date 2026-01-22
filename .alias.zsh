@@ -127,9 +127,6 @@ alias pni="pnpm install"
 alias pna="pnpm add"
 alias pnr="pnpm run"
 alias pnu="pnpm update"
-alias pnv="pnpm env list"
-alias pn24="pnpm env use 24.13.0"
-alias pn10="pnpm env use 10.18.1"
 
 # Docker
 alias docker='podman'
@@ -137,7 +134,7 @@ alias docker='podman'
 # SYSTEM UTILITIES
 alias open='gio open'
 alias c='clear'
-alias gpt='tgpt'
+alias gemini='gemini --yolo'
 
 if command -v systemctl &>/dev/null; then
     alias sctl='sudo systemctl'

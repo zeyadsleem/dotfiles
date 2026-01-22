@@ -164,92 +164,21 @@ export PATH="$HOME/.jdks/openjdk-25.0.1/bin/:$PATH"
 # Turso
 export PATH="$PATH:/home/zeyad/.turso"
 
-# pnpm
-export PNPM_HOME="/home/zeyad/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;; 
-  *) export PATH="$PNPM_HOME:$PATH" ;; 
-esac
-# pnpm end
+# --- Node Version Manager (fnm) ---
+
+if command -v fnm &> /dev/null; then
+
+  eval "$(fnm env --use-on-cd --shell zsh)"
+
+fi
+
+
 
 . "$HOME/.cargo/env"
 
-autoload -Uz zmv
-
-# Colorls (Handled by Theme)
-
-# --- Zsh Hacks & Enhancements ---
-
-# 1. Edit Command Buffer (Ctrl+X, Ctrl+E)
-autoload -z edit-command-line
-zle -N edit-command-line
-bindkey "^X^E" edit-command-line
-
-# 2. Undo (Ensure Ctrl+_ also works for undo)
-bindkey "^_" undo
-
-# 3. Magic Space (Space key expands history like !!)
-bindkey ' ' magic-space
-
-# 4. Custom Widgets
-# Clear screen but keep the current command buffer (Ctrl+X, l)
-function clear-screen-keep-buffer() {
-    clear
-    zle redisplay
-}
-zle -N clear-screen-keep-buffer
-bindkey "^Xl" clear-screen-keep-buffer
-
-# Copy buffer to clipboard (Ctrl+X, c)
-function copy-buffer() {
-    echo -n $BUFFER | wl-copy
-}
-zle -N copy-buffer
-bindkey "^Xc" copy-buffer
-
-# 5. Bindkey -s (Insert text shortcuts)
-# Git Commit shortcut (Ctrl+X, g, c) -> inserts git commit -m "" and places cursor inside
-bindkey -s '^Xgc' 'git commit -m ""\C-b'
-
-# 6. chpwd Hooks (Actions on directory change)
-autoload -U add-zsh-hook
-
-# Automatically list files on cd
-
-function chpwd_ls() {
-
-    # Use 'eza' if available, otherwise 'ls'
-
-    if command -v eza &> /dev/null; then
-
-        eza -a --icons
-
-    else
-
-        ls -A
-
-    fi
-
-}
-
-# Hook it
-
-add-zsh-hook chpwd chpwd_ls
 
 
 
-# Automatically switch pnpm node version
-function pnpm-auto() {
-  if [[ -f .nvmrc ]]; then
-    local node_version=$(< .nvmrc)
-    # Remove newlines/spaces
-    pnpm env use "${node_version//[[:space:]]/}"
-  elif [[ -f package.json ]]; then
-    local node_version=$(node -p "require('./package.json').engines?.node || '24.13.0'")
-    pnpm env use "$node_version"
-  fi
-}
-add-zsh-hook chpwd pnpm-auto
 
 
 
