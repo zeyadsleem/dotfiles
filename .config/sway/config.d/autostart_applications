@@ -27,7 +27,7 @@ exec nm-applet --indicator
 exec sleep 2 && firewall-applet
 
 # App launcher
-exec_always nwg-drawer -r -c 6 -is 48 -mb 15 -ml 18 -mr 18 -mt 15
+exec_always nwg-drawer -r -term wezterm -c 6 -is 48 -mb 15 -ml 18 -mr 18 -mt 15
 
 # ProtonVPN tray (start minimized, no GUI popup)
 exec --no-startup-id protonvpn-app

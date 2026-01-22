@@ -75,9 +75,11 @@ for_window [class="File-roller"] floating enable
 # Browser Rules
 # =============================================================================
 
-# Chromium / Brave dialogs
-for_window [app_id="brave" window_type="dialog"] floating enable, border pixel 1
-for_window [app_id="chromium" window_type="dialog"] floating enable, border pixel 1
+# Chromium / Brave dialogs & popups
+for_window [app_id="(?i)(brave|chromium)"] floating enable, border normal 2
+for_window [app_id="(?i)(brave|chromium)" window_type="dialog"] resize set 800 600, move position center
+for_window [app_id="(?i)(brave|chromium)" window_role="pop-up"] resize set 500 700, move position center
+for_window [app_id="(?i)(brave|chromium)" title="Extension:"] resize set 450 600, move position center
 
 # =============================================================================
 # Floating Defaults - Keep Everything Centered

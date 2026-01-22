@@ -8,7 +8,9 @@ config.font = wezterm.font_with_fallback({
 	"JetBrainsMono Nerd Font",
 	"DejaVu Sans Mono",
 })
-config.font_size = 11.0
+config.font_size = 12.0
+config.line_height = 0.9
+config.cell_width = 0.9
 
 -- Rendering Engine (OpenGL is more stable for Tmux redraws)
 config.front_end = "OpenGL"

@@ -14,7 +14,7 @@ set $term wezterm
 set $launcher fuzzel
 
 # Application menu
-set $menu nwg-drawer
+set $menu nwg-drawer -term wezterm
 
 # Power Menu
 set $powermenu ~/.config/sway/scripts/power_menu.sh
