@@ -67,4 +67,17 @@ config.bidi_direction = "LeftToRight"
 -- Avoid treating Arabic as "Double Width" to prevent grid misalignment
 config.allow_square_glyphs_to_overflow_width = "WhenFollowedBySpace"
 
+-- ============================================================================
+-- Multiplexing (Client-Server / Unix Domains)
+-- ============================================================================
+-- This enables foot-like performance by keeping a server in the background
+config.unix_domains = {
+	{
+		name = "unix",
+	},
+}
+
+-- Automatically connect to the unix domain on startup
+config.default_gui_startup_args = { "connect", "unix" }
+
 return config

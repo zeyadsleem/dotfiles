@@ -36,8 +36,8 @@ if pgrep tmux >/dev/null; then
     # Update FZF colors in running tmux session
     ENV_FILE="$THEMES_DIR/$THEME_NAME/zsh/env.zsh"
     if [ -f "$ENV_FILE" ]; then
-        # Extract FZF_DEFAULT_OPTS value and set it in tmux
-        FZF_OPTS=$(grep "export FZF_DEFAULT_OPTS=" "$ENV_FILE" | sed 's/export FZF_DEFAULT_OPTS="//;s/"$//')
+        # Extract FZF_DEFAULT_OPTS value using zsh to handle multi-line and zsh-specific syntax
+        FZF_OPTS=$(zsh -c "source \"$ENV_FILE\" && echo -n \"\$FZF_DEFAULT_OPTS\"")
         tmux set-environment -g FZF_DEFAULT_OPTS "$FZF_OPTS"
     fi
 fi
@@ -50,6 +50,12 @@ if [ -f "$CURRENT_LINK/gtk_theme_name" ]; then
     gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME"
     # Also update settings.ini for legacy apps if needed
     sed -i "s/gtk-theme-name=.*/gtk-theme-name=$GTK_THEME/" ~/.config/gtk-3.0/settings.ini
+fi
+
+# 6. Update Gtklock
+if [ -d "$CURRENT_LINK/gtklock" ]; then
+    ln -sf "$CURRENT_LINK/gtklock/style.css" "$HOME/.config/gtklock/style.css"
+    ln -sf "$CURRENT_LINK/gtklock/config.ini" "$HOME/.config/gtklock/config.ini"
 fi
 
 echo "Theme switched successfully!"

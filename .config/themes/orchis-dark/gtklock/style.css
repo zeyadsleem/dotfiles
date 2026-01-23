@@ -1,0 +1,119 @@
+* {
+    border: none;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    font-family: JetBrainsMono, sans-serif;
+}
+
+window {
+    background-color: rgba(30, 30, 30, 0.95);
+    color: #dcdcdc;
+}
+
+/* Clock section */
+#clock-label {
+    font-size: 84px;
+    font-weight: 800;
+    color: #dcdcdc;
+    margin-bottom: 8px;
+}
+
+#date-label {
+    font-size: 24px;
+    color: #5294e2;
+    margin-bottom: 50px;
+}
+
+/* Clock box container */
+#clock-box {
+    margin-bottom: 80px;
+}
+
+/* User info section */
+#userinfo-box {
+    background-color: rgba(45, 45, 45, 0.6);
+    border-radius: 5px;
+    padding: 20px;
+    border: 1px solid #3e3e3e;
+    margin-top: 60px;
+    margin-bottom: 20px;
+}
+
+#userinfo-box label {
+    color: #dcdcdc;
+    font-size: 8px;
+}
+
+#userinfo-box image {
+    margin-bottom: 8px;
+}
+
+/* Input field */
+#input-field {
+    border-radius: 5px;
+    background-color: rgba(45, 45, 45, 0.6);
+    border: 1px solid #3e3e3e;
+    padding: 2px 10px;
+    color: #dcdcdc;
+    letter-spacing: 2px;
+    font-size: 14px;
+    margin-top: 10px;
+    margin-bottom: 8px;
+}
+
+#input-field:focus {
+    border-color: #5294e2;
+    box-shadow: 0 0 0 2px rgba(82, 148, 226, 0.3);
+}
+
+/* Unlock button */
+#unlock-button {
+    background: none;
+    background-color: rgba(45, 45, 45, 0.6);
+    border: 1px solid #3e3e3e;
+    padding: 6px 12px;
+    border-radius: 5px;
+    color: #dcdcdc;
+    transition: all 0.2s ease;
+    margin-top: 0px;
+}
+
+#unlock-button:hover {
+    background-color: rgba(82, 148, 226, 0.4);
+    box-shadow: 0 0 8px rgba(82, 148, 226, 0.3);
+}
+
+/* Powerbar section */
+#powerbar-box {
+    margin-top: 50px;
+}
+
+#powerbar-box button {
+    background: none;
+    background-color: rgba(45, 45, 45, 0.6);
+    border: 1px solid #3e3e3e;
+    border-radius: 5px;
+    margin: 2px 4px;
+    padding: 4px 8px;
+    color: #dcdcdc;
+    transition: all 0.2s ease;
+}
+
+#powerbar-box button:hover {
+    background-color: rgba(82, 148, 226, 0.4);
+    box-shadow: 0 0 8px rgba(82, 148, 226, 0.3);
+}
+
+/* Input label */
+#input-label {
+    font-size: 0px;
+    margin: 2px;
+}
+
+/* Window box */
+#window-box infobar {
+    background-color: transparent;
+}
+
+#body-box {
+    padding: 15px;
+}
