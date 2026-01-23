@@ -125,7 +125,8 @@ export TERMINAL="wezterm"
 # =============================================================================
 
 # Shell Options
-setopt AUTO_CD GLOB_DOTS COMPLETE_IN_WORD ALWAYS_TO_END EXTENDED_GLOB NO_BEEP INTERACTIVE_COMMENTS COMPLETE_ALIASES
+setopt AUTO_CD GLOB_DOTS COMPLETE_IN_WORD ALWAYS_TO_END EXTENDED_GLOB NO_BEEP INTERACTIVE_COMMENTS COMPLETE_ALIASES NO_FLOW_CONTROL
+[[ -t 0 ]] && stty -ixon
 
 # Powerlevel10k Theme
 source ~/powerlevel10k/powerlevel10k.zsh-theme

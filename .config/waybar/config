@@ -82,9 +82,9 @@
 
     "custom/keyboard": {
         "format": "{}",
-        "exec": "swaymsg -t get_inputs | jq -r '.[] | select(.type==\"keyboard\") | .xkb_active_layout_name' | head -1 | cut -d' ' -f1 | sed 's/English/US/; s/Arabic/EG/'",
+        "exec": "swaymsg -t get_inputs | jq -r '.[] | select(.type==\"keyboard\") | .xkb_active_layout_name' | head -1 | cut -d' ' -f1 | sed 's/English/🇺🇸/; s/Arabic/🇪🇬/'",
         "signal": 1,
-        "on-click": "swaymsg input type:keyboard xkb_switch_layout next && pkill -RTMIN+1 waybar"
+        "on-click": "~/.local/bin/switch-layout.sh"
     },
 
     "idle_inhibitor": {
