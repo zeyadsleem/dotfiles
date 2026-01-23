@@ -10,10 +10,11 @@ input type:touchpad {
 # Enable numlock by default
 input type:keyboard xkb_numlock enabled
 
-# Set keyboard layout to US and Arabic with Alt+Shift toggle
+# Set keyboard layout to US and Arabic
 input "type:keyboard" {
     xkb_layout "us,ara"
-    xkb_options "grp:alt_shift_toggle"
+    # xkb_options "grp:alt_shift_toggle" # Removed in favor of bind below
 }
 
-bindsym Alt+Shift_L exec "pkill -RTMIN+1 waybar"
+# Switch layout and update Waybar instantly
+bindsym $mod+space exec sh -c 'swaymsg input "type:keyboard" xkb_switch_layout next && pkill -RTMIN+1 waybar'
