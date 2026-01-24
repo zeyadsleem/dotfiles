@@ -1,1 +1,1 @@
-/home/zeyad/dotfiles/.config/themes/orchis-dark/wezterm/colors.lua
+../themes/orchis-dark/wezterm/colors.lua

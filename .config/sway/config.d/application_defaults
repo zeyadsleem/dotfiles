@@ -27,14 +27,6 @@ for_window [window_role="dialog"] floating enable, border pixel 1
 for_window [title="(?i)(open file|choose file|select (file|folder)|save (file|as))"] \
     floating enable, border pixel 1, resize set 800 600, move position center
 
-# Properties / Settings / Operations
-for_window [title="(?i)(properties|settings|preferences|options|about|info)"] \
-    floating enable, border pixel 1, move position center
-
-# Auth / Login Popups (Google, GitHub, etc.)
-for_window [title="(?i)(sign in|log in|auth|password|credentials)"] \
-    floating enable, border pixel 1, move position center
-
 # =============================================================================
 # Specific Applications
 # =============================================================================
@@ -87,10 +79,12 @@ for_window [app_id="xdg-desktop-portal-gtk"] floating enable, resize set 800 600
 
 # Chromium / Brave dialogs & popups
 for_window [app_id="(?i)(brave|chromium)"] floating disable
-for_window [app_id="(?i)(brave|chromium)" window_type="dialog"] floating enable, border normal 2, resize set 800 600, move position center
-for_window [app_id="(?i)(brave|chromium)" window_role="pop-up"] floating enable, border normal 2, resize set 600 700, move position center
+# Force file dialogs to float (fixes Save As / Open File tiling issue)
+for_window [app_id="(?i)(brave|chromium)" title="(?i)(open|save|select|choose)"] floating enable, resize set 800 600, move position center
+for_window [app_id="(?i)(brave|chromium)" window_type="dialog"] floating enable, border normal 2, move position center
+for_window [app_id="(?i)(brave|chromium)" window_role="pop-up"] floating enable, border normal 2, move position center
 for_window [app_id="(?i)(brave|chromium)" window_role="bubble"] floating enable, border normal 2, move position center
-for_window [app_id="(?i)(brave|chromium)" title="Extension:"] floating enable, border normal 2, resize set 450 600, move position center
+for_window [app_id="(?i)(brave|chromium)" title="Extension:"] floating enable, border normal 2, move position center
 
 # =============================================================================
 # Floating Defaults - Keep Everything Centered
