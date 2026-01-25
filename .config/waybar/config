@@ -112,7 +112,8 @@
 
     "custom/keyboard": {
         "format": "{}",
-        "exec": "swaymsg -t get_inputs | jq -r '.[] | select(.type==\"keyboard\") | .xkb_active_layout_name' | head -1 | cut -d' ' -f1 | sed 's/English/🇺🇸/; s/Arabic/🇪🇬/'",
+        "return-type": "json",
+        "exec": "layout=$(swaymsg -t get_inputs | jq -r '.[] | select(.type==\"keyboard\") | .xkb_active_layout_name' | head -1); if echo \"$layout\" | grep -qi \"Arabic\"; then echo '{\"text\":\"🇪🇬\", \"tooltip\":\"Arabic Layout\"}'; else echo '{\"text\":\"🇺🇸\", \"tooltip\":\"English Layout\"}'; fi",
         "signal": 1,
         "on-click": "~/.local/bin/switch-layout.sh"
     },

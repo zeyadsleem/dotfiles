@@ -1,0 +1,12 @@
+{
+  "$schema": "/etc/xdg/swaync/configSchema.json",
+  "positionX": "right",
+  "positionY": "top",
+  "notification-window-width": 150,
+  "notification-icon-size": 32,
+  "control-center-width": 280,
+  "notification-margin-top": 10,
+  "notification-margin-right": 10,
+  "layer": "overlay",
+  "cssPriority": "application"
+}

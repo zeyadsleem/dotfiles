@@ -28,25 +28,25 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
 # Basics:
 #
     # Launch the terminal
-    bindsym $mod+Return exec $term
+    bindsym --to-code $mod+Return exec $term
 
     # Open the power menu
-    bindsym $mod+Shift+e exec $powermenu
+    bindsym --to-code $mod+Shift+e exec $powermenu
 
     # Kill focused window
-    bindsym $mod+q kill
+    bindsym --to-code $mod+q kill
 
     # Start your launcher
-    bindsym $mod+d exec $launcher
+    bindsym --to-code $mod+d exec $launcher
 
     # Menu
-    bindsym $mod+Shift+d exec $menu
+    bindsym --to-code $mod+Shift+d exec $menu
 
     # Lock screen
-    bindsym $mod+f1 exec gtklock
+    bindsym --to-code $mod+f1 exec gtklock
 
     # Activities
-    bindsym $mod+p exec cerebro
+    bindsym --to-code $mod+p exec cerebro
 
     # Move windows by holding down $mod and left mouse button.
     # Resize them with right mouse button + $mod.
@@ -54,15 +54,15 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
     floating_modifier $mod normal
 
     # Reload the configuration file
-    bindsym $mod+Shift+r reload
+    bindsym --to-code $mod+Shift+r reload
 
     # Toggle Waybar visibility
-    bindsym $mod+grave exec pkill -SIGUSR1 waybar
+    bindsym --to-code $mod+grave exec pkill -SIGUSR1 waybar
 
 #
 # Moving around:
 #
-    bindsym {
+    bindsym --to-code {
         # Change window focus
         $mod+Left focus left
         $mod+Down focus down
@@ -126,26 +126,26 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
 #
     # Set how the current window will be split
     # Split the window vertically
-    bindsym $mod+v splitv
+    bindsym --to-code $mod+v splitv
     # Split the window horizontally
-    bindsym $mod+b splith
+    bindsym --to-code $mod+b splith
 
     # Switch the current container between different layout styles
-    bindsym $mod+s layout stacking
-    bindsym $mod+w layout tabbed
-    bindsym $mod+e layout toggle split
+    bindsym --to-code $mod+s layout stacking
+    bindsym --to-code $mod+w layout tabbed
+    bindsym --to-code $mod+e layout toggle split
 
     # Make the current focus fullscreen
-    bindsym $mod+f fullscreen
+    bindsym --to-code $mod+f fullscreen
 
     # Toggle between tiling and floating mode
-    bindsym $mod+Shift+space floating toggle
+    bindsym --to-code $mod+Shift+space floating toggle
 
     # Swap focus between the tiling area and the floating area
     # bindsym $mod+space focus mode_toggle
 
     # Move focus to the parent container
-    bindsym $mod+a focus parent
+    bindsym --to-code $mod+a focus parent
 
 #
 # Scratchpad:
@@ -154,16 +154,16 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
     # You can send windows there and get them back later.
 
     # Move the currently focused window to the scratchpad
-    bindsym $mod+Shift+minus move scratchpad
+    bindsym --to-code $mod+Shift+minus move scratchpad
 
     # Show the next scratchpad window or hide the focused scratchpad window.
     # If there are multiple scratchpad windows, this command cycles through them.
-    bindsym $mod+minus scratchpad show
+    bindsym --to-code $mod+minus scratchpad show
 
 #
 # Resizing containers:
 #
-    bindsym {
+    bindsym --to-code {
         # Resize with arrow keys
         $mod+ctrl+Right resize shrink width 10 px
         $mod+ctrl+Up resize grow height 10 px
@@ -177,7 +177,7 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
     }
 
     # Resize floating windows with mouse scroll:
-    bindsym --whole-window --border {
+    bindsym --to-code --whole-window --border {
         # Resize vertically
         $mod+button4 resize shrink height 5 px or 5 ppt
         $mod+button5 resize grow height 5 px or 5 ppt
@@ -210,32 +210,32 @@ bindsym XF86Sleep exec systemctl suspend
 # App shortcuts
 #
     # Launch the file explorer
-    bindsym $mod+n exec thunar
+    bindsym --to-code $mod+n exec thunar
 
     # Launch the browser
-    bindsym $mod+o exec brave
+    bindsym --to-code $mod+o exec brave
 
     # Launch the clipboard manager
-    bindsym $mod+c exec cliphist list | fuzzel -d -w 50 -l 15 -p "Select from clipboard:  " | cliphist decode | wl-copy
+    bindsym --to-code $mod+c exec cliphist list | fuzzel -d -w 50 -l 15 -p "Select from clipboard:  " | cliphist decode | wl-copy
     # Delete an entry from the clipboard manager
-    bindsym $mod+x exec cliphist list | fuzzel -d -w 50 -l 15 -t cc9393ff -S cc9393ff -p "Select an entry to delete it from cliphist:  "| cliphist delete
+    bindsym --to-code $mod+x exec cliphist list | fuzzel -d -w 50 -l 15 -t cc9393ff -S cc9393ff -p "Select an entry to delete it from cliphist:  "| cliphist delete
     # Note: you can clear all cliphist entries by running `cliphist wipe`
 
     # Pick a color and copy it to clipboard
-    bindsym $mod+i exec hyprpicker --autocopy
+    bindsym --to-code $mod+i exec hyprpicker --autocopy
 
 #
 # Screenshots
 #
     # Snip a selection and pipe to swappy
-    bindsym print exec grim -g "$(slurp)" - | swappy -f -
+    bindsym --to-code print exec grim -g "$(slurp)" - | swappy -f -
     # Screenshot a window and pipe to swappy
-    bindsym Ctrl+Print exec ~/.config/sway/scripts/screenshot_window.sh
+    bindsym --to-code Ctrl+Print exec ~/.config/sway/scripts/screenshot_window.sh
     # Screenshot the current display and pipe to swappy
-    bindsym Shift+Print exec ~/.config/sway/scripts/screenshot_display.sh
+    bindsym --to-code Shift+Print exec ~/.config/sway/scripts/screenshot_display.sh
 
 # Emoji picker
-    bindsym $mod+period exec emote
+    bindsym --to-code $mod+period exec ~/.local/bin/emoji-picker
 
 # Notifications Center
-    bindsym $mod+Shift+n exec swaync-client -t -sw
+    bindsym --to-code $mod+Shift+n exec swaync-client -t -sw

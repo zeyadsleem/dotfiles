@@ -16,7 +16,6 @@ exec swayidle idlehint 1
 exec_always swayidle -w before-sleep "$HOME/.local/bin/lock-if-not-running.sh"
 
 # Desktop notifications
-exec mako
 
 # Clipboard history
 exec wl-paste --type text --watch cliphist store

@@ -1,0 +1,33 @@
+* {
+    font-family: JetBrainsMono;
+    direction: rtl;
+}
+
+.control-center {
+    background: rgb(25, 25, 30);
+    border: 1px solid #6272a4;
+    border-radius: 10px;
+}
+
+.notification {
+    background: rgb(25, 25, 30);
+    border: 1px solid #6272a4;
+    border-radius: 8px;
+    padding: 8px;
+    margin: 4px;
+}
+
+.notification-title {
+    font-weight: bold;
+    font-size: 13px;
+    color: #e3e3ea;
+}
+
+.notification-body {
+    font-size: 11px;
+    color: #e3e3ea;
+}
+
+.notification-content {
+    text-align: right;
+}
