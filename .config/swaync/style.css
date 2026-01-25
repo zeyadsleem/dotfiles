@@ -4,13 +4,13 @@
 }
 
 .control-center {
-    background: rgb(25, 25, 30);
+    background: rgba(25, 25, 30, 0.95);
     border: 1px solid #6272a4;
     border-radius: 10px;
 }
 
 .notification {
-    background: rgb(25, 25, 30);
+    background: rgba(25, 25, 30, 0.95);
     border: 1px solid #6272a4;
     border-radius: 8px;
     padding: 8px;
