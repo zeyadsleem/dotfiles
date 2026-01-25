@@ -3,7 +3,7 @@
     "position": "top", // Waybar position (top|bottom|left|right)
     // "height": 30, // Auto-height is used when commented
     // "width": 1280, // Full screen width when commented
-    "spacing": 10, // Gaps between modules (in px)
+    "spacing": 4, // Gaps between modules (in px)
     // See `man waybar` for more configuration options
 
 // Configuration - modules-left
@@ -48,37 +48,67 @@
         "max-length": 120
     },
 
+    "network": {
+        "format-wifi": "   {bandwidthDownBytes:>9} {bandwidthUpBytes:>9}",
+        "format-ethernet": "󰈀   {bandwidthDownBytes:>9} {bandwidthUpBytes:>9}",
+        "tooltip-format": "{essid} - {ipaddr}",
+        "format-linked": "{ifname} (No IP) ",
+        "format-disconnected": "  Disconnected",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}",
+        "interval": 1
+    },
+
 // Configuration - modules-center
 
     "modules-center": [
         "network"
     ],
 
-    "network": {
-        "format-disabled": " Disabled",
-        "format-wifi": " {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣",
-        "tooltip-format-wifi": "{essid}",
-        "format-ethernet": "󰈀 {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣",
-        "tooltip-format-ethernet": "{ifname}: {ipaddr}/{cidr}",
-        "format-disconnected": " Disconnected",
-        "on-click": "kitty -T waybar_nmtui -e nmtui",
-        "interval": 2
-    },
+// ... (config items) ...
 
 // Configuration - modules-right
 
     "modules-right": [
         "custom/keyboard",
+        "clock",
+        "custom/notification",
+        "group/hardware",
         "idle_inhibitor",
-        "cpu",
-        "memory",
         "backlight",
         "pulseaudio",
         "battery",
-        "clock",
         "tray",
         "custom/power"
     ],
+
+    "group/hardware": {
+        "orientation": "horizontal",
+        "modules": [
+            "cpu",
+            "memory"
+        ]
+    },
+
+    "custom/notification": {
+        "tooltip": false,
+        "format": "{icon}",
+        "format-icons": {
+            "notification": "<span foreground='red'><sup></sup></span>",
+            "none": "",
+            "dnd-notification": "<span foreground='red'><sup></sup></span>",
+            "dnd-none": "",
+            "inhibited-notification": "<span foreground='red'><sup></sup></span>",
+            "inhibited-none": "",
+            "dnd-inhibited-notification": "<span foreground='red'><sup></sup></span>",
+            "dnd-inhibited-none": ""
+        },
+        "return-type": "json",
+        "exec-if": "which swaync-client",
+        "exec": "swaync-client -swb",
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "escape": true
+    },
 
     "custom/keyboard": {
         "format": "{}",
@@ -151,23 +181,14 @@
     },
 
     "clock": {
-        "format": "󰅐 {:%OI:%M %p}",
-        "format-alt": "󰅐 {:%H:%M}",
-        "tooltip-format": " {:%A %m/%d}\n\n<tt><small>{calendar}</small></tt>",
-        "calendar": {
-            "on-scroll": 1,
-            "format": {
-                "months":     "<span color='#ffead3'><b>{}</b></span>",
-                "days":       "<span color='#ecc6d9'><b>{}</b></span>",
-                "weeks":      "<span color='#99ffdd'><b>W{}</b></span>",
-                "weekdays":   "<span color='#ffcc66'><b>{}</b></span>",
-                "today":      "<span color='#ff6699'><b><u>{}</u></b></span>"
-            },
-        },
+        "format": " {:%I:%M %p}",
+        "format-alt": " {:%H:%M}",
+        "tooltip-format": "  {:%A, %d %B %Y}\n󰃭  Week: {:%V}\n󰸗  Month: {:%m}",
         "actions": {
+            "on-click-right": "mode",
             "on-scroll-up": "shift_up",
             "on-scroll-down": "shift_down"
-        },
+        }
     },
 
     "tray": {

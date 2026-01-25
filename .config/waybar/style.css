@@ -34,9 +34,26 @@
     background-color: rgba(25, 25, 30, 0.95);
     font-family: JetBrainsMono;
     font-size: 13px;
+    border-radius: 0;
+    margin: 0;
 }
 
 /* Rounded corners for modules */
+#group-hardware {
+    background-color: rgba(40, 42, 54, 0.6);
+    border-radius: 8px;
+    margin: 1px 2px;
+    padding: 0px 4px;
+}
+
+#cpu,
+#memory {
+    background-color: transparent;
+    margin: 0;
+    padding: 0.5rem 0.4rem;
+}
+
+#mode,
 #mode,
 #network,
 #custom-keyboard,
@@ -47,9 +64,10 @@
 #pulseaudio,
 #battery,
 #clock,
-#tray {
-    padding: 0.5rem 0.6rem;
-    margin: 1px 2px;
+#tray,
+#custom-notification {
+    padding: 0.2rem 0.6rem;
+    margin: 2px 2px;
     background-color: rgba(40, 42, 54, 0.6);
     border-radius: 8px;
 }
@@ -64,7 +82,8 @@
 #pulseaudio:active,
 #battery:active,
 #clock:active,
-#tray:active {
+#tray:active,
+#custom-notification:active {
     background-color: rgba(40, 42, 54, 0.8);
 }
 
@@ -78,7 +97,8 @@
 #pulseaudio:hover,
 #battery:hover,
 #clock:hover,
-#tray:hover {
+#tray:hover,
+#custom-notification:hover {
     background-color: rgba(40, 42, 54, 0.75);
 }
 
@@ -165,6 +185,12 @@
     color: red;
     animation-name: blink-critical;
     animation-duration: 2s;
+}
+
+#network {
+    font-size: 12.5px;
+    min-width: 200px;
+    font-family: "JetBrainsMono Nerd Font", monospace;
 }
 
 #pulseaudio.muted {
