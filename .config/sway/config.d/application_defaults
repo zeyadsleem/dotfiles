@@ -1,98 +1,81 @@
 # =============================================================================
-# Core Floating Rules by Window Type
+# Core Floating Rules (Stable Standards)
 # =============================================================================
 
-for_window [window_type="dialog"] floating enable, border pixel 1
-for_window [window_type="utility"] floating enable, border pixel 1
-for_window [window_type="toolbar"] floating enable, border pixel 1
-for_window [window_type="splash"] floating enable, border pixel 1
-for_window [window_type="menu"] floating enable, border pixel 1
-for_window [window_type="dropdown_menu"] floating enable, border pixel 1
-for_window [window_type="popup_menu"] floating enable, border pixel 1
-for_window [window_type="tooltip"] floating enable, border pixel 1
-for_window [window_type="notification"] floating enable, border pixel 1
+# Standard Window Types that should always float
+for_window [window_type="dialog"] floating enable
+for_window [window_type="utility"] floating enable
+for_window [window_type="toolbar"] floating enable
+for_window [window_type="splash"] floating enable
+for_window [window_type="menu"] floating enable
+for_window [window_type="dropdown_menu"] floating enable
+for_window [window_type="popup_menu"] floating enable
+for_window [window_type="tooltip"] floating enable
+for_window [window_type="notification"] floating enable
 
-# Window roles
-for_window [window_role="task_dialog"] floating enable, border pixel 1
-for_window [window_role="Preferences"] floating enable, border pixel 1
-for_window [window_role="pop-up"] floating enable, border pixel 1
-for_window [window_role="bubble"] floating enable, border pixel 1
-for_window [window_role="dialog"] floating enable, border pixel 1
-
-# =============================================================================
-# Generic Dialog Patterns (Apply to all apps)
-# =============================================================================
-
-# File dialogs (Open/Save)
-for_window [title="(?i)(open file|choose file|select (file|folder)|save (file|as))"] \
-    floating enable, border pixel 1, resize set 800 600, move position center
+# Standard Window Roles (mostly for XWayland compatibility)
+for_window [window_role="about"] floating enable
+for_window [window_role="task_dialog"] floating enable
+for_window [window_role="preferences"] floating enable
+for_window [window_role="bubble"] floating enable
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="dialog"] floating enable
 
 # =============================================================================
-# Specific Applications
+# Specific Applications (Safe List)
 # =============================================================================
 
-# Thunar: Main window tiles, Dialogs float
-# Remove the generic thunar float rule if you want the main window to tile
-# for_window [app_id="thunar"] floating enable
-for_window [app_id="thunar" title="File Operation Progress"] floating enable, sticky enable, resize set 400 150, move position center
-for_window [app_id="thunar" title="Confirm to replace files"] floating enable, resize set 500 400, move position center
-for_window [app_id="thunar" window_type="dialog"] floating enable, move position center
-
-# System Tools
-for_window [app_id="pavucontrol"] floating enable, resize set 600 400, move position center
-for_window [class="Pavucontrol"] floating enable, resize set 600 400, move position center
+# System Tools - Always Float
+for_window [app_id="pavucontrol"] floating enable, resize set 600 400
+for_window [class="Pavucontrol"] floating enable, resize set 600 400
 for_window [app_id="nm-connection-editor"] floating enable
 for_window [class="Nm-connection-editor"] floating enable
 for_window [app_id="blueman-manager"] floating enable
 for_window [class="Blueman-manager"] floating enable
+for_window [app_id="qalculate-gtk"] floating enable
+for_window [class="Qalculate-gtk"] floating enable
 
-# Calculators
-for_window [app_id="qalculate-gtk"] floating enable, sticky enable, border pixel 1, resize set 400 500
-for_window [class="Qalculate-gtk"] floating enable, sticky enable, border pixel 1, resize set 400 500
+# File Manager (Thunar) - Main window tiles, dialogs float
+for_window [app_id="thunar" window_type="dialog"] floating enable
+for_window [app_id="thunar" title="File Operation Progress"] floating enable
+for_window [app_id="thunar" title="Confirm to replace files"] floating enable
 
-# Password Managers
-for_window [title="Bitwarden"] floating enable, resize set 800 700
-for_window [app_id="org.keepassxc.KeePassXC"] floating enable, resize set 900 750
-for_window [title="(?i)keepass"] floating enable, resize set 900 750
-
-# Waybar popups
-for_window [title="waybar_btop"] floating enable, sticky enable, border pixel 1, resize set 1100 800
-for_window [title="waybar_nmtui"] floating enable, sticky enable, border pixel 1, resize set 800 600
-
-# Firewall tools
-for_window [title="About Firewall Applet"] floating enable, sticky enable, border pixel 1, resize set 400 450
-for_window [title="^Firewall"] floating enable, border pixel 1
-
-# Image Viewers
+# Archivers & Image Viewers
+for_window [app_id="org.gnome.FileRoller"] floating enable
 for_window [app_id="imv"] floating enable
 
-# Archive Managers
-for_window [app_id="org.gnome.FileRoller"] floating enable
-for_window [class="File-roller"] floating enable
+# Waybar Popups
+for_window [title="waybar_btop"] floating enable, resize set 1100 800
+for_window [title="waybar_nmtui"] floating enable, resize set 800 600
 
-# XDG Portals (The native file picker for many apps)
-for_window [app_id="xdg-desktop-portal-gtk"] floating enable, resize set 800 600, move position center
-
-# =============================================================================
-# Browser Rules
-# =============================================================================
-
-# Chromium / Brave dialogs & popups
-for_window [app_id="(?i)(brave|chromium)"] floating disable
-# Force file dialogs to float (fixes Save As / Open File tiling issue)
-for_window [app_id="(?i)(brave|chromium)" title="(?i)(open|save|select|choose)"] floating enable, resize set 800 600, move position center
-for_window [app_id="(?i)(brave|chromium)" window_type="dialog"] floating enable, border normal 2, move position center
-for_window [app_id="(?i)(brave|chromium)" window_role="pop-up"] floating enable, border normal 2, move position center
-for_window [app_id="(?i)(brave|chromium)" window_role="bubble"] floating enable, border normal 2, move position center
-for_window [app_id="(?i)(brave|chromium)" title="Extension:"] floating enable, border normal 2, move position center
+# Portals (File Pickers)
+for_window [app_id="xdg-desktop-portal-gtk"] floating enable, resize set 800 600
 
 # =============================================================================
-# Floating Defaults - Keep Everything Centered
+# Browser Rules (Strict)
 # =============================================================================
 
-# Ensure any window that spawns as floating gets centered
+# 1. Force main browser windows to TILE.
+# This prevents the browser from floating if a website title triggers a generic rule.
+for_window [app_id="brave"] floating disable
+for_window [app_id="chromium"] floating disable
+for_window [class="Brave-browser"] floating disable
+for_window [class="Chromium"] floating disable
+
+# 2. Allow specific browser dialogs to float using standard properties.
+# We avoid using 'title' matching here to prevent false positives from web pages.
+for_window [app_id="brave" window_type="dialog"] floating enable
+for_window [app_id="chromium" window_type="dialog"] floating enable
+for_window [app_id="brave" window_role="pop-up"] floating enable
+for_window [app_id="chromium" window_role="pop-up"] floating enable
+
+# =============================================================================
+# Extras
+# =============================================================================
+
+# Center any window that becomes floating
 for_window [floating] move position center
 
-# PIP smart rule
-for_window [title="(?i)picture.in.picture"] \
-    floating enable, sticky enable, border pixel 1, resize set 480 270, move position 68 ppt 65 ppt
+# Picture-in-Picture (Stable)
+for_window [title="Picture-in-Picture"] floating enable, sticky enable, resize set 480 270, move position 80 ppt 80 ppt
+for_window [title="Picture in picture"] floating enable, sticky enable, resize set 480 270, move position 80 ppt 80 ppt

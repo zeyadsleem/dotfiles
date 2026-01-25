@@ -1,0 +1,20 @@
+#!/bin/bash
+# Wrapper to ignore -o flag and apply wallpaper to all screens
+# This ensures Azote always applies to all monitors.
+
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -o|--output)
+      shift # skip the flag
+      shift # skip the value
+      ;;
+    *)
+      ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+# Execute the real swaybg with the modified arguments
+exec /usr/bin/swaybg "${ARGS[@]}"
