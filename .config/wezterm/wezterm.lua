@@ -5,7 +5,7 @@ local config = wezterm.config_builder()
 -- Appearance & Font
 -- ============================================================================
 config.font = wezterm.font_with_fallback({
-	"JetBrainsMono Nerd Font",
+	"JetBrains Mono",
 	"DejaVu Sans Mono",
 })
 config.font_size = 12.0

@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/wezterm-mux-server --daemonize
+ExecStart=/usr/bin/wezterm-mux-server
 Restart=on-failure
 
 [Install]

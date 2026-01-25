@@ -8,6 +8,24 @@ on   = "<Enter>"
 run  = "plugin smart-enter"
 desc = "Enter directory or choose file"
 
+# Zoxide Jump
+[[mgr.prepend_keymap]]
+on   = "z"
+run  = "plugin zoxide"
+desc = "Zoxide jump"
+
+# Search inside files (Ripgrep via fg plugin)
+[[mgr.prepend_keymap]]
+on   = "<C-f>"
+run  = "plugin fg"
+desc = "Search inside files (interactive)"
+
+# Fuzzy search filenames (fzf via fg plugin)
+[[mgr.prepend_keymap]]
+on   = "<C-s>"
+run  = "plugin fg fzf"
+desc = "Fuzzy search filenames"
+
 # Quit normally without choosing
 [[mgr.prepend_keymap]]
 on   = "q"

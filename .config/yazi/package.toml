@@ -18,5 +18,10 @@ use = "yazi-rs/plugins:smart-paste"
 rev = "19dc890"
 hash = "75fd60b2df7115e0a6ca31a6a804d320"
 
+[[plugin.deps]]
+use = "lpnh/fr"
+rev = "aa88cd4"
+hash = "8b0e87c3176e0d44f79a8656f79f0fa"
+
 [flavor]
 deps = []

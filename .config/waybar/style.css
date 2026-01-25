@@ -189,8 +189,8 @@
 
 #network {
   font-size: 12.5px;
-  min-width: 220px;
   font-family: "JetBrainsMono Nerd Font", monospace;
+  padding: 0 5px;
 }
 
 #pulseaudio.muted {
