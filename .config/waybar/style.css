@@ -20,12 +20,14 @@
   }
 }
 
+@import url("colors.css");
+
 * {
   border: none;
   border-radius: 0;
+  font-family: "JetBrainsMono Nerd Font", "Arabic Typesetting", sans-serif;
+  font-size: 14px;
   min-height: 0;
-  margin: 1px;
-  padding: 0;
 }
 
 #waybar {

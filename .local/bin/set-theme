@@ -6,17 +6,13 @@ CURRENT_LINK="$THEMES_DIR/current"
 
 if [ -z "$THEME_NAME" ]; then
     echo "Usage: set-theme <theme_name>"
-    echo "Available themes:"
-    ls "$THEMES_DIR" | grep -v "current"
     exit 1
 fi
 
 if [ ! -d "$THEMES_DIR/$THEME_NAME" ]; then
-    echo "Error: Theme '$THEME_NAME' not found in $THEMES_DIR"
+    notify-send "Theme Error" "Theme '$THEME_NAME' not found!" -u critical
     exit 1
 fi
-
-echo "Switching to theme: $THEME_NAME..."
 
 # 1. Update Symlink
 ln -sfn "$THEMES_DIR/$THEME_NAME" "$CURRENT_LINK"
@@ -26,36 +22,42 @@ if [ -f "$CURRENT_LINK/wezterm/colors.lua" ]; then
     ln -sf "$CURRENT_LINK/wezterm/colors.lua" "$HOME/.config/wezterm/colors.lua"
 fi
 
-# 3. Reload Sway
-swaymsg reload 2>/dev/null
-
-# 4. Reload Tmux
-if pgrep tmux >/dev/null; then
-    tmux source-file ~/.tmux.conf
-    
-    # Update FZF colors in running tmux session
-    ENV_FILE="$THEMES_DIR/$THEME_NAME/zsh/env.zsh"
-    if [ -f "$ENV_FILE" ]; then
-        # Extract FZF_DEFAULT_OPTS value using zsh to handle multi-line and zsh-specific syntax
-        FZF_OPTS=$(zsh -c "source \"$ENV_FILE\" && echo -n \"\$FZF_DEFAULT_OPTS\"")
-        tmux set-environment -g FZF_DEFAULT_OPTS "$FZF_OPTS"
-    fi
+# 3. Update Wallpaper
+# We look for wallpaper.jpg or wallpaper.png inside the theme folder
+WP=$(find "$CURRENT_LINK" -maxdepth 1 -name "wallpaper.*" | head -n 1)
+if [ -n "$WP" ]; then
+    # Using swaybg to set wallpaper (you can also use azotebg)
+    pkill swaybg
+    swaybg -i "$WP" -m fill &
+    # Save for persistence if needed
+    echo "$WP" > "$HOME/.cache/current_wallpaper"
 fi
 
-# 5. Apply GTK Theme (Optional: Add logic to read GTK theme name from a file inside the theme folder)
-# For now, we assume folder name maps to GTK theme or we set a default
-# You can add a 'metadata' file in each theme folder with the exact GTK theme name.
+# 4. Update Waybar Colors
+if [ -f "$CURRENT_LINK/waybar/colors.css" ]; then
+    ln -sf "$CURRENT_LINK/waybar/colors.css" "$HOME/.config/waybar/colors.css"
+fi
+
+# 5. Update SwayNC (Notifications)
+if [ -f "$CURRENT_LINK/swaync/style.css" ]; then
+    ln -sf "$CURRENT_LINK/swaync/style.css" "$HOME/.config/swaync/theme.css"
+    swaync-client -R && swaync-client -rs
+fi
+
+# 6. Apply GTK Theme
 if [ -f "$CURRENT_LINK/gtk_theme_name" ]; then
     GTK_THEME=$(cat "$CURRENT_LINK/gtk_theme_name")
     gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME"
-    # Also update settings.ini for legacy apps if needed
     sed -i "s/gtk-theme-name=.*/gtk-theme-name=$GTK_THEME/" ~/.config/gtk-3.0/settings.ini
 fi
 
-# 6. Update Gtklock
-if [ -d "$CURRENT_LINK/gtklock" ]; then
-    ln -sf "$CURRENT_LINK/gtklock/style.css" "$HOME/.config/gtklock/style.css"
-    ln -sf "$CURRENT_LINK/gtklock/config.ini" "$HOME/.config/gtklock/config.ini"
+# 7. Reload Sway & Waybar
+swaymsg reload 2>/dev/null
+pkill -USR2 waybar
+
+# 8. Tmux Integration
+if pgrep tmux >/dev/null; then
+    tmux source-file ~/.tmux.conf
 fi
 
-echo "Theme switched successfully!"
+notify-send "Theme Applied" "System switched to $THEME_NAME" -i display

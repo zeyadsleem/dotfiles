@@ -1,0 +1,9 @@
+#!/bin/bash
+
+THEMES_DIR="$HOME/dotfiles/.config/themes"
+# List all folders in themes dir except 'current'
+SELECTED=$(ls -d "$THEMES_DIR"/*/ | xargs -n 1 basename | grep -v "current" | fuzzel -d -p " 🎨 Select Theme: " --width 40)
+
+if [ -n "$SELECTED" ]; then
+    ~/.local/bin/set-theme "$SELECTED"
+fi

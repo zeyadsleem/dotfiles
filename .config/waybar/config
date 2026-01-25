@@ -183,7 +183,7 @@
     "clock": {
         "format": " {:%I:%M %p}",
         "format-alt": " {:%H:%M}",
-        "tooltip-format": "  {:%A, %d %B %Y}\n󰃭  Week: {:%V}\n󰸗  Month: {:%m}",
+        "tooltip-format": "<span>{:%A, %d %B %Y}</span>",
         "actions": {
             "on-click-right": "mode",
             "on-scroll-up": "shift_up",

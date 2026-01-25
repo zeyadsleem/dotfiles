@@ -239,3 +239,6 @@ bindsym XF86Sleep exec systemctl suspend
 
 # Notifications Center
     bindsym --to-code $mod+Shift+n exec swaync-client -t -sw
+
+# Theme Selector
+    bindsym --to-code $mod+Shift+t exec ~/.local/bin/set-theme-picker
