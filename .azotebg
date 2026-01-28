@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 pkill swaybg
-swaybg -o 'HDMI-A-1' -i "/home/zeyad/Pictures/2uzzlbdibbeg1.png" -m fill &
+swaybg -o 'HDMI-A-1' -i "/home/zeyad/Pictures/53pdtzlh93eg1.png" -m fill &

@@ -22,8 +22,8 @@ alias cd='z'          # Uses zoxide for smart directory jumping
 
 # FILE LISTING - Enhanced with eza/bat
 command -v eza &>/dev/null && {
-    alias ls='eza -la --icons --git'
-    alias l='eza -a --icons'
+    alias ls='eza -la --icons --git --group-directories-first'
+    alias l='eza -a --icons --group-directories-first'
     alias lt='eza -la --icons --tree --level=2 --ignore-glob="**/node_modules|**/.git"'
 }
 

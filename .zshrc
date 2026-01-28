@@ -222,3 +222,7 @@ function auto_venv() {
   fi
 }
 add-zsh-hook chpwd auto_venv
+export PATH="/home/zeyad/.config/herd-lite/bin:$PATH"
+export PHP_INI_SCAN_DIR="/home/zeyad/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
+
+WEBKIT_DISABLE_COMPOSITING_MODE=1
