@@ -68,7 +68,7 @@
 // Configuration - modules-right
 
     "modules-right": [
-        "custom/keyboard",
+        "sway/language",
         "clock",
         "custom/notification",
         "group/hardware",
@@ -109,11 +109,10 @@
         "escape": true
     },
 
-    "custom/keyboard": {
+    "sway/language": {
         "format": "{}",
-        "return-type": "json",
-        "exec": "layout=$(swaymsg -t get_inputs | jq -r '.[] | select(.type==\"keyboard\") | .xkb_active_layout_name' | head -1); if echo \"$layout\" | grep -qi \"Arabic\"; then echo '{\"text\":\"🇪🇬\", \"tooltip\":\"Arabic Layout\"}'; else echo '{\"text\":\"🇺🇸\", \"tooltip\":\"English Layout\"}'; fi",
-        "signal": 1,
+        "format-en": "🇺🇸",
+        "format-ar": "🇪🇬",
         "on-click": "~/.local/bin/switch-layout.sh"
     },
 

@@ -56,9 +56,8 @@
 }
 
 #mode,
-#mode,
 #network,
-#custom-keyboard,
+#language,
 #idle_inhibitor,
 #cpu,
 #memory,
@@ -76,7 +75,7 @@
 
 #mode:active,
 #network:active,
-#custom-keyboard:active,
+#language:active,
 #idle_inhibitor:active,
 #cpu:active,
 #memory:active,
@@ -91,7 +90,7 @@
 
 #mode:hover,
 #network:hover,
-#custom-keyboard:hover,
+#language:hover,
 #idle_inhibitor:hover,
 #cpu:hover,
 #memory:hover,

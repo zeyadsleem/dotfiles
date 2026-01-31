@@ -1,5 +1,8 @@
 ### Input configuration
 #
+# Focus Behavior (Like Windows/Mac)
+focus_follows_mouse no
+
 # Touchpad configuration
 input type:touchpad {
     dwt enabled
@@ -14,7 +17,7 @@ input type:keyboard xkb_numlock enabled
 # Set keyboard layout to US and Arabic
 input "type:keyboard" {
     xkb_layout "us,ara"
-    # xkb_options "grp:alt_shift_toggle" # Removed in favor of bind below
+    xkb_options "grp:alt_shift_toggle"
 }
 
 # Switch layout and update Waybar instantly

@@ -22,6 +22,31 @@ for_window [window_role="pop-up"] floating enable
 for_window [window_role="dialog"] floating enable
 
 # =============================================================================
+# Enhanced Desktop Experience (Windows/Mac-like)
+# =============================================================================
+
+# Authentication & System Dialogs
+for_window [app_id="polkit-gnome-authentication-agent-1"] floating enable
+for_window [app_id="lxqt-policykit-agent"] floating enable
+for_window [app_id="org.kde.polkit-kde-authentication-agent-1"] floating enable
+for_window [app_id="gcr-prompter"] floating enable
+
+# Common Dialog Titles (Regex matching for better coverage)
+for_window [title="(?i)open file"] floating enable, resize set 800 600
+for_window [title="(?i)save file"] floating enable, resize set 800 600
+for_window [title="(?i)save as"] floating enable, resize set 800 600
+for_window [title="(?i)file upload"] floating enable, resize set 800 600
+for_window [title="^Enter name of file to save to…$"] floating enable
+for_window [title="(?i)copying"] floating enable
+for_window [title="(?i)moving"] floating enable
+for_window [title="(?i)deleting"] floating enable
+for_window [title="(?i)extracting"] floating enable
+for_window [title="(?i)properties"] floating enable
+for_window [title="(?i)print"] floating enable
+for_window [title="(?i)preferences"] floating enable
+for_window [title="(?i)settings"] floating enable
+
+# =============================================================================
 # Specific Applications (Safe List)
 # =============================================================================
 
@@ -36,7 +61,10 @@ for_window [app_id="qalculate-gtk"] floating enable
 for_window [class="Qalculate-gtk"] floating enable
 
 # File Manager (Thunar) - Main window tiles, dialogs float
+for_window [app_id="thunar"] floating disable
 for_window [app_id="thunar" window_type="dialog"] floating enable
+for_window [app_id="thunar" title="(?i)progress"] floating enable
+for_window [app_id="thunar" title="(?i)confirm"] floating enable
 for_window [app_id="thunar" title="File Operation Progress"] floating enable
 for_window [app_id="thunar" title="Confirm to replace files"] floating enable
 
