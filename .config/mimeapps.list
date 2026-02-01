@@ -1,72 +1,40 @@
 [Default Applications]
 x-scheme-handler/postman=Postman.desktop
 x-scheme-handler/mailto=brave-browser.desktop
-x-scheme-handler/http=brave-browser.desktop
-x-scheme-handler=https=brave-browser.desktop
-x-scheme-handler/chrome=brave-browser.desktop
-text/html=brave-browser.desktop
-application/x-extension-htm=brave-browser.desktop
-application/x-extension-html=brave-browser.desktop
-application/x-extension-shtml=brave-browser.desktop
-application/xhtml+xml=brave-browser.desktop
-application/x-extension-xhtml=brave-browser.desktop
-application/x-extension-xht=brave-browser.desktop
-
-# Images - imv for single, imv-dir for albums
 image/jpeg=imv.desktop
-image/png=imv.desktop
-image/gif=imv.desktop
-image/webp=imv.desktop
-image/svg+xml=imv.desktop
-image/bmp=imv.desktop
-image/tiff=imv.desktop
-image/x-tiff=imv.desktop
+x-scheme-handler/http=zen.desktop
+x-scheme-handler/https=zen.desktop
+x-scheme-handler/chrome=zen.desktop
+text/html=zen.desktop
+application/x-extension-htm=zen.desktop
+application/x-extension-html=zen.desktop
+application/x-extension-shtml=zen.desktop
+application/xhtml+xml=zen.desktop
+application/x-extension-xhtml=zen.desktop
+application/x-extension-xht=zen.desktop
+image/png=imv-dir.desktop
+video/mp4=io.github.celluloid_player.Celluloid.desktop
+application/pdf=atril.desktop
 image/vnd.microsoft.icon=imv.desktop
 
-# Videos
-video/mp4=io.github.celluloid_player.Celluloid.desktop
-video/x-matroska=io.github.celluloid_player.Celluloid.desktop
-
-# Documents
-application/pdf=atril.desktop
-
-# Archives
-application/x-compress=org.gnome.FileRoller.desktop
-application/x-compressed-tar=org.gnome.FileRoller.desktop
-application/x-tar=org.gnome.FileRoller.desktop
-application/zip=org.gnome.FileRoller.desktop
-
-# Text/Code - nvim
-text/plain=nvim.desktop
-text/markdown=nvim.desktop
-text/x-markdown=nvim.desktop
-text/x-python=nvim.desktop
-text/x-javascript=nvim.desktop
-text/x-typescript=nvim.desktop
-text/x-html=nvim.desktop
-text/css=nvim.desktop
-application/json=nvim.desktop
-application/xml=nvim.desktop
-
-# Directories
-inode/directory=thunar.desktop
-
 [Added Associations]
-x-scheme-handler/mailto=brave-browser.desktop;
-x-scheme-handler/http=brave-browser.desktop;
-x-scheme-handler/https=brave-browser.desktop;
-x-scheme-handler/chrome=brave-browser.desktop;
-text/html=brave-browser.desktop;
-application/x-extension-htm=brave-browser.desktop;
-application/x-extension-html=brave-browser.desktop;
-application/x-extension-shtml=brave-browser.desktop;
-application/xhtml+xml=brave-browser.desktop;
-application/x-extension-xhtml=brave-browser.desktop;
-application/x-extension-xht=brave-browser.desktop;
-
-# Images in imv
+x-scheme-handler/mailto=userapp-Evolution-0Q0AF3.desktop;
+x-scheme-handler/http=zen.desktop;
+x-scheme-handler/https=zen.desktop;
+x-scheme-handler/chrome=zen.desktop;
+text/html=zen.desktop;
+application/x-extension-htm=zen.desktop;
+application/x-extension-html=zen.desktop;
+application/x-extension-shtml=zen.desktop;
+application/xhtml+xml=zen.desktop;
+application/x-extension-xhtml=zen.desktop;
+application/x-extension-xht=zen.desktop;
+text/markdown=org.x.editor.desktop;
+application/json=org.x.editor.desktop;
+image/png=swappy.desktop;imv-dir.desktop;imv.desktop;
+video/mp4=io.github.celluloid_player.Celluloid.desktop;
+application/pdf=atril.desktop;
 image/jpeg=imv.desktop;
-image/png=imv.desktop;
-image/gif=imv.desktop;
-image/webp=imv.desktop;
-inode/directory=thunar.desktop;
+image/vnd.microsoft.icon=imv.desktop;
+image/gif=imv-dir.desktop;
+image/webp=imv-dir.desktop;

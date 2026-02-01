@@ -20,6 +20,8 @@ function md() {
 alias du='du -h'
 alias cd='z'          # Uses zoxide for smart directory jumping
 
+alias x=exit
+
 # FILE LISTING - Enhanced with eza/bat
 command -v eza &>/dev/null && {
     alias ls='eza -la --icons --git --group-directories-first'
@@ -134,7 +136,6 @@ alias docker='podman'
 # SYSTEM UTILITIES
 alias open='gio open'
 alias c='clear'
-alias x='exit'
 alias gemini='gemini --yolo'
 
 if command -v systemctl &>/dev/null; then

@@ -32,39 +32,14 @@ prepend_fetchers = [
 ]
 
 [opener]
-# Image viewer - opens in background so Yazi doesn't block
-image = [
-  { run = 'imv-dir "$@" &', orphan = true },
-  { run = 'imv "$@" &', orphan = true },
-  { run = 'xdg-open "$@"' },
-]
-
-# Video player
 play = [
   { run = 'mpv --force-window "$@"' },
   { run = 'iina --no-stdin "$@"' },
   { run = '''mediainfo "$1"; echo "Press enter to exit"; read''', block = true, desc = "Show media info" },
 ]
 
-# Text editor
-edit = [
-  { run = 'nvim "$@"' },
-  { run = '$EDITOR "$@"' },
-  { run = 'xdg-open "$@"' },
-]
-
 [open]
 prepend_rules = [
-  # Images open with Loupe
-  { mime = "image/*", use = ["image"] },
-  
-  # Videos
-  { mime = "video/*", use = ["play"] },
-  
-  # Text files open with nvim
-  { mime = "text/*", use = ["edit"] },
-  
-  # Subtitles
   { name = "*.{ass,srt,ssa,sty,sup,vtt}", use = [
     "subtitle",
     "edit",
