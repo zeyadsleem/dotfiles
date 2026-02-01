@@ -225,14 +225,19 @@ bindsym XF86Sleep exec systemctl suspend
     bindsym --to-code $mod+i exec hyprpicker --autocopy
 
 #
-# Screenshots
+# Screenshots - macOS Style (Auto-save + Clipboard)
 #
-    # Snip a selection and pipe to swappy
-    bindsym --to-code print exec grim -g "$(slurp)" - | swappy -f -
-    # Screenshot a window and pipe to swappy
-    bindsym --to-code Ctrl+Print exec ~/.config/sway/scripts/screenshot_window.sh
-    # Screenshot the current display and pipe to swappy
-    bindsym --to-code Shift+Print exec ~/.config/sway/scripts/screenshot_display.sh
+    # Quick selection screenshot (like Cmd+Shift+4) - saves to file + clipboard
+    bindsym --to-code print exec ~/.config/sway/scripts/screenshot_area.sh
+    
+    # Quick full display screenshot (like Cmd+Shift+3) - saves to file + clipboard  
+    bindsym --to-code Shift+Print exec ~/.config/sway/scripts/screenshot_full.sh
+    
+    # Quick window screenshot - saves to file + clipboard
+    bindsym --to-code Ctrl+Print exec ~/.config/sway/scripts/screenshot_window_quick.sh
+    
+    # Annotation mode (old behavior with swappy) - for editing
+    bindsym --to-code Alt+Print exec grim -g "$(slurp)" - | swappy -f -
 
 # Emoji picker
     bindsym --to-code $mod+period exec ~/.local/bin/emoji-picker

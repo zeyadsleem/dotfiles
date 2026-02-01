@@ -70,7 +70,7 @@ for_window [app_id="thunar" title="Confirm to replace files"] floating enable
 
 # Archivers & Image Viewers
 for_window [app_id="org.gnome.FileRoller"] floating enable
-for_window [app_id="imv"] floating enable
+for_window [app_id="org.gnome.Loupe"] floating enable, resize set 1200 800
 
 # Waybar Popups
 for_window [title="waybar_btop"] floating enable, resize set 1100 800
