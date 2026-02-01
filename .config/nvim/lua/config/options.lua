@@ -2,6 +2,7 @@ local opt = vim.opt
 opt.tabstop = 2
 opt.shiftwidth = 2
 opt.expandtab = true
+opt.clipboard = "unnamedplus"
 opt.ambiwidth = "single"
 opt.termbidi = true
 opt.list = true

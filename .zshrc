@@ -174,6 +174,10 @@ export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/go/bin/:$PATH"
 export PATH="$HOME/.jdks/openjdk-25.0.1/bin/:$PATH"
 
+# PHP Laravel
+export PATH="/home/zeyad/.config/herd-lite/bin:$PATH"
+export PHP_INI_SCAN_DIR="/home/zeyad/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
+
 # Turso
 export PATH="$PATH:/home/zeyad/.turso"
 
@@ -185,15 +189,7 @@ if command -v fnm &> /dev/null; then
 
 fi
 
-
-
 . "$HOME/.cargo/env"
-
-
-
-
-
-
 
 # Automatically activate Python virtual environment
 function auto_venv() {
@@ -222,5 +218,5 @@ function auto_venv() {
   fi
 }
 add-zsh-hook chpwd auto_venv
-export PATH="/home/zeyad/.config/herd-lite/bin:$PATH"
-export PHP_INI_SCAN_DIR="/home/zeyad/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
+
+export DISPLAY=:0

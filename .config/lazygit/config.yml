@@ -1,0 +1,36 @@
+gui:
+  nerdFontsVersion: "3"
+  theme:
+    activeBorderColor:
+      - "#56949f"
+      - "bold"
+    inactiveBorderColor:
+      - "#9893a5"
+    optionsTextColor:
+      - "#286983"
+    selectedLineBgColor:
+      - "#f2e9e1"
+    cherryPickedCommitBgColor:
+      - "#575279"
+    cherryPickedCommitFgColor:
+      - "#56949f"
+    unstagedChangesColor:
+      - "#d7827e"
+    defaultFgColor:
+      - "#575279"
+    searchingActiveBorderColor:
+      - "#b4637a"
+    authorColors:
+      "*": "#ea9d34"
+os:
+  editPreset: "nvim"
+git:
+  paging:
+    colorArg: always
+    pager: delta --dark --paging=never
+customCommands:
+  - key: "c"
+    context: "files"
+    command: "git cz c"
+    description: "commit with commitizen"
+    subprocess: true
