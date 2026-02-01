@@ -32,10 +32,10 @@ prepend_fetchers = [
 ]
 
 [opener]
-# Image viewer - uses imv-dir for Yazi
+# Image viewer - opens in background so Yazi doesn't block
 image = [
-  { run = 'imv-dir "$@"' },
-  { run = 'imv "$@"' },
+  { run = 'imv-dir "$@" &', orphan = true },
+  { run = 'imv "$@" &', orphan = true },
   { run = 'xdg-open "$@"' },
 ]
 
