@@ -134,6 +134,7 @@ alias docker='podman'
 # SYSTEM UTILITIES
 alias open='gio open'
 alias c='clear'
+alias x='exit'
 alias gemini='gemini --yolo'
 
 if command -v systemctl &>/dev/null; then
