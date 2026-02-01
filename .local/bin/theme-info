@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# Get current theme info
+#
+
+CURRENT_LINK="$HOME/dotfiles/.config/themes/current"
+
+if [ ! -L "$CURRENT_LINK" ]; then
+    echo "No theme currently set"
+    exit 1
+fi
+
+CURRENT_THEME=$(readlink -f "$CURRENT_LINK" | xargs basename)
+
+if [ -f "$CURRENT_LINK/theme.conf" ]; then
+    echo "Current Theme: $CURRENT_THEME"
+    echo ""
+    
+    # Parse and display metadata
+    while IFS='=' read -r key value; do
+        [[ "$key" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$key" ]] && continue
+        
+        # Skip terminal colors for cleaner output
+        [[ "$key" =~ ^color[0-9] ]] && continue
+        [[ "$key" =~ ^color[0-9][0-9] ]] && continue
+        
+        key=$(echo "$key" | xargs)
+        value=$(echo "$value" | xargs)
+        
+        # Capitalize first letter
+        key_display=$(echo "$key" | sed 's/^\(./\u\1/')
+        
+        echo "$key_display: $value"
+    done < "$CURRENT_LINK/theme.conf"
+else
+    echo "Current Theme: $CURRENT_THEME"
+    echo "(No metadata available)"
+fi

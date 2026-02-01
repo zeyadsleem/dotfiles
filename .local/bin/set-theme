@@ -1,63 +1,277 @@
 #!/bin/bash
+#
+# Smart Theme Switcher
+# Usage: set-theme <theme_name> [--force]
+#
 
-THEME_NAME=$1
+set -e
+
+THEME_NAME="${1:-}"
+FORCE_MODE=false
+
+if [ "$2" = "--force" ]; then
+    FORCE_MODE=true
+fi
+
 THEMES_DIR="$HOME/dotfiles/.config/themes"
 CURRENT_LINK="$THEMES_DIR/current"
+DEFAULT_THEME="orchis-dark"
 
-if [ -z "$THEME_NAME" ]; then
-    echo "Usage: set-theme <theme_name>"
-    exit 1
-fi
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-if [ ! -d "$THEMES_DIR/$THEME_NAME" ]; then
-    notify-send "Theme Error" "Theme '$THEME_NAME' not found!" -u critical
-    exit 1
-fi
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
 
-# 1. Update Symlink
-ln -sfn "$THEMES_DIR/$THEME_NAME" "$CURRENT_LINK"
+log_success() {
+    echo -e "${GREEN}[OK]${NC} $1"
+}
 
-# 2. Update WezTerm Colors
-if [ -f "$CURRENT_LINK/wezterm/colors.lua" ]; then
-    ln -sf "$CURRENT_LINK/wezterm/colors.lua" "$HOME/.config/wezterm/colors.lua"
-fi
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
 
-# 3. Update Wallpaper
-# We look for wallpaper.jpg or wallpaper.png inside the theme folder
-WP=$(find "$CURRENT_LINK" -maxdepth 1 -name "wallpaper.*" | head -n 1)
-if [ -n "$WP" ]; then
-    # Using swaybg to set wallpaper (you can also use azotebg)
-    pkill swaybg
-    swaybg -i "$WP" -m fill &
-    # Save for persistence if needed
-    echo "$WP" > "$HOME/.cache/current_wallpaper"
-fi
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
 
-# 4. Update Waybar Colors
-if [ -f "$CURRENT_LINK/waybar/colors.css" ]; then
-    ln -sf "$CURRENT_LINK/waybar/colors.css" "$HOME/.config/waybar/colors.css"
-fi
+# Show usage
+usage() {
+    echo "Usage: set-theme <theme_name> [--force]"
+    echo ""
+    echo "Available themes:"
+    ls -1 "$THEMES_DIR" | grep -v "^current$" | while read theme; do
+        if [ -f "$THEMES_DIR/$theme/theme.conf" ]; then
+            name=$(grep "^name=" "$THEMES_DIR/$theme/theme.conf" | cut -d= -f2)
+            type=$(grep "^type=" "$THEMES_DIR/$theme/theme.conf" | cut -d= -f2)
+            echo "  - $name ($type)"
+        else
+            echo "  - $theme"
+        fi
+    done
+    echo ""
+    echo "Options:"
+    echo "  --force    Force apply even if some files are missing"
+}
 
-# 5. Update SwayNC (Notifications)
-if [ -f "$CURRENT_LINK/swaync/style.css" ]; then
-    ln -sf "$CURRENT_LINK/swaync/style.css" "$HOME/.config/swaync/theme.css"
-    swaync-client -R && swaync-client -rs
-fi
+# Parse theme metadata
+parse_theme_metadata() {
+    local theme_dir="$1"
+    local conf_file="$theme_dir/theme.conf"
+    
+    if [ ! -f "$conf_file" ]; then
+        log_warn "No theme.conf found, using defaults"
+        return 1
+    fi
+    
+    # Export all theme variables
+    while IFS='=' read -r key value; do
+        # Skip comments and empty lines
+        [[ "$key" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "$key" ]] && continue
+        
+        # Trim whitespace
+        key=$(echo "$key" | xargs)
+        value=$(echo "$value" | xargs)
+        
+        export "THEME_$key=$value"
+    done < "$conf_file"
+    
+    return 0
+}
 
-# 6. Apply GTK Theme
-if [ -f "$CURRENT_LINK/gtk_theme_name" ]; then
-    GTK_THEME=$(cat "$CURRENT_LINK/gtk_theme_name")
-    gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME"
-    sed -i "s/gtk-theme-name=.*/gtk-theme-name=$GTK_THEME/" ~/.config/gtk-3.0/settings.ini
-fi
+# Apply wallpaper
+apply_wallpaper() {
+    local theme_dir="$1"
+    
+    # Check for wallpaper in theme metadata
+    if [ -n "$THEME_wallpaper" ] && [ -f "$theme_dir/$THEME_wallpaper" ]; then
+        WP="$theme_dir/$THEME_wallpaper"
+    else
+        # Try to find any wallpaper
+        WP=$(find "$theme_dir" -maxdepth 1 -type f \( -name "wallpaper.jpg" -o -name "wallpaper.png" -o -name "wallpaper.jpeg" -o -name "wallpaper.webp" \) | head -n 1)
+    fi
+    
+    if [ -n "$WP" ]; then
+        log_info "Applying wallpaper: $(basename "$WP")"
+        pkill swaybg 2>/dev/null || true
+        swaybg -i "$WP" -m fill &
+        echo "$WP" > "$HOME/.cache/current_wallpaper"
+        log_success "Wallpaper applied"
+    else
+        log_warn "No wallpaper found for theme"
+    fi
+}
 
-# 7. Reload Sway & Waybar
-swaymsg reload 2>/dev/null
-pkill -USR2 waybar
+# Apply symlinks with fallback
+apply_symlink() {
+    local source="$1"
+    local target="$2"
+    local fallback="${3:-}"
+    local description="${4:-file}"
+    
+    if [ -f "$source" ] || [ -d "$source" ]; then
+        ln -sfn "$source" "$target"
+        log_success "$description linked"
+    elif [ -n "$fallback" ] && [ -f "$fallback" ]; then
+        ln -sfn "$fallback" "$target"
+        log_warn "$description not found in theme, using fallback"
+    elif [ "$FORCE_MODE" = true ]; then
+        log_warn "$description missing, continuing (force mode)"
+    else
+        log_error "$description not found: $source"
+        return 1
+    fi
+}
 
-# 8. Tmux Integration
-if pgrep tmux >/dev/null; then
-    tmux source-file ~/.tmux.conf
-fi
+# Main theme switching logic
+main() {
+    # Check arguments
+    if [ -z "$THEME_NAME" ] || [ "$THEME_NAME" = "--help" ] || [ "$THEME_NAME" = "-h" ]; then
+        usage
+        exit 0
+    fi
+    
+    # Validate theme exists
+    if [ ! -d "$THEMES_DIR/$THEME_NAME" ]; then
+        log_error "Theme '$THEME_NAME' not found!"
+        echo ""
+        usage
+        exit 1
+    fi
+    
+    THEME_DIR="$THEMES_DIR/$THEME_NAME"
+    
+    log_info "Switching to theme: $THEME_NAME"
+    
+    # Parse theme metadata
+    parse_theme_metadata "$THEME_DIR"
+    
+    # Update current symlink
+    ln -sfn "$THEME_DIR" "$CURRENT_LINK"
+    log_success "Theme symlink updated"
+    
+    # Apply wallpaper
+    apply_wallpaper "$THEME_DIR"
+    
+    # ============ Applications ============
+    
+    # 1. GTK Theme
+    if [ -f "$THEME_DIR/gtk_theme_name" ]; then
+        GTK_THEME=$(cat "$THEME_DIR/gtk_theme_name")
+        gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME" 2>/dev/null || true
+        if [ -f "$HOME/.config/gtk-3.0/settings.ini" ]; then
+            sed -i "s/gtk-theme-name=.*/gtk-theme-name=$GTK_THEME/" "$HOME/.config/gtk-3.0/settings.ini"
+        fi
+        log_success "GTK theme set to: $GTK_THEME"
+    elif [ -n "$THEME_gtk_theme" ]; then
+        gsettings set org.gnome.desktop.interface gtk-theme "$THEME_gtk_theme" 2>/dev/null || true
+        log_success "GTK theme set to: $THEME_gtk_theme"
+    fi
+    
+    # 2. Waybar
+    apply_symlink "$THEME_DIR/waybar/colors.css" "$HOME/.config/waybar/colors.css" "$THEMES_DIR/$DEFAULT_THEME/waybar/colors.css" "Waybar colors"
+    
+    # 3. SwayNC
+    if [ -f "$THEME_DIR/swaync/style.css" ]; then
+        apply_symlink "$THEME_DIR/swaync/style.css" "$HOME/.config/swaync/style.css" "" "SwayNC style"
+        swaync-client -R 2>/dev/null || true
+        swaync-client -rs 2>/dev/null || true
+        log_success "SwayNC reloaded"
+    fi
+    
+    # 4. Kitty
+    if [ -f "$THEME_DIR/kitty/theme.conf" ]; then
+        # Kitty reads directly from the theme directory via include
+        log_success "Kitty theme configured"
+    fi
+    
+    # 5. Tmux
+    if [ -f "$THEME_DIR/tmux/colors.conf" ]; then
+        log_success "Tmux colors configured"
+    fi
+    
+    # 6. WezTerm
+    if [ -f "$THEME_DIR/wezterm/colors.lua" ]; then
+        apply_symlink "$THEME_DIR/wezterm/colors.lua" "$HOME/.config/wezterm/colors.lua" "" "WezTerm colors"
+    fi
+    
+    # 7. Neovim
+    if [ -f "$THEME_DIR/nvim/lualine_theme.lua" ]; then
+        apply_symlink "$THEME_DIR/nvim/lualine_theme.lua" "$HOME/.config/nvim/lua/current_theme.lua" "" "Neovim theme"
+    fi
+    
+    # 8. Fuzzel
+    if [ -f "$THEME_DIR/fuzzel/fuzzel.ini" ]; then
+        apply_symlink "$THEME_DIR/fuzzel/fuzzel.ini" "$HOME/.config/fuzzel/fuzzel.ini" "" "Fuzzel config"
+    fi
+    
+    # 9. Yazi
+    if [ -f "$THEME_DIR/yazi/theme.toml" ]; then
+        apply_symlink "$THEME_DIR/yazi/theme.toml" "$HOME/.config/yazi/theme.toml" "" "Yazi theme"
+    fi
+    
+    # 10. nwg-drawer
+    if [ -f "$THEME_DIR/nwg-drawer/drawer.css" ]; then
+        apply_symlink "$THEME_DIR/nwg-drawer/drawer.css" "$HOME/.config/nwg-drawer/drawer.css" "" "nwg-drawer style"
+    fi
+    
+    # 11. Sway
+    if [ -f "$THEME_DIR/sway/theme" ]; then
+        apply_symlink "$THEME_DIR/sway/theme" "$HOME/.config/sway/config.d/theme" "" "Sway theme"
+    fi
+    
+    # 12. gtklock
+    if [ -f "$THEME_DIR/gtklock/style.css" ]; then
+        apply_symlink "$THEME_DIR/gtklock/style.css" "$HOME/.config/gtklock/style.css" "" "gtklock style"
+    fi
+    
+    # 13. Zsh environment
+    if [ -f "$THEME_DIR/zsh/env.zsh" ]; then
+        apply_symlink "$THEME_DIR/zsh/env.zsh" "$HOME/.config/themes/current_zsh_env.zsh" "" "Zsh theme env"
+    fi
+    
+    # ============ Reload Applications ============
+    
+    # Reload Sway
+    if command -v swaymsg >/dev/null 2>&1; then
+        swaymsg reload 2>/dev/null || log_warn "Failed to reload Sway"
+    fi
+    
+    # Reload Waybar
+    if pgrep waybar >/dev/null 2>&1; then
+        pkill -USR2 waybar 2>/dev/null || true
+        log_success "Waybar reloaded"
+    fi
+    
+    # Reload Tmux
+    if pgrep tmux >/dev/null 2>&1; then
+        tmux source-file "$HOME/.tmux.conf" 2>/dev/null || true
+        log_success "Tmux reloaded"
+    fi
+    
+    # Notification
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send "Theme Applied" "Switched to $THEME_NAME" -i "preferences-desktop-theme" 2>/dev/null || true
+    fi
+    
+    echo ""
+    log_success "Theme '$THEME_NAME' applied successfully!"
+    
+    # Print theme info
+    if [ -n "$THEME_description" ]; then
+        echo ""
+        echo "Description: $THEME_description"
+    fi
+    if [ -n "$THEME_type" ]; then
+        echo "Type: $THEME_type"
+    fi
+}
 
-notify-send "Theme Applied" "System switched to $THEME_NAME" -i display
+# Run main function
+main "$@"

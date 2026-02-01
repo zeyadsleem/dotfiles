@@ -1,9 +1,60 @@
 #!/bin/bash
+#
+# Interactive Theme Picker using fuzzel
+#
 
 THEMES_DIR="$HOME/dotfiles/.config/themes"
-# List all folders in themes dir except 'current'
-SELECTED=$(ls -d "$THEMES_DIR"/*/ | xargs -n 1 basename | grep -v "current" | fuzzel -d -p " 🎨 Select Theme: " --width 40)
 
-if [ -n "$SELECTED" ]; then
-    ~/.local/bin/set-theme "$SELECTED"
+# Generate theme list with metadata
+generate_theme_list() {
+    for theme_dir in "$THEMES_DIR"/*/; do
+        theme=$(basename "$theme_dir")
+        [ "$theme" = "current" ] && continue
+        
+        if [ -f "$theme_dir/theme.conf" ]; then
+            name=$(grep "^name=" "$theme_dir/theme.conf" | cut -d= -f2)
+            type=$(grep "^type=" "$theme_dir/theme.conf" | cut -d= -f2)
+            
+            # Add emoji based on type
+            if [ "$type" = "dark" ]; then
+                icon="🌙"
+            elif [ "$type" = "light" ]; then
+                icon="☀️"
+            else
+                icon="🎨"
+            fi
+            
+            echo "$icon $name"
+        else
+            echo "🎨 $theme"
+        fi
+    done
+}
+
+# Show picker
+selected=$(generate_theme_list | fuzzel --dmenu --prompt "Theme: " --lines 10)
+
+if [ -n "$selected" ]; then
+    # Extract theme name (remove emoji and space)
+    theme_name=$(echo "$selected" | sed 's/^[^ ]* //')
+    
+    # Find the actual theme directory
+    for theme_dir in "$THEMES_DIR"/*/; do
+        theme=$(basename "$theme_dir")
+        [ "$theme" = "current" ] && continue
+        
+        if [ -f "$theme_dir/theme.conf" ]; then
+            name=$(grep "^name=" "$theme_dir/theme.conf" | cut -d= -f2)
+            if [ "$name" = "$theme_name" ]; then
+                set-theme "$theme"
+                exit 0
+            fi
+        elif [ "$theme" = "$theme_name" ]; then
+            set-theme "$theme"
+            exit 0
+        fi
+    done
+    
+    # Fallback: try direct match
+    set-theme "$theme_name"
 fi

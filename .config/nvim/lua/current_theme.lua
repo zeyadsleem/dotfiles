@@ -1,1 +1,1 @@
-/home/zeyad/dotfiles/.config/themes/current/nvim/lualine_theme.lua
+/home/zeyad/dotfiles/.config/themes/orchis-dark/nvim/lualine_theme.lua
