@@ -165,10 +165,18 @@ main() {
     if [ -f "$THEME_DIR/gtk_theme_name" ]; then
         GTK_THEME=$(cat "$THEME_DIR/gtk_theme_name")
         gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME" 2>/dev/null || true
+        
+        # Set color scheme based on theme type
+        if [[ "$THEME_type" == *"dark"* ]]; then
+            gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null || true
+        else
+            gsettings set org.gnome.desktop.interface color-scheme 'default' 2>/dev/null || true
+        fi
+        
         if [ -f "$HOME/.config/gtk-3.0/settings.ini" ]; then
             sed -i "s/gtk-theme-name=.*/gtk-theme-name=$GTK_THEME/" "$HOME/.config/gtk-3.0/settings.ini"
         fi
-        log_success "GTK theme set to: $GTK_THEME"
+        log_success "GTK theme set to: $GTK_THEME (Color scheme updated)"
     elif [ -n "$THEME_gtk_theme" ]; then
         gsettings set org.gnome.desktop.interface gtk-theme "$THEME_gtk_theme" 2>/dev/null || true
         log_success "GTK theme set to: $THEME_gtk_theme"

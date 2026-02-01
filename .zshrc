@@ -219,4 +219,14 @@ function auto_venv() {
 }
 add-zsh-hook chpwd auto_venv
 
+# =============================================================================
+# Wayland & Desktop Environment Variables
+# =============================================================================
+export SDL_VIDEODRIVER=wayland
+export QT_QPA_PLATFORM="wayland;xcb"
+export GDK_BACKEND=wayland,x11
+export CLUTTER_BACKEND=wayland
+export XDG_CURRENT_DESKTOP=sway
+export XDG_SESSION_DESKTOP=sway
+
 export DISPLAY=:0
