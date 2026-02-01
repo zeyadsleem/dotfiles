@@ -32,9 +32,9 @@ prepend_fetchers = [
 ]
 
 [opener]
-# Image viewer
+# Image viewer - uses xdg-open to respect mimeapps.list
 image = [
-  { run = 'org.gnome.Loupe "$@"' },
+  { run = 'xdg-open "$@"' },
   { run = 'imv "$@"' },
 ]
 
