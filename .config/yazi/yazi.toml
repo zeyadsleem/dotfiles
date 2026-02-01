@@ -32,10 +32,11 @@ prepend_fetchers = [
 ]
 
 [opener]
-# Image viewer - uses xdg-open to respect mimeapps.list
+# Image viewer - uses imv-dir for Yazi
 image = [
-  { run = 'xdg-open "$@"' },
+  { run = 'imv-dir "$@"' },
   { run = 'imv "$@"' },
+  { run = 'xdg-open "$@"' },
 ]
 
 # Video player

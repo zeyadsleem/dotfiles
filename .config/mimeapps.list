@@ -12,23 +12,16 @@ application/xhtml+xml=brave-browser.desktop
 application/x-extension-xhtml=brave-browser.desktop
 application/x-extension-xht=brave-browser.desktop
 
-# Images - All open in Loupe
-image/jpeg=org.gnome.Loupe.desktop
-image/png=org.gnome.Loupe.desktop
-image/gif=org.gnome.Loupe.desktop
-image/webp=org.gnome.Loupe.desktop
-image/svg+xml=org.gnome.Loupe.desktop
-image/bmp=org.gnome.Loupe.desktop
-image/tiff=org.gnome.Loupe.desktop
-image/x-tiff=org.gnome.Loupe.desktop
-image/vnd.microsoft.icon=org.gnome.Loupe.desktop
-image/x-portable-pixmap=org.gnome.Loupe.desktop
-image/x-portable-graymap=org.gnome.Loupe.desktop
-image/x-portable-bitmap=org.gnome.Loupe.desktop
-image/x-xpixmap=org.gnome.Loupe.desktop
-image/x-xbitmap=org.gnome.Loupe.desktop
-image/heif=org.gnome.Loupe.desktop
-image/heic=org.gnome.Loupe.desktop
+# Images - imv for single, imv-dir for albums
+image/jpeg=imv.desktop
+image/png=imv.desktop
+image/gif=imv.desktop
+image/webp=imv.desktop
+image/svg+xml=imv.desktop
+image/bmp=imv.desktop
+image/tiff=imv.desktop
+image/x-tiff=imv.desktop
+image/vnd.microsoft.icon=imv.desktop
 
 # Videos
 video/mp4=io.github.celluloid_player.Celluloid.desktop
@@ -43,49 +36,16 @@ application/x-compressed-tar=org.gnome.FileRoller.desktop
 application/x-tar=org.gnome.FileRoller.desktop
 application/zip=org.gnome.FileRoller.desktop
 
-# Text/Code files - All open in nvim
+# Text/Code - nvim
 text/plain=nvim.desktop
 text/markdown=nvim.desktop
 text/x-markdown=nvim.desktop
-text/x-chdr=nvim.desktop
-text/x-csrc=nvim.desktop
-text/x-c++hdr=nvim.desktop
-text/x-c++src=nvim.desktop
-text/x-java=nvim.desktop
 text/x-python=nvim.desktop
-text/x-python3=nvim.desktop
-text/x-script.python=nvim.desktop
-text/x-lua=nvim.desktop
 text/x-javascript=nvim.desktop
 text/x-typescript=nvim.desktop
 text/x-html=nvim.desktop
 text/css=nvim.desktop
-text/x-scss=nvim.desktop
-text/x-sass=nvim.desktop
-text/x-less=nvim.desktop
-text/x-json=nvim.desktop
-text/x-yaml=nvim.desktop
-text/x-toml=nvim.desktop
-text/x-ini=nvim.desktop
-text/x-config=nvim.desktop
-text/x-xml=nvim.desktop
-text/x-sql=nvim.desktop
-text/x-php=nvim.desktop
-text/x-ruby=nvim.desktop
-text/x-go=nvim.desktop
-text/x-rust=nvim.desktop
-text/x-perl=nvim.desktop
-text/x-bash=nvim.desktop
-text/x-zsh=nvim.desktop
-text/x-fish=nvim.desktop
-application/x-shellscript=nvim.desktop
-application/x-perl=nvim.desktop
-application/x-ruby=nvim.desktop
-application/x-php=nvim.desktop
-application/x-javascript=nvim.desktop
 application/json=nvim.desktop
-application/yaml=nvim.desktop
-application/toml=nvim.desktop
 application/xml=nvim.desktop
 
 # Directories
@@ -104,19 +64,9 @@ application/xhtml+xml=brave-browser.desktop;
 application/x-extension-xhtml=brave-browser.desktop;
 application/x-extension-xht=brave-browser.desktop;
 
-# Images
-image/jpeg=org.gnome.Loupe.desktop;
-image/png=org.gnome.Loupe.desktop;
-image/gif=org.gnome.Loupe.desktop;
-image/webp=org.gnome.Loupe.desktop;
-image/svg+xml=org.gnome.Loupe.desktop;
-
-# Text files
-text/markdown=nvim.desktop;
-application/json=nvim.desktop;
-text/plain=nvim.desktop;
-
-# Videos & PDF
-video/mp4=io.github.celluloid_player.Celluloid.desktop;
-application/pdf=atril.desktop;
+# Images in imv
+image/jpeg=imv.desktop;
+image/png=imv.desktop;
+image/gif=imv.desktop;
+image/webp=imv.desktop;
 inode/directory=thunar.desktop;
