@@ -1,1 +1,0 @@
-../themes/orchis-dark/wezterm/colors.lua

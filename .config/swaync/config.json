@@ -1,46 +1,61 @@
 {
   "$schema": "/etc/xdg/swaync/configSchema.json",
+
   "positionX": "right",
   "positionY": "top",
-  "notification-window-width": 400,
-  "notification-icon-size": 52,
-  "control-center-width": 440,
-  "notification-margin-top": 12,
-  "notification-margin-right": 18,
+  "control-center-positionX": "none",
+  "control-center-positionY": "none",
+  "control-center-margin-top": 8,
+  "control-center-margin-bottom": 8,
+  "control-center-margin-right": 8,
+  "control-center-margin-left": 8,
+  "control-center-width": 420,
+  "control-center-height": -1,
+  "fit-to-screen": false,
+  "layer-shell-cover-screen": true,
+
+  "layer-shell": true,
   "layer": "overlay",
-  "cssPriority": "application",
+  "control-center-layer": "overlay",
+  "cssPriority": "user",
+  "notification-body-image-height": 45,
+  "notification-body-image-width": 90,
+  "notification-inline-replies": true,
   "timeout": 10,
-  "timeout-low": 6,
+  "timeout-low": 5,
   "timeout-critical": 0,
-  "fit-to-screen": true,
-  "control-center-margin-top": 12,
-  "control-center-margin-bottom": 12,
-  "control-center-margin-right": 12,
-  "notification-2fa-action": true,
+  "notification-window-width": 420,
   "keyboard-shortcuts": true,
-  "image-visibility": "when-available",
-  "transition-time": 250,
-  "hide-on-clear": false,
+  "image-visibility": "always",
+  "transition-time": 200,
+  "hide-on-clear": true,
   "hide-on-action": true,
   "script-fail-notify": true,
-  "widgets": [
-    "title",
-    "dnd",
-    "notifications",
-    "mpris"
-  ],
+
+  "widgets": ["inhibitors", "dnd", "mpris", "notifications"],
   "widget-config": {
+    "notifications": {
+      "vexpand": false
+    },
+    "inhibitors": {
+      "text": "Inhibitors",
+      "button-text": "Clear All",
+      "clear-all-button": true
+    },
     "title": {
-      "text": "الإشعارات",
-      "clear-all-button": true,
-      "button-text": "مسح الكل"
+      "text": "Notifications",
+      "clear-all-button": false,
+      "button-text": "Clear All"
     },
     "dnd": {
-      "text": "وضع عدم الإزعاج"
+      "text": "Do Not Disturb"
+    },
+    "label": {
+      "max-lines": 5,
+      "text": "Label Text"
     },
     "mpris": {
-      "image-size": 100,
-      "image-radius": 14
+      "autohide": true
     }
   }
 }
