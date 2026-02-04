@@ -5,11 +5,11 @@ local config = wezterm.config_builder()
 -- Appearance & Font
 -- ============================================================================
 config.font = wezterm.font_with_fallback({
-	"JetBrains Mono",
+	"JetBrainsMono Nerd Font",
 	"DejaVu Sans Mono",
 })
 config.font_size = 12.0
-config.line_height = 0.9
+config.line_height = 1.1
 config.cell_width = 0.9
 
 -- Rendering Engine (OpenGL is more stable for Tmux redraws)
@@ -63,9 +63,10 @@ config.mouse_bindings = {
 -- Strict LeftToRight prevents the cursor jumping around during Tmux pane switches
 config.bidi_enabled = true
 config.bidi_direction = "LeftToRight"
+config.unicode_version = 14 -- Better BiDi algorithm support
 
 -- Avoid treating Arabic as "Double Width" to prevent grid misalignment
-config.allow_square_glyphs_to_overflow_width = "WhenFollowedBySpace"
+config.allow_square_glyphs_to_overflow_width = "Always"
 
 -- ============================================================================
 -- Multiplexing (Client-Server / Unix Domains)

@@ -3,6 +3,11 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
+# Locale settings for Arabic/UTF-8 support
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+
 # Zinit
 ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
 if [[ ! -d $ZINIT_HOME ]]; then
@@ -109,14 +114,9 @@ zshaddhistory() {
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANROFFOPT="-c"
 
-# Bat theme
-# export BAT_THEME="rose-pine"
-
 # =============================================================================
 # Default Applications
 # =============================================================================
-export EDITOR="nvim"
-export VISUAL="xed"
 export BROWSER="brave"
 export TERMINAL="wezterm"
 
@@ -174,20 +174,8 @@ export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/go/bin/:$PATH"
 export PATH="$HOME/.jdks/openjdk-25.0.1/bin/:$PATH"
 
-# PHP Laravel
-export PATH="/home/zeyad/.config/herd-lite/bin:$PATH"
-export PHP_INI_SCAN_DIR="/home/zeyad/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
-
 # Turso
 export PATH="$PATH:/home/zeyad/.turso"
-
-# --- Node Version Manager (fnm) ---
-
-if command -v fnm &> /dev/null; then
-
-  eval "$(fnm env --use-on-cd --shell zsh)"
-
-fi
 
 . "$HOME/.cargo/env"
 
@@ -229,4 +217,6 @@ export CLUTTER_BACKEND=wayland
 export XDG_CURRENT_DESKTOP=sway
 export XDG_SESSION_DESKTOP=sway
 
-export DISPLAY=:0
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
