@@ -207,16 +207,17 @@ function auto_venv() {
 }
 add-zsh-hook chpwd auto_venv
 
-# =============================================================================
-# Wayland & Desktop Environment Variables
-# =============================================================================
-export SDL_VIDEODRIVER=wayland
-export QT_QPA_PLATFORM="wayland;xcb"
-export GDK_BACKEND=wayland,x11
-export CLUTTER_BACKEND=wayland
-export XDG_CURRENT_DESKTOP=sway
-export XDG_SESSION_DESKTOP=sway
-
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# pnpm
+export PNPM_HOME="/home/zeyad/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+# opencode
+export PATH=/home/zeyad/.opencode/bin:$PATH

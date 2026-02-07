@@ -32,7 +32,7 @@ else
 	config.color_scheme = "Rose Pine"
 end
 
-config.window_background_opacity = 0.90
+config.window_background_opacity = 1.0
 config.window_decorations = "RESIZE"
 config.enable_tab_bar = false
 config.window_padding = { left = 5, right = 5, top = 1, bottom = 1 }
