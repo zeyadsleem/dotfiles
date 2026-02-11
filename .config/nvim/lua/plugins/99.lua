@@ -6,23 +6,13 @@ return {
 
 		local _99 = require("99")
 
-		-- Custom Provider to bypass opencode agent permission issues
-		local OpenCodeStdoutProvider = setmetatable({}, { __index = _99.Providers.OpenCodeProvider })
-		function OpenCodeStdoutProvider._build_command(_, query, request)
-			local model = request.context.model
-			local tmp_file = request.context.tmp_file
-			-- We run opencode without an agent to avoid tool permission prompts
-			-- and redirect the output to the tmp_file manually.
-			return {
-				"bash",
-				"-c",
-				string.format(
-					"opencode run -m %s %s > %s 2>/dev/null",
-					vim.fn.shellescape(model),
-					vim.fn.shellescape(query),
-					vim.fn.shellescape(tmp_file)
-				),
-			}
+		-- Override the random_file function to use a directory allowed by opencode
+		local utils = require("99.utils")
+		local original_random_file = utils.random_file
+		utils.random_file = function()
+			local tool_output_dir = vim.fn.expand("~/.local/share/opencode/tool-output")
+			vim.fn.mkdir(tool_output_dir, "p")
+			return tool_output_dir .. "/99-" .. math.random(1000000, 9999999)
 		end
 
 		-- For logging that is to a file if you wish to trace through requests
@@ -31,7 +21,7 @@ return {
 		local cwd = vim.uv.cwd()
 		local basename = vim.fs.basename(cwd)
 		_99.setup({
-			provider = OpenCodeStdoutProvider,
+			provider = _99.Providers.OpenCodeProvider,
 			model = "google/antigravity-gemini-3-flash",
 			logger = {
 				level = _99.DEBUG,
