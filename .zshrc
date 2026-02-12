@@ -114,6 +114,11 @@ zshaddhistory() {
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANROFFOPT="-c"
 
+# Fix Wayland Display inside tmux/sessions
+if [[ -z "$WAYLAND_DISPLAY" ]]; then
+  export WAYLAND_DISPLAY=$(ls $XDG_RUNTIME_DIR/wayland-* 2>/dev/null | grep -v ".lock" | head -n 1 | xargs basename 2>/dev/null)
+fi
+
 # =============================================================================
 # Default Applications
 # =============================================================================
