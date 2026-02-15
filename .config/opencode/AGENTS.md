@@ -1,5 +1,42 @@
 # Global Agent Rules
 
+## Automatic Context Management (ALWAYS ACTIVE)
+
+> These rules apply to EVERY interaction automatically. No manual reminders needed.
+
+### Core Principles:
+1. **Context is precious** — treat every token like it costs money. Minimize context usage at all times.
+2. **Delegate, don't accumulate** — use sub-agents (@explore, @code, @test) instead of doing everything in one agent. Each sub-agent gets a fresh context window.
+3. **Read surgically** — NEVER read entire files. Always use `limit` and `offset` parameters. Start with 50-100 lines around the area of interest.
+4. **Search before reading** — use `grep` to find the exact line numbers first, THEN read only those lines with `read` using offset/limit.
+5. **Parallel over sequential** — when tasks are independent, spawn multiple sub-agents or tool calls in parallel.
+
+### File Reading Rules (MANDATORY):
+- **NEVER** use `read` without `limit` on files > 100 lines. Default to `limit: 100`.
+- **ALWAYS** use `grep` or `glob` first to locate what you need, then `read` with targeted `offset` and `limit`.
+- **Prefer** multiple small reads (30-80 lines each) over one large read.
+- **NEVER** re-read a file you already read in this conversation unless it was modified.
+- When exploring a directory, read the directory listing first, then only the relevant files.
+
+### Search Rules (MANDATORY):
+- Use `glob` to find files by name pattern — NEVER use `bash find`.
+- Use `grep` to search file contents — NEVER use `bash grep` or `bash rg`.
+- Use `grep` with `include` filter to narrow searches to relevant file types.
+- Combine `glob` + `grep` in parallel for fastest results.
+
+### Sub-Agent Delegation Rules:
+- **Any task touching > 3 files** → delegate to a sub-agent.
+- **Any exploration task** → use @explore (it's READ-ONLY and lightweight).
+- **Any code change** → use @code (keeps implementation details out of orchestrator context).
+- **Any test run** → use @test (keeps test output out of orchestrator context).
+- The orchestrator should ONLY see summaries, never raw file contents.
+
+### Response Efficiency:
+- Keep summaries to 3-5 bullet points maximum.
+- Don't repeat file contents back to the user — summarize what was found/changed.
+- Don't explain what you're about to do in detail — just do it.
+- After edits, show a brief `git diff` summary, not the full file.
+
 ## Orchestrator-Workers Pattern (DEFAULT WORKFLOW)
 
 All agents follow the Orchestrator-Workers pattern by default. The `orchestrator` agent is the default primary agent.

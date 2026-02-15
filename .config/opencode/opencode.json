@@ -3,19 +3,19 @@
   "plugin": [
     "opencode-antigravity-auth@latest"
   ],
-  "model": "google/antigravity-claude-opus-4-6-thinking",
+  "model": "google/antigravity-gemini-3-flash",
   "small_model": "google/antigravity-gemini-3-flash",
   "default_agent": "orchestrator",
   "agent": {
     "build": {
       "mode": "primary",
-      "model": "google/antigravity-claude-opus-4-6-thinking",
-      "temperature": 0.3
+      "model": "google/antigravity-gemini-3-flash",
+      "temperature": 0.2
     },
     "plan": {
       "mode": "primary",
-      "model": "google/antigravity-gemini-3-pro",
-      "temperature": 0.2
+      "model": "google/antigravity-gemini-3-flash",
+      "temperature": 0.1
     }
   },
   "permission": {
@@ -23,18 +23,48 @@
     "bash": {
       "*": "ask",
       "ls*": "allow",
+      "fd*": "allow",
+      "rg*": "allow",
+      "npm*": "allow",
+      "bun*": "allow",
+      "pnpm*": "allow",
+      "yarn*": "allow",
+      "node*": "allow",
+      "npx*": "allow",
       "cat*": "allow",
-      "git status*": "allow",
-      "git log*": "allow",
-      "git diff*": "allow",
       "grep*": "allow",
       "find*": "allow",
+      "pwd": "allow",
+      "cd *": "allow",
+      "mkdir*": "allow",
+      "touch*": "allow",
+      "cp *": "allow",
+      "mv *": "allow",
+      "rm *": "allow",
       "rm -rf*": "deny",
       "rm -r /*": "deny",
       "sudo*": "deny",
+      "git status*": "allow",
+      "git log*": "allow",
+      "git diff*": "allow",
+      "git add *": "allow",
+      "git commit *": "allow",
       "git push --force*": "deny",
       "git push -f*": "deny",
       "git reset --hard*": "deny",
+      "curl*": "allow",
+      "wget*": "allow",
+      "echo*": "allow",
+      "printf*": "allow",
+      "chmod*": "allow",
+      "python*": "allow",
+      "pip*": "allow",
+      "docker ps*": "allow",
+      "docker images*": "allow",
+      "docker pull*": "allow",
+      "docker build*": "allow",
+      "docker run*": "allow",
+      "docker-compose*": "allow",
       "shutdown*": "deny",
       "reboot*": "deny",
       "mkfs*": "deny",
@@ -43,38 +73,21 @@
     "webfetch": "allow"
   },
   "provider": {
-    "moonshot-ai": {
-      "models": {
-        "kimi-k2.5": {
-          "name": "Kimi K2.5 (Moonshot AI)",
-          "limit": {
-            "context": 131072,
-            "output": 8192
-          }
-        },
-        "kimi-k2": {
-          "name": "Kimi K2 (Moonshot AI)",
-          "limit": {
-            "context": 131072,
-            "output": 8192
-          }
-        }
-      }
-    },
     "minimax": {
       "models": {
-        "M2.5": {
+        "MiniMax-M2.5": {
           "name": "MiniMax M2.5",
           "limit": {
-            "context": 245760,
+            "context": 1048576,
             "output": 16384
-          }
-        },
-        "M2.1": {
-          "name": "MiniMax M2.1",
-          "limit": {
-            "context": 245760,
-            "output": 16384
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
           }
         }
       }
@@ -137,52 +150,6 @@
             }
           }
         },
-        "antigravity-claude-sonnet-4-5": {
-          "name": "Claude Sonnet 4.5 (Antigravity)",
-          "limit": {
-            "context": 200000,
-            "output": 8192
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          }
-        },
-        "antigravity-claude-sonnet-4-5-thinking": {
-          "name": "Claude Sonnet 4.5 Thinking (Antigravity)",
-          "limit": {
-            "context": 200000,
-            "output": 8192
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "variants": {
-            "low": {
-              "thinkingConfig": {
-                "thinkingBudget": 4096
-              }
-            },
-            "max": {
-              "thinkingConfig": {
-                "thinkingBudget": 16384
-              }
-            }
-          }
-        },
         "antigravity-claude-opus-4-6-thinking": {
           "name": "Claude Opus 4.6 Thinking (Antigravity)",
           "limit": {
@@ -212,23 +179,6 @@
             }
           }
         },
-        "gemini-2.5-flash": {
-          "name": "Gemini 2.5 Flash (Gemini CLI)",
-          "limit": {
-            "context": 1048576,
-            "output": 16384
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          }
-        },
         "gemini-3-flash-preview": {
           "name": "Gemini 3 Flash Preview (Gemini CLI)",
           "limit": {
@@ -249,5 +199,14 @@
       }
     }
   },
-  "mcp": {}
+  "mcp": {
+    "chrome-devtools": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ]
+    }
+  }
 }
