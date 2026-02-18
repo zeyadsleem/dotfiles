@@ -6,54 +6,49 @@
     "opencode-beads@latest",
     "opencode-mem@latest"
   ],
-  "model": "opencode/glm-5-free",
+  "provider": {
+    "google": {
+      "models": {
+        "antigravity-gemini-3-pro": {
+          "name": "Gemini 3 Pro (Antigravity)",
+          "limit": { "context": 1048576, "output": 65535 }
+        },
+        "antigravity-gemini-3-flash": {
+          "name": "Gemini 3 Flash (Antigravity)",
+          "limit": { "context": 1048576, "output": 65535 }
+        },
+        "gemini-claude-opus-4-6": {
+          "name": "Claude Opus 4.6 (Antigravity)",
+          "limit": { "context": 200000, "output": 16384 }
+        },
+        "antigravity-claude-opus-4-6-thinking": {
+          "name": "Claude Opus 4.6 Thinking (Antigravity)",
+          "limit": { "context": 200000, "output": 16384 }
+        }
+      }
+    }
+  },
+  "model": "opencode/kimi-k2.5-free",
   "small_model": "opencode/glm-5-free",
   "default_agent": "build",
+  
   "agent": {
-    "orchestrator": {
-      "mode": "primary",
-      "model": "opencode/kimi-k2.5-free",
-      "temperature": 0.3,
-      "steps": 100
-    },
     "build": {
       "mode": "primary",
-      "model": "opencode/glm-5-free",
+      "model": "opencode/kimi-k2.5-free",
       "temperature": 0.2,
-      "steps": 100
+      "steps": 100,
+      "description": "Coding + Agent Swarm + Visual development. Combines speed, coordination, and multimodal capabilities."
     },
     "plan": {
       "mode": "primary",
       "model": "google/antigravity-gemini-3-pro",
       "temperature": 0.1,
-      "steps": 50
-    },
-    "code": {
-      "model": "opencode/minimax-m2.5-free",
-      "temperature": 0.2,
-      "steps": 100
-    },
-    "research": {
-      "model": "google/antigravity-gemini-3-pro",
-      "temperature": 0.1,
-      "steps": 50
-    },
-    "test": {
-      "model": "google/antigravity-gemini-3-flash",
-      "temperature": 0.1,
-      "steps": 50
-    },
-    "general": {
-      "model": "opencode/glm-5-free",
-      "temperature": 0.2,
-      "steps": 100
-    },
-    "deep": {
-      "model": "google/antigravity-claude-opus-4-6-thinking",
-      "temperature": 0.1,
-      "steps": 150
+      "steps": 100,
+      "description": "Planning + Deep analysis + Research. Uses 1M context for comprehensive analysis and Deep Think mode."
     }
   },
+  
   "permission": {
     "edit": "allow",
     "bash": {
