@@ -226,3 +226,6 @@ esac
 
 # opencode
 export PATH=/home/zeyad/.opencode/bin:$PATH
+
+# bun completions
+[ -s "/home/zeyad/.bun/_bun" ] && source "/home/zeyad/.bun/_bun"

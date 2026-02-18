@@ -133,6 +133,24 @@ After implementing code changes:
 
 If validation fails, fix the issues and re-run validation.
 
+## Project Management (Beads Workflow)
+
+Beads is a git-backed issue tracker for AI agents. Official docs: https://steveyegge.github.io/beads/
+
+### Workflow:
+1. **Initialize** (once per project): `bd init`
+2. **Create from PRD**: `python /home/zeyad/.config/opencode/scripts/prd_to_beads.py prd.md`
+3. **Find ready work**: `bd ready` or `bd ready --json` (for agents)
+4. **Start task**: `bd update <id> --status in_progress`
+5. **Complete task**: `bd close <id> --reason "done"`
+6. **View progress**: `bd stats`, `bd blocked`, `bd dep tree <id>`
+
+### Key Commands:
+- `bd list` - list all issues
+- `bd create "title" -p 1 -t task` - create new task
+- `bd dep add <child> <parent>` - add dependency
+- `bd ready --priority 1` - filter by priority
+
 ## Safety Rules
 
 - Never run destructive commands without user confirmation

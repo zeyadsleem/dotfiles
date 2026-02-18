@@ -21,6 +21,7 @@ alias du='du -h'
 alias cd='z'          # Uses zoxide for smart directory jumping
 
 alias x=exit
+alias o=opencode
 
 # FILE LISTING - Enhanced with eza/bat
 command -v eza &>/dev/null && {

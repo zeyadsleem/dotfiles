@@ -1,122 +1,80 @@
-# OpenCode Configuration
+# bd - Beads
 
-> A tuned OpenCode setup with free AI models, smart agents, and automatic context management.
+**Distributed, git-backed graph issue tracker for AI agents.**
 
-## Quick Start
+**Platforms:** macOS, Linux, Windows, FreeBSD
 
-1. **Install OpenCode** — follow [opencode.ai](https://opencode.ai) instructions
-2. **Copy this config** — symlink or copy this folder to `~/.config/opencode/`
-3. **Run OpenCode** — open a terminal in any project and type `opencode`
-4. **Start coding** — describe your task, the orchestrator handles the rest
+[![License](https://img.shields.io/github/license/steveyegge/beads)](LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/steveyegge/beads)](https://goreportcard.com/report/github.com/steveyegge/beads)
+[![Release](https://img.shields.io/github/v/release/steveyegge/beads)](https://github.com/steveyegge/beads/releases)
+[![npm version](https://img.shields.io/npm/v/@beads/bd)](https://www.npmjs.com/package/@beads/bd)
+[![PyPI](https://img.shields.io/pypi/v/beads-mcp)](https://pypi.org/project/beads-mcp/)
+
+Beads provides a persistent, structured memory for coding agents. It replaces messy markdown plans with a dependency-aware graph, allowing agents to handle long-horizon tasks without losing context.
+
+## ⚡ Quick Start
 
 ```bash
-# From any project directory
-opencode
+# Install beads CLI (system-wide - don't clone this repo into your project)
+curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
+
+# Initialize in YOUR project
+cd your-project
+bd init
+
+# Tell your agent
+echo "Use 'bd' for task tracking" >> AGENTS.md
 ```
 
-The default agent is `orchestrator` — it will automatically plan, delegate, and coordinate work for you.
+**Note:** Beads is a CLI tool you install once and use everywhere. You don't need to clone this repository into your project.
 
-## Models
+## 🛠 Features
 
-All models are **free** through Antigravity. No API keys needed (auth handled by the plugin).
+* **[Dolt](https://github.com/dolthub/dolt)-Powered:** Version-controlled SQL database with cell-level merge and native branching. JSONL maintained for git portability.
+* **Agent-Optimized:** JSON output, dependency tracking, and auto-ready task detection.
+* **Zero Conflict:** Hash-based IDs (`bd-a1b2`) prevent merge collisions in multi-agent/multi-branch workflows.
+* **Compaction:** Semantic "memory decay" summarizes old closed tasks to save context window.
+* **Messaging:** Message issue type with threading (`--thread`), ephemeral lifecycle, and mail delegation.
+* **Graph Links:** `relates_to`, `duplicates`, `supersedes`, and `replies_to` for knowledge graphs.
 
-| Model | Role | Context | Notes |
-|-------|------|---------|-------|
-| **Gemini 3 Flash** (default) | Main + Small model | 1M tokens | Fast, supports text/image/PDF. Has thinking variants (minimal → high) |
-| **Gemini 3 Pro** | Upgrade option | 1M tokens | Smarter, for complex tasks. Thinking variants (low, high) |
-| **Claude Opus 4.6 Thinking** | Orchestrator | 200K tokens | Deepest reasoning. Used by orchestrator agent |
-| **MiniMax M2.5** | Alternative | 1M tokens | Text-only, large context |
-| **Gemini 3 Flash Preview** | Preview | 1M tokens | Latest preview from Gemini CLI |
+## 📖 Essential Commands
 
-To switch models mid-conversation, use the model selector in OpenCode's UI.
+| Command | Action |
+| --- | --- |
+| `bd ready` | List tasks with no open blockers. |
+| `bd create "Title" -p 0` | Create a P0 task. |
+| `bd update <id> --claim` | Atomically claim a task (sets assignee + in_progress). |
+| `bd dep add <child> <parent>` | Link tasks (blocks, related, parent-child). |
+| `bd show <id>` | View task details and audit trail. |
 
-## Agents
+## 🔗 Hierarchy & Workflow
 
-This config uses the **Orchestrator-Workers** pattern — inspired by how teams work.
+Beads supports hierarchical IDs for epics:
 
-### Primary Agents (switch with Tab)
+* `bd-a3f8` (Epic)
+* `bd-a3f8.1` (Task)
+* `bd-a3f8.1.1` (Sub-task)
 
-| Agent | Purpose | Model |
-|-------|---------|-------|
-| **orchestrator** (default) | Plans and delegates. Never does work directly | Claude Opus |
-| **build** | Hands-on coding. Direct file editing | Gemini 3 Flash |
-| **plan** | Read-only analysis and planning | Gemini 3 Flash |
+**Stealth Mode:** Run `bd init --stealth` to use Beads locally without committing files to the main repo. Perfect for personal use on shared projects.
 
-### Worker Sub-Agents (called with @mention)
+**Contributor vs Maintainer:** When working on open-source projects:
 
-| Worker | Access | Use For |
-|--------|--------|---------|
-| **@explore** | Read-only | Fast codebase search, find files/functions |
-| **@code** | Read/Write | Write code, edit files, implement features |
-| **@research** | Read-only | Gather information, understand code structure |
-| **@test** | Read/Write | Run tests, validate changes, check builds |
-| **@general** | Full access | Complex multi-step tasks |
+* **Contributors** (forked repos): Run `bd init --contributor` to route planning issues to a separate repo (e.g., `~/.beads-planning`). Keeps experimental work out of PRs.
+* **Maintainers** (write access): Beads auto-detects maintainer role via SSH URLs or HTTPS with credentials. Only need `git config beads.role maintainer` if using GitHub HTTPS without credentials but you have write access.
 
-### How It Works
+## 📦 Installation
 
-```
-You → Orchestrator (plans) → Spawns workers in parallel → Results back to you
-```
+* **npm:** `npm install -g @beads/bd`
+* **Homebrew:** `brew install beads`
+* **Go:** `go install github.com/steveyegge/beads/cmd/bd@latest`
 
-The orchestrator keeps its context clean by only reading summaries from workers — never raw file contents.
+**Requirements:** Linux, FreeBSD, macOS, or Windows.
 
-## Skills
+## 🌐 Community Tools
 
-Two skills are installed to guide code generation:
+See [docs/COMMUNITY_TOOLS.md](docs/COMMUNITY_TOOLS.md) for a curated list of community-built UIs, extensions, and integrations—including terminal interfaces, web UIs, editor extensions, and native apps.
 
-| Skill | Purpose |
-|-------|---------|
-| **frontend-design** | UI/UX best practices, design system guidance |
-| **react-best-practices** | React patterns, hooks, component architecture |
+## 📝 Documentation
 
-Skills provide domain-specific instructions that agents follow automatically.
-
-## Key Features
-
-### Auto Context Management
-- Context is treated as precious — every token counts
-- Files are read surgically with `offset` and `limit`, never in full
-- Search (`grep`/`glob`) before reading to find exact locations
-
-### Parallel Execution
-- Independent tasks run simultaneously across workers
-- Multiple tool calls in a single response when possible
-- Workers get fresh context windows — no pollution
-
-### Safety Permissions
-Pre-configured permission system:
-
-| Action | Policy |
-|--------|--------|
-| File editing | ✅ Allowed |
-| Safe commands (`ls`, `git status`, `npm`) | ✅ Allowed |
-| Web fetch | ✅ Allowed |
-| Unknown bash commands | ⚠️ Ask first |
-| Destructive commands (`rm -rf`, `sudo`, `git push -f`) | ❌ Denied |
-
-### MCP Integration
-- **Chrome DevTools** MCP server is configured for browser automation, performance tracing, and web debugging.
-
-## File Structure
-
-```
-.config/opencode/
-├── opencode.json          # Main config (models, permissions, MCP)
-├── AGENTS.md              # Global agent behavior rules
-├── agents/                # Per-agent instructions
-│   ├── orchestrator.md
-│   ├── code.md
-│   ├── research.md
-│   └── test.md
-├── skills/                # Domain-specific skills
-│   ├── frontend-design/
-│   └── react-best-practices/
-└── package.json           # Plugin dependencies
-```
-
-## Tips
-
-- **Use orchestrator for big tasks** — it breaks them down and runs workers in parallel
-- **Use build mode for quick edits** — press Tab to switch, no delegation overhead
-- **Use plan mode to explore** — read-only, safe for understanding code before changing it
-- **Let agents validate** — they run `git diff`, `npm build`, and tests automatically after changes
+* [Installing](docs/INSTALLING.md) | [Agent Workflow](AGENT_INSTRUCTIONS.md) | [Copilot Setup](docs/COPILOT_INTEGRATION.md) | [Articles](ARTICLES.md) | [Sync Branch Mode](docs/PROTECTED_BRANCHES.md) | [Troubleshooting](docs/TROUBLESHOOTING.md) | [FAQ](docs/FAQ.md)
+* [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/steveyegge/beads)
