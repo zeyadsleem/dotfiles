@@ -9,21 +9,9 @@
   "provider": {
     "google": {
       "models": {
-        "antigravity-gemini-3-pro": {
-          "name": "Gemini 3 Pro (Antigravity)",
-          "limit": { "context": 1048576, "output": 65535 }
-        },
         "antigravity-gemini-3-flash": {
-          "name": "Gemini 3 Flash (Antigravity)",
+          "name": "Gemini 3 Flash",
           "limit": { "context": 1048576, "output": 65535 }
-        },
-        "gemini-claude-opus-4-6": {
-          "name": "Claude Opus 4.6 (Antigravity)",
-          "limit": { "context": 200000, "output": 16384 }
-        },
-        "antigravity-claude-opus-4-6-thinking": {
-          "name": "Claude Opus 4.6 Thinking (Antigravity)",
-          "limit": { "context": 200000, "output": 16384 }
         }
       }
     }
@@ -31,24 +19,20 @@
   "model": "opencode/kimi-k2.5-free",
   "small_model": "opencode/glm-5-free",
   "default_agent": "build",
-  
   "agent": {
     "build": {
       "mode": "primary",
       "model": "opencode/kimi-k2.5-free",
       "temperature": 0.2,
-      "steps": 100,
-      "description": "Coding + Agent Swarm + Visual development. Combines speed, coordination, and multimodal capabilities."
+      "steps": 100
     },
     "plan": {
       "mode": "primary",
-      "model": "google/antigravity-gemini-3-pro",
+      "model": "opencode/glm-5-free",
       "temperature": 0.1,
-      "steps": 100,
-      "description": "Planning + Deep analysis + Research. Uses 1M context for comprehensive analysis and Deep Think mode."
+      "steps": 100
     }
   },
-  
   "permission": {
     "edit": "allow",
     "bash": {
