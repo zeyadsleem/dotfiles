@@ -116,7 +116,9 @@ export MANROFFOPT="-c"
 
 # Fix Wayland Display inside tmux/sessions
 if [[ -z "$WAYLAND_DISPLAY" ]]; then
-  export WAYLAND_DISPLAY=$(ls $XDG_RUNTIME_DIR/wayland-* 2>/dev/null | grep -v ".lock" | head -n 1 | xargs basename 2>/dev/null)
+  for s in $XDG_RUNTIME_DIR/wayland-*(N); do
+    [[ $s != *.lock ]] && export WAYLAND_DISPLAY=${s:t} && break
+  done
 fi
 
 # =============================================================================
