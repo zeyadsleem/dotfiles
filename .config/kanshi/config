@@ -1,8 +1,16 @@
 profile laptop {
     output eDP-1 enable position 0,0
+    exec ~/.azotebg
 }
 
 profile hdmi {
     output eDP-1 disable
     output HDMI-A-1 enable position 0,0
+    exec ~/.azotebg
+}
+
+profile dual {
+    output eDP-1 enable position 0,0
+    output HDMI-A-1 enable position 1920,0
+    exec ~/.azotebg
 }

@@ -4,19 +4,10 @@ from datetime import datetime
 
 def shape_text(text):
     """
-    Pass text through fribidi to reshape/reorder for terminal display.
+    Since Kitty handles RTL but tmux status bar might need a hint, 
+    we reverse the text manually so that when it's rendered, it appears correctly.
     """
-    try:
-        result = subprocess.run(
-            ['fribidi', '--nopad', '--nobreak'],
-            input=text,
-            text=True,
-            capture_output=True,
-            check=True
-        )
-        return result.stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return text
+    return text[::-1]
 
 # Mapping for standard digits to Eastern Arabic numerals
 trans_table = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")

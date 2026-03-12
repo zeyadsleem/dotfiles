@@ -8,9 +8,7 @@ config.font = wezterm.font_with_fallback({
 	{ family = "JetBrainsMono Nerd Font", harfbuzz_features = { "calt=0", "clig=0", "liga=0" } },
 	"DejaVu Sans Mono",
 })
-config.font_size = 12.0
-config.line_height = 1.1
-config.cell_width = 0.9
+config.font_size = 11.0
 
 -- Rendering Engine (OpenGL is more stable for Tmux redraws)
 config.front_end = "OpenGL"
@@ -32,10 +30,10 @@ else
 	config.color_scheme = "Rose Pine"
 end
 
-config.window_background_opacity = 0.92
+config.window_background_opacity = 0.90
 config.window_decorations = "RESIZE"
 config.enable_tab_bar = false
-config.window_padding = { left = 5, right = 5, top = 1, bottom = 1 }
+config.window_padding = { left = 5, right = 5, top = 5, bottom = 5 }
 config.window_close_confirmation = "NeverPrompt"
 config.default_cursor_style = "BlinkingBar"
 config.audible_bell = "SystemBeep"

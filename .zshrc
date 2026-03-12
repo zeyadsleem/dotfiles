@@ -125,7 +125,7 @@ fi
 # Default Applications
 # =============================================================================
 export BROWSER="brave"
-export TERMINAL="wezterm"
+export TERMINAL="kitty"
 
 # =============================================================================
 # Core Environment

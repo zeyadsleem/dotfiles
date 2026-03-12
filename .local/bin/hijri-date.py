@@ -9,21 +9,10 @@ import subprocess
 
 def shape_text(text):
     """
-    Pass text through fribidi to reshape/reorder for terminal display.
-    --nopad: Don't add padding spaces.
-    --nobreak: Don't break lines.
+    Since Kitty handles RTL but tmux status bar might need a hint, 
+    we reverse the text manually so that when it's rendered, it appears correctly.
     """
-    try:
-        result = subprocess.run(
-            ['fribidi', '--nopad', '--nobreak'],
-            input=text,
-            text=True,
-            capture_output=True,
-            check=True
-        )
-        return result.stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return text
+    return text[::-1]
 
 def to_arabic_nums(text):
     western = "0123456789"
@@ -33,9 +22,8 @@ def to_arabic_nums(text):
 
 hijri = Gregorian.today().to_hijri()
 
-# Construct the full string
-full_date = f"{hijri.day} {hijri.month_name('ar')} {hijri.year} هـ"
-full_date_arabic = to_arabic_nums(full_date)
+# Construct the full string in English
+full_date = f"{hijri.day} {hijri.month_name('en')} {hijri.year} AH"
 
-# Shape it for display
-print(shape_text(full_date_arabic))
+# Shape text is now a passthrough since we are using English
+print(full_date)
