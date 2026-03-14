@@ -193,21 +193,21 @@ main() {
         log_success "SwayNC reloaded"
     fi
     
-    # 4. Kitty
-    if [ -f "$THEME_DIR/kitty/theme.conf" ]; then
-        # Kitty reads directly from the theme directory via include
-        log_success "Kitty theme configured"
-    fi
+    # 4. Kitty (Deprecated - using WezTerm)
+    # if [ -f "$THEME_DIR/kitty/theme.conf" ]; then
+    #     # Kitty reads directly from the theme directory via include
+    #     log_success "Kitty theme configured"
+    # fi
     
     # 5. Tmux
     if [ -f "$THEME_DIR/tmux/colors.conf" ]; then
         log_success "Tmux colors configured"
     fi
     
-    # 6. WezTerm (Deprecated - using Kitty)
-    # if [ -f "$THEME_DIR/wezterm/colors.lua" ]; then
-    #     apply_symlink "$THEME_DIR/wezterm/colors.lua" "$HOME/.config/wezterm/colors.lua" "" "WezTerm colors"
-    # fi
+    # 6. WezTerm
+    if [ -f "$THEME_DIR/wezterm/colors.lua" ]; then
+        apply_symlink "$THEME_DIR/wezterm/colors.lua" "$HOME/.config/wezterm/colors.lua" "" "WezTerm colors"
+    fi
     
     # 7. Neovim
     if [ -f "$THEME_DIR/nvim/lualine_theme.lua" ]; then

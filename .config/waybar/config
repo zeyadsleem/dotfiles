@@ -133,13 +133,13 @@
             "warning": 70,
             "critical": 90,
         },
-        "on-click": "kitty -T waybar_btop -e btop"
+        "on-click": "wezterm start -- btop"
     },
 
     "memory": {
         "interval": 5,
         "format": "{:>3}%",
-        "on-click": "kitty -T waybar_btop -e btop",
+        "on-click": "wezterm start -- btop",
         "states": {
             "warning": 70,
             "critical": 90

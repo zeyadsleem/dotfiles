@@ -8,6 +8,10 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 
+# Arabic Support Fixes (Prevent word breaking and improve RTL handling in shell)
+# This helps Zsh handle multi-byte characters better during editing
+setopt COMBINING_CHARS
+
 # Zinit
 ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
 if [[ ! -d $ZINIT_HOME ]]; then
@@ -19,6 +23,14 @@ source "$ZINIT_HOME/zinit.zsh"
 # Theme Configuration
 [[ -f ~/.config/themes/current/zsh/env.zsh ]] && source ~/.config/themes/current/zsh/env.zsh
 
+# Core Environment
+export BROWSER="brave"
+export TERMINAL="wezterm"
+export EDITOR="nvim"
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export MANROFFOPT="-c"
+
+# Performance: Optimized FZF setup
 if command -v fd &> /dev/null; then
   export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
   export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
@@ -26,9 +38,7 @@ if command -v fd &> /dev/null; then
 fi
 
 export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {}'"
-
 export FZF_ALT_C_OPTS="--preview 'eza --tree --level=3 --color=always --icons --git {} | head -200'"
-
 export FZF_CTRL_R_OPTS="
   --preview 'echo {}'
   --preview-window up:3:hidden:wrap
@@ -38,22 +48,16 @@ export FZF_CTRL_R_OPTS="
   --color header:italic
 "
 
-# Load FZF bindings
-if [ -f /usr/share/fzf/key-bindings.zsh ]; then
-  source /usr/share/fzf/key-bindings.zsh
-elif [ -f ~/.fzf/shell/key-bindings.zsh ]; then
-  source ~/.fzf/shell/key-bindings.zsh
-fi
-if [ -f /usr/share/fzf/completion.zsh ]; then
-  source /usr/share/fzf/completion.zsh
-elif [ -f ~/.fzf/shell/completion.zsh ]; then
-  source ~/.fzf/shell/completion.zsh
-fi
+# Performance: Lazy Load FZF Extras
+zinit ice wait'0' lucid
+zinit snippet /usr/share/fzf/key-bindings.zsh 2>/dev/null || zinit snippet ~/.fzf/shell/key-bindings.zsh
+zinit ice wait'0' lucid
+zinit snippet /usr/share/fzf/completion.zsh 2>/dev/null || zinit snippet ~/.fzf/shell/completion.zsh
 
-# Plugins
+# Plugins with Performance Optimization
 zinit light zsh-users/zsh-completions
 zinit light Aloxaf/fzf-tab
-zinit light zsh-users/zsh-autosuggestions
+zinit ice atload"_zsh_autosuggest_start"; zinit light zsh-users/zsh-autosuggestions
 zinit light zdharma-continuum/fast-syntax-highlighting
 zinit light zsh-users/zsh-history-substring-search
 
@@ -70,10 +74,23 @@ FAST_HIGHLIGHT_STYLES[option]='fg=#ea9d34'
 FAST_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#56949f'
 FAST_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#56949f'
 
-# Completion System & FZF-Tab
+# Performance: Optimized Completion System
 autoload -Uz compinit
-compinit
-zinit cdreplay -q # Replay cached completions
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.m-1) ]]; then
+  compinit -C
+else
+  compinit
+fi
+
+# Compile zcompdump in background for next start
+{
+  if [[ ! ~/.zcompdump.zwc -nt ~/.zcompdump ]]; then
+    zcompile ~/.zcompdump
+  fi
+} &!
+
+zinit cdreplay -q 
+
 zstyle ':completion:*' rehash true
 zstyle ':completion:*' cache-path ~/.zsh/cache
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
@@ -83,7 +100,7 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*:git-checkout:*' sort false
 zstyle ':completion:*:descriptions' format '[%d]'
 
-
+# FZF-Tab styles
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:complete:z:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:*' switch-group ',' '.'
@@ -97,7 +114,7 @@ zstyle ':fzf-tab:complete:(-command-|[^ ]*):*' fzf-preview 'echo ${(P)word}'
 zstyle ':fzf-tab:complete:(\|*/|)man:*' fzf-preview 'man $word'
 zstyle ':fzf-tab:*' continuous-trigger '/'
 
-# History
+# History Settings
 HISTFILE=~/.zsh_history
 HISTSIZE=100000
 SAVEHIST=100000
@@ -111,25 +128,12 @@ zshaddhistory() {
   [[ $1 != ${~HISTORY_IGNORE} ]]
 }
 
-export MANPAGER="sh -c 'col -bx | bat -l man -p'"
-export MANROFFOPT="-c"
-
 # Fix Wayland Display inside tmux/sessions
 if [[ -z "$WAYLAND_DISPLAY" ]]; then
   for s in $XDG_RUNTIME_DIR/wayland-*(N); do
     [[ $s != *.lock ]] && export WAYLAND_DISPLAY=${s:t} && break
   done
 fi
-
-# =============================================================================
-# Default Applications
-# =============================================================================
-export BROWSER="brave"
-export TERMINAL="kitty"
-
-# =============================================================================
-# Core Environment
-# =============================================================================
 
 # Shell Options
 setopt AUTO_CD GLOB_DOTS COMPLETE_IN_WORD ALWAYS_TO_END EXTENDED_GLOB NO_BEEP INTERACTIVE_COMMENTS COMPLETE_ALIASES NO_FLOW_CONTROL
@@ -139,12 +143,12 @@ setopt AUTO_CD GLOB_DOTS COMPLETE_IN_WORD ALWAYS_TO_END EXTENDED_GLOB NO_BEEP IN
 source ~/powerlevel10k/powerlevel10k.zsh-theme
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
-# External Tools
+# External Tools Initialization (Optimized)
 eval "$(zoxide init zsh)"
 [[ -f ~/.env.zsh ]] && source ~/.env.zsh
 [[ -f ~/.alias.zsh ]] && source ~/.alias.zsh
 
-# Autosuggestions
+# Autosuggestions settings
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 ZSH_AUTOSUGGEST_USE_ASYNC=1
@@ -180,54 +184,38 @@ export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/bin:$PATH"
 export PATH="$HOME/go/bin/:$PATH"
 export PATH="$HOME/.jdks/openjdk-25.0.1/bin/:$PATH"
-
-# Turso
 export PATH="$PATH:/home/zeyad/.turso"
+export PATH="/home/zeyad/.opencode/bin:$PATH"
 
-. "$HOME/.cargo/env"
-
-# Automatically activate Python virtual environment
-function auto_venv() {
-  local venv_dirs=("venv" ".venv" "env")
-  local found_venv=""
-
-  for dir in "${venv_dirs[@]}"; do
-    if [[ -d "$dir" && -f "$dir/bin/activate" ]]; then
-      found_venv="$dir"
-      break
-    fi
-  done
-
-  if [[ -n "$found_venv" ]]; then
-    # Activate if not already active or if it's a different one
-    if [[ "$VIRTUAL_ENV" != "$PWD/$found_venv" ]]; then
-      echo "Activating Python virtual environment: $found_venv"
-      source "$found_venv/bin/activate"
-    fi
-  elif [[ -n "$VIRTUAL_ENV" ]]; then
-    # Deactivate if we are no longer inside the project root of the active venv
-    local venv_root="${VIRTUAL_ENV:h}"
-    if [[ "$PWD" != "$venv_root"* ]]; then
-        deactivate
-    fi
-  fi
-}
-add-zsh-hook chpwd auto_venv
-
+# Performance: Lazy Load NVM
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+_load_nvm() {
+  unset -f nvm node npm npx corepack nvim
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+}
+nvm() { _load_nvm; nvm "$@" }
+node() { _load_nvm; node "$@" }
+npm() { _load_nvm; npm "$@" }
+npx() { _load_nvm; npx "$@" }
+corepack() { _load_nvm; corepack "$@" }
+nvim() { _load_nvm; nvim "$@" }
 
-# pnpm
+# PNPM Lazy Load
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
+function pnpm() {
+  unset -f pnpm
+  export PATH="$PNPM_HOME:$PATH"
+  pnpm "$@"
+}
 
-# opencode
-export PATH=/home/zeyad/.opencode/bin:$PATH
+# Rust
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
 
-# bun completions
-[ -s "/home/zeyad/.bun/_bun" ] && source "/home/zeyad/.bun/_bun"
+# Bun Lazy Load
+function bun() {
+  unset -f bun
+  [ -s "/home/zeyad/.bun/_bun" ] && source "/home/zeyad/.bun/_bun"
+  /home/zeyad/.bun/bin/bun "$@"
+}
+export PATH="/home/zeyad/.bun/bin:$PATH"
