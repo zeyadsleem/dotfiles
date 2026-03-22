@@ -12,13 +12,13 @@ set $right l
 font pango:JetBrainsMono Nerd Font 10
 
 # Basic definitions
-set $term wezterm
+set $term kitty
 
 # Application launcher
 set $launcher fuzzel
 
 # Application menu
-set $menu nwg-drawer -term wezterm
+set $menu nwg-drawer -term kitty
 
 # Power Menu
 set $powermenu ~/.config/sway/scripts/power_menu.sh

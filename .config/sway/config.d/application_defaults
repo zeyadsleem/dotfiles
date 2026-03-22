@@ -60,21 +60,24 @@ for_window [class="Blueman-manager"] floating enable
 for_window [app_id="qalculate-gtk"] floating enable
 for_window [class="Qalculate-gtk"] floating enable
 
-# File Manager (Thunar) - Main window tiles, dialogs float
-for_window [app_id="thunar"] floating disable
-for_window [app_id="thunar" window_type="dialog"] floating enable
-for_window [app_id="thunar" title="(?i)progress"] floating enable
-for_window [app_id="thunar" title="(?i)confirm"] floating enable
-for_window [app_id="thunar" title="File Operation Progress"] floating enable
-for_window [app_id="thunar" title="Confirm to replace files"] floating enable
+# File Manager (Thunar) - Better Floating Rules
+for_window [app_id="(?i)thunar"] floating disable
+for_window [app_id="(?i)thunar" window_type="dialog"] floating enable, move position center
+for_window [app_id="(?i)thunar" title="(?i)progress"] floating enable, move position center
+for_window [app_id="(?i)thunar" title="(?i)confirm"] floating enable, move position center
+for_window [app_id="(?i)thunar" title="File Operation Progress"] floating enable, move position center
+for_window [app_id="(?i)thunar" title="Confirm to replace files"] floating enable, move position center
+for_window [app_id="(?i)thunar" title="(?i)properties"] floating enable, move position center
 
 # Archivers & Image Viewers
 for_window [app_id="org.gnome.FileRoller"] floating enable
 for_window [app_id="org.gnome.Loupe"] floating enable, resize set 1200 800
 
-# Waybar Popups
-for_window [title="waybar_btop"] floating enable, resize set 1100 800
-for_window [title="waybar_nmtui"] floating enable, resize set 800 600
+# Waybar & Kitty Floating Rules
+for_window [app_id="kitty" title="waybar_btop"] floating enable, resize set 1200 900, move position center
+for_window [app_id="kitty" title="waybar_nmtui"] floating enable, resize set 900 700, move position center
+for_window [app_id="kitty" title="floating"] floating enable, resize set 1100 800, move position center
+for_window [app_id="kitty" class="floating"] floating enable, resize set 1000 700, move position center
 
 # Portals (File Pickers)
 for_window [app_id="xdg-desktop-portal-gtk"] floating enable, resize set 800 600
@@ -90,12 +93,14 @@ for_window [app_id="chromium"] floating disable
 for_window [class="Brave-browser"] floating disable
 for_window [class="Chromium"] floating disable
 
-# 2. Allow specific browser dialogs to float using standard properties.
-# We avoid using 'title' matching here to prevent false positives from web pages.
-for_window [app_id="brave" window_type="dialog"] floating enable
-for_window [app_id="chromium" window_type="dialog"] floating enable
-for_window [app_id="brave" window_role="pop-up"] floating enable
-for_window [app_id="chromium" window_role="pop-up"] floating enable
+# 2. Better Browser Floating Dialogs
+for_window [app_id="(?i)brave" window_type="dialog"] floating enable, move position center
+for_window [app_id="(?i)chromium" window_type="dialog"] floating enable, move position center
+for_window [app_id="(?i)brave" window_role="pop-up"] floating enable, move position center
+for_window [app_id="(?i)chromium" window_role="pop-up"] floating enable, move position center
+for_window [app_id="(?i)brave" title="(?i)save file"] floating enable, move position center, resize set 800 600
+for_window [app_id="(?i)brave" title="(?i)open file"] floating enable, move position center, resize set 800 600
+for_window [app_id="(?i)brave" title="(?i)picture-in-picture"] floating enable, sticky enable, move position 80 ppt 80 ppt
 
 # =============================================================================
 # Extras

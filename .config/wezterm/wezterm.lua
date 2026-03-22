@@ -13,17 +13,18 @@ config.font_size = 11.0
 config.line_height = 1.1
 
 -- Rendering Engine & Stability
-config.front_end = "OpenGL"
+config.front_end = "WebGpu"
+config.use_cap_height_to_scale_fallback_fonts = false
 config.max_fps = 144
-config.custom_block_glyphs = true -- Better rendering for Powerline icons
+config.custom_block_glyphs = true
 
 -- Arabic & RTL Stabilization
 config.bidi_enabled = true
 config.bidi_direction = "LeftToRight"
-config.unicode_version = 14
--- This is crucial for Arabic stability: prevents glyphs from jumping
-config.allow_square_glyphs_to_overflow_width = "Always"
-config.cell_width = 1.0 -- Ensure consistent spacing
+config.unicode_version = 9
+-- Prevent icons/glyphs from overflowing and causing ghost characters
+config.allow_square_glyphs_to_overflow_width = "Never"
+config.cell_width = 1.0
 
 -- ============================================================================
 -- Window Settings
@@ -180,13 +181,5 @@ config.keys = {
 	-- Miscellaneous
 	{ key = "u", mods = "CTRL|SHIFT", action = act.CharSelect },
 }
-
--- ============================================================================
--- BiDi & Arabic Support
--- ============================================================================
-config.bidi_enabled = true
-config.bidi_direction = "LeftToRight"
-config.unicode_version = 14
-config.allow_square_glyphs_to_overflow_width = "Always"
 
 return config

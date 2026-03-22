@@ -25,7 +25,7 @@ source "$ZINIT_HOME/zinit.zsh"
 
 # Core Environment
 export BROWSER="brave"
-export TERMINAL="wezterm"
+export TERMINAL="kitty"
 export EDITOR="nvim"
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANROFFOPT="-c"
@@ -187,19 +187,34 @@ export PATH="$HOME/.jdks/openjdk-25.0.1/bin/:$PATH"
 export PATH="$PATH:/home/zeyad/.turso"
 export PATH="/home/zeyad/.opencode/bin:$PATH"
 
-# Performance: Lazy Load NVM
 export NVM_DIR="$HOME/.nvm"
-_load_nvm() {
-  unset -f nvm node npm npx corepack nvim
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# place this after nvm initialization!
+autoload -U add-zsh-hook
+
+load-nvmrc() {
+  local nvmrc_path
+  nvmrc_path="$(nvm_find_nvmrc)"
+
+  if [ -n "$nvmrc_path" ]; then
+    local nvmrc_node_version
+    nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
+
+    if [ "$nvmrc_node_version" = "N/A" ]; then
+      nvm install
+    elif [ "$nvmrc_node_version" != "$(nvm version)" ]; then
+      nvm use
+    fi
+  elif [ -n "$(PWD=$OLDPWD nvm_find_nvmrc)" ] && [ "$(nvm version)" != "$(nvm version default)" ]; then
+    echo "Reverting to nvm default version"
+    nvm use default
+  fi
 }
-nvm() { _load_nvm; nvm "$@" }
-node() { _load_nvm; node "$@" }
-npm() { _load_nvm; npm "$@" }
-npx() { _load_nvm; npx "$@" }
-corepack() { _load_nvm; corepack "$@" }
-nvim() { _load_nvm; nvim "$@" }
+
+add-zsh-hook chpwd load-nvmrc
+load-nvmrc
 
 # PNPM Lazy Load
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"
@@ -219,3 +234,6 @@ function bun() {
   /home/zeyad/.bun/bin/bun "$@"
 }
 export PATH="/home/zeyad/.bun/bin:$PATH"
+
+# Vite+ bin (https://viteplus.dev)
+. "$HOME/.vite-plus/env"

@@ -55,7 +55,8 @@
         "format-linked": "{ifname}",
         "format-disconnected": "  Disconnected",
         "format-alt": "{ifname}: {ipaddr}/{cidr}",
-        "interval": 1
+        "interval": 1,
+        "on-click": "kitty --title waybar_nmtui nmtui"
     },
 
 // Configuration - modules-center
@@ -133,13 +134,13 @@
             "warning": 70,
             "critical": 90,
         },
-        "on-click": "wezterm start -- btop"
+        "on-click": "kitty --title waybar_btop btop"
     },
 
     "memory": {
         "interval": 5,
         "format": "{:>3}%",
-        "on-click": "wezterm start -- btop",
+        "on-click": "kitty --title waybar_btop btop",
         "states": {
             "warning": 70,
             "critical": 90
