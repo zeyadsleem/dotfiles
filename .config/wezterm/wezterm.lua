@@ -5,7 +5,7 @@ local config = wezterm.config_builder()
 -- Font Settings
 -- ============================================================================
 config.font = wezterm.font_with_fallback({
-	{ family = "JetBrainsMono Nerd Font", weight = "Medium" },
+	{ family = "Maple Mono NF", weight = "Medium" },
 	{ family = "DejaVu Sans Mono" },
 	{ family = "Amiri", weight = "Regular" }, -- Excellent Arabic rendering
 })

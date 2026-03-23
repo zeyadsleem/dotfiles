@@ -33,12 +33,12 @@ vim.g.clipboard = {
   cache_enabled = 1,
 }
 
-opt.ambiwidth = "single"
-opt.termbidi = true
+-- opt.ambiwidth = "single"
+-- opt.termbidi = true
 opt.list = true
 opt.termguicolors = true
 opt.guifont = "DejaVu Sans Mono:h11"
-opt.arabicshape = true
+-- opt.arabicshape = true
 opt.encoding = "utf-8"
 opt.fileencoding = "utf-8"
 vim.o.winborder = "rounded"

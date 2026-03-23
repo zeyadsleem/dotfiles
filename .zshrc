@@ -25,7 +25,7 @@ source "$ZINIT_HOME/zinit.zsh"
 
 # Core Environment
 export BROWSER="brave"
-export TERMINAL="kitty"
+export TERMINAL="wezterm"
 export EDITOR="nvim"
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANROFFOPT="-c"
