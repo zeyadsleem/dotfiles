@@ -9,8 +9,8 @@ config.font = wezterm.font_with_fallback({
 	{ family = "DejaVu Sans Mono" },
 	{ family = "Amiri", weight = "Regular" }, -- Excellent Arabic rendering
 })
-config.font_size = 11.0
-config.line_height = 1.1
+config.font_size = 11.3
+config.line_height = 1.15
 
 -- Rendering Engine & Stability
 config.front_end = "WebGpu"
@@ -24,7 +24,7 @@ config.bidi_direction = "LeftToRight"
 config.unicode_version = 9
 -- Prevent icons/glyphs from overflowing and causing ghost characters
 config.allow_square_glyphs_to_overflow_width = "Never"
-config.cell_width = 1.0
+config.cell_width = 1.05
 
 -- ============================================================================
 -- Window Settings
