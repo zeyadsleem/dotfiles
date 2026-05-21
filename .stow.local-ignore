@@ -1,2 +1,13 @@
 .git
 scripts
+# Binaries and tool symlinks - not part of dotfiles
+bd
+claude
+graphify
+iii
+iii-cli
+iii-console
+iii-tools
+motia-cli
+plannotator
+specify

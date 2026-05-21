@@ -1,1 +1,1 @@
-.local/bin/
+# .local/bin is tracked via .local/bin/.gitignore whitelist

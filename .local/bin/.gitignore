@@ -1,0 +1,15 @@
+# Ignore everything by default
+*
+# Except this file
+!.gitignore
+# Custom scripts (shell, python, executable)
+!*.sh
+!*.py
+!editor-config
+!swaybg
+!emoji-picker
+!set-theme
+!set-theme-picker
+!theme-info
+!tmux-cht.sh
+!tmux-session-wizard.sh
