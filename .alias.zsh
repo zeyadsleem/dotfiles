@@ -18,7 +18,13 @@ function md() {
 }
 
 alias du='du -h'
-alias cd='z'          # Uses zoxide for smart directory jumping
+function cd() {
+    if command -v zoxide &> /dev/null; then
+        z "$@"
+    else
+        builtin cd "$@"
+    fi
+}
 
 alias x=exit
 alias o=opencode
@@ -132,8 +138,8 @@ alias pnr="pnpm run"
 alias pnu="pnpm update"
 
 # Docker
-alias docker='podman'
-alias docker-compose='podman-compose'
+# alias docker='podman'
+# alias docker-compose='podman-compose'
 
 # SYSTEM UTILITIES
 alias open='gio open'

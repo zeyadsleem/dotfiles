@@ -18,7 +18,7 @@ if [[ ! -d $ZINIT_HOME ]]; then
   mkdir -p "${ZINIT_HOME:h}"
   git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 fi
-source "$ZINIT_HOME/zinit.zsh"
+[[ -f "$ZINIT_HOME/zinit.zsh" ]] && source "$ZINIT_HOME/zinit.zsh"
 
 # Theme Configuration
 [[ -f ~/.config/themes/current/zsh/env.zsh ]] && source ~/.config/themes/current/zsh/env.zsh
@@ -140,11 +140,11 @@ setopt AUTO_CD GLOB_DOTS COMPLETE_IN_WORD ALWAYS_TO_END EXTENDED_GLOB NO_BEEP IN
 [[ -t 0 ]] && stty -ixon
 
 # Powerlevel10k Theme
-source ~/powerlevel10k/powerlevel10k.zsh-theme
+[[ -f ~/powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/powerlevel10k/powerlevel10k.zsh-theme
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
 # External Tools Initialization (Optimized)
-eval "$(zoxide init zsh)"
+command -v zoxide &> /dev/null && eval "$(zoxide init zsh)"
 [[ -f ~/.env.zsh ]] && source ~/.env.zsh
 [[ -f ~/.alias.zsh ]] && source ~/.alias.zsh
 
@@ -211,6 +211,6 @@ function bun() {
 export PATH="/home/zeyad/.bun/bin:$PATH"
 
 # Vite+ bin (https://viteplus.dev)
-. "$HOME/.vite-plus/env"
+[[ -f "$HOME/.vite-plus/env" ]] && . "$HOME/.vite-plus/env"
 export PATH="/home/zeyad/.config/herd-lite/bin:$PATH"
 export PHP_INI_SCAN_DIR="/home/zeyad/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
