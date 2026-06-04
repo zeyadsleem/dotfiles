@@ -13,10 +13,11 @@ config.font_size = 11.3
 config.line_height = 1.15
 
 -- Rendering Engine & Stability
-config.front_end = "WebGpu"
+config.front_end = "OpenGL"
 config.use_cap_height_to_scale_fallback_fonts = false
-config.max_fps = 144
+config.max_fps = 60
 config.custom_block_glyphs = true
+config.audible_bell = "Disabled"
 
 -- Arabic & RTL Stabilization
 config.bidi_enabled = true
