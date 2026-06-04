@@ -170,7 +170,7 @@ function yy() {
 function fkill() {
     local pid
     pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
-    [[ -n $pid ]] && echo $pid | xargs kill -${1:-9}
+    [[ -n $pid ]] && echo $pid | xargs kill -${1:-15}
 }
 
 # Backup File with Timestamp

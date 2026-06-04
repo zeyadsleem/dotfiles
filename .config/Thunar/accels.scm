@@ -118,7 +118,6 @@
 ; (gtk_accel_path "<Actions>/ThunarBookmarks/c66d2ac134ef5880e04fe414b5527339" "")
 ; (gtk_accel_path "<Actions>/ThunarStandardView/set-default-app" "")
 ; (gtk_accel_path "<Actions>/ThunarWindow/empty-trash" "")
-; (gtk_accel_path "<Actions>/ThunarBookmarks/a5ae7d79ff39da43ae6464e8af93fb40" "")
 ; (gtk_accel_path "<Actions>/ThunarWindow/preferences" "")
 ; (gtk_accel_path "<Actions>/ThunarActionManager/delete" "")
 ; (gtk_accel_path "<Actions>/ThunarWindow/open-network" "")

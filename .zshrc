@@ -214,3 +214,15 @@ export PATH="/home/zeyad/.bun/bin:$PATH"
 [[ -f "$HOME/.vite-plus/env" ]] && . "$HOME/.vite-plus/env"
 export PATH="/home/zeyad/.config/herd-lite/bin:$PATH"
 export PHP_INI_SCAN_DIR="/home/zeyad/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
+
+export DBX_CONTAINER_MANAGER=docker
+
+# Yazi: cd to last directory on exit
+function y() {
+    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+    yazi "$@" --cwd-file="$tmp"
+    if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+        cd -- "$cwd"
+    fi
+    rm -f -- "$tmp"
+}
