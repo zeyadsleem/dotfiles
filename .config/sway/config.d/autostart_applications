@@ -39,3 +39,6 @@ exec --no-startup-id protonvpn-app
 # Window autotiling
 exec autotiling
 
+# Inhibit idle when focused window is fullscreen
+exec swaymsg inhibit_idle fullscreen
+

@@ -50,9 +50,12 @@ for_window [app_id="org.gnome.FileRoller"] floating enable
 for_window [app_id="org.gnome.Loupe"] floating enable
 
 # Custom Terminal Windows (WezTerm)
-for_window [app_id="waybar_btop"] floating enable, resize set 1200 900
-for_window [app_id="waybar_nmtui"] floating enable, resize set 900 700
-for_window [app_id="wezterm_floating"] floating enable, resize set 1100 800
+for_window [app_id="waybar_btop"] floating enable, resize set 1200 900, opacity 0.92
+for_window [app_id="waybar_nmtui"] floating enable, resize set 900 700, opacity 0.92
+for_window [app_id="wezterm_floating"] floating enable, resize set 1100 800, opacity 0.92
+
+# Inhibit idle when fullscreen (e.g. mpv, YouTube fullscreen)
+# (moved to autostart_applications as global `inhibit_idle fullscreen`)
 
 # =============================================================================
 # Browser Floating Rules

@@ -10,6 +10,11 @@ set $right l
 # Set default terminal emulator
 # Appearance
 font pango:JetBrainsMono Nerd Font 10
+default_border pixel 2
+gaps inner 5
+gaps outer 5
+smart_gaps on
+focus_wrapping yes
 
 # Basic definitions
 set $term wezterm
@@ -55,6 +60,9 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
 
     # Reload the configuration file
     bindsym --to-code $mod+Shift+r reload
+
+    # Switch to previous workspace
+    bindsym --to-code $mod+Tab workspace back_and_forth
 
     # Toggle Waybar visibility
     bindsym --to-code $mod+grave exec pkill -SIGUSR1 waybar
@@ -176,16 +184,6 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
         $mod+ctrl+$left resize grow width 10 px
     }
 
-    # Resize floating windows with mouse scroll:
-    bindsym --to-code --whole-window --border {
-        # Resize vertically
-        $mod+button4 resize shrink height 5 px or 5 ppt
-        $mod+button5 resize grow height 5 px or 5 ppt
-        # Resize horizontally
-        $mod+Shift+button4 resize shrink width 5 px or 5 ppt
-        $mod+Shift+button5 resize grow width 5 px or 5 ppt
-    }
-
 #
 # Media Keys
 #
@@ -223,6 +221,9 @@ bindsym XF86Sleep exec systemctl suspend
 
     # Pick a color and copy it to clipboard
     bindsym --to-code $mod+i exec hyprpicker --autocopy
+
+    # Window switcher (fuzzel)
+    bindsym --to-code $mod+Shift+w exec ~/.config/sway/scripts/window_switcher.sh
 
 #
 # Screenshots - macOS Style (Auto-save + Clipboard)

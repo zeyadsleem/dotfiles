@@ -1,7 +1,7 @@
 ### Input configuration
 #
 # Focus Behavior (Like Windows/Mac)
-focus_follows_mouse no
+focus_follows_mouse yes
 
 # Touchpad configuration
 input type:touchpad {
@@ -9,6 +9,8 @@ input type:touchpad {
     tap enabled
     natural_scroll enabled
     events disabled_on_external_mouse
+    repeat_rate 35
+    repeat_delay 200
 }
 
 # Enable numlock by default
@@ -18,6 +20,8 @@ input type:keyboard xkb_numlock enabled
 input "type:keyboard" {
     xkb_layout "us,ara"
     xkb_options "grp:alt_shift_toggle"
+    repeat_rate 35
+    repeat_delay 200
 }
 
 # Switch layout and update Waybar instantly
