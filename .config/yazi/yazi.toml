@@ -1,3 +1,5 @@
+#:schema https://yazi-rs.github.io/schemas/yazi.json
+
 [mgr]
 linemode = "size"
 ratio = [0, 2, 6]
@@ -15,7 +17,9 @@ image_quality = 90
 
 [plugin]
 prepend_previewers = [
-  # Archive preview
+  # Markdown rendering
+  { url = "*.md", run = "glow" },
+  # Archive previews
   { mime = "application/*zip", run = "archive" },
   { mime = "application/x-tar", run = "archive" },
   { mime = "application/x-bzip2", run = "archive" },
@@ -23,10 +27,20 @@ prepend_previewers = [
   { mime = "application/x-7z-compressed", run = "archive" },
   { mime = "application/x-rar", run = "archive" },
 ]
+# Note: git fetcher is registered automatically by `require("git"):setup()` in init.lua.
+# Do not add it here as well or it will run twice per entry and spawn dozens of tasks.
 
 [opener]
 play = [
   { run = 'mpv --force-window "$@"' },
   { run = 'iina --no-stdin "$@"' },
   { run = '''mediainfo "$1"; echo "Press enter to exit"; read''', block = true, desc = "Show media info" },
+]
+
+[open]
+prepend_rules = [
+  { url = "*.{ass,srt,ssa,sty,sup,vtt}", use = [
+    "subtitle",
+    "edit",
+  ] },
 ]

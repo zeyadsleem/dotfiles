@@ -217,12 +217,6 @@ export PHP_INI_SCAN_DIR="/home/zeyad/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
 
 export DBX_CONTAINER_MANAGER=docker
 
-# Yazi: cd to last directory on exit
-function y() {
-    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-    yazi "$@" --cwd-file="$tmp"
-    if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-        cd -- "$cwd"
-    fi
-    rm -f -- "$tmp"
-}
+# Yazi: cd to last directory on exit (canonical wrapper lives in .alias.zsh as `yy`)
+# ApexYard: enable Claude Code LSP (added by /setup on 2026-06-04)
+export ENABLE_LSP_TOOL=1
