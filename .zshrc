@@ -187,9 +187,21 @@ export PATH="$HOME/.jdks/openjdk-25.0.1/bin/:$PATH"
 export PATH="$PATH:/home/zeyad/.turso"
 export PATH="/home/zeyad/.opencode/bin:$PATH"
 
+# NVM lazy load (saves ~100-300ms on shell startup; mirrors the pnpm/bun pattern below).
+# The first time you call nvm/node/npm/npx/yarn/corepack, nvm.sh is sourced,
+# the wrappers self-destruct via `unset -f`, and you're back to the real binaries.
+# pnpm is intentionally NOT wrapped here because .zshrc already has its own pnpm lazy loader.
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+_nvm_load() {
+  unset -f nvm node npm npx yarn corepack
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+}
+nvm()      { _nvm_load; nvm      "$@"; }
+node()     { _nvm_load; node     "$@"; }
+npm()      { _nvm_load; npm      "$@"; }
+npx()      { _nvm_load; npx      "$@"; }
+yarn()     { _nvm_load; yarn     "$@"; }
+corepack() { _nvm_load; corepack "$@"; }
 
 # PNPM Lazy Load
 export PNPM_HOME="/home/zeyad/.local/share/pnpm"

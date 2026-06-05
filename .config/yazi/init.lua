@@ -1,6 +1,5 @@
 require("git"):setup()
 require("smart-enter"):setup({ open_multi = true })
-require("folder-rules"):setup()
 
 -- Don't load it inside neovim, `yazi.nvim` has its own border
 if not os.getenv("NVIM") then
@@ -8,16 +7,16 @@ if not os.getenv("NVIM") then
 end
 
 -- https://yazi-rs.github.io/docs/tips#username-hostname-in-header
--- Truncate hostname to the part before the first dash so the header
--- doesn't overflow the left pane and overlap the preview pane border
--- (e.g. "zeyad@zeyad-inspiron5558:" -> "zeyad@zeyad:").
+-- Anchor to the RIGHT with a low priority (2000) so it sits *before*
+-- the default file counter on the far right, never crossing the
+-- left pane border regardless of how long the hostname is.
 Header:children_add(function()
 	if ya.target_family() ~= "unix" then
 		return ""
 	end
 	local host = ya.host_name():match("^([^-]+)") or ya.host_name()
 	return ui.Span(ya.user_name() .. "@" .. host .. ":"):fg("#9ccfd8")
-end, 500, Header.LEFT)
+end, 2000, Header.RIGHT)
 
 ---@return unknown
 -- https://yazi-rs.github.io/docs/tips#show-symlink-in-status-bar
