@@ -1,6 +1,7 @@
 return {
   "folke/snacks.nvim",
   opts = {
+    win = { input = { border = "rounded" } },
     explorer = {
       enabled = true,
       hidden = true,
