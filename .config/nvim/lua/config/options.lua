@@ -5,6 +5,8 @@ opt.expandtab = true
 opt.clipboard = "unnamedplus"
 
 opt.termguicolors = true
+opt.termbidi = true
+opt.arabicshape = true
 opt.encoding = "utf-8"
 vim.o.winborder = "rounded"
 opt.fileencoding = "utf-8"

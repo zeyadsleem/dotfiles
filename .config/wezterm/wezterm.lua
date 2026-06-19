@@ -7,14 +7,16 @@ local config = wezterm.config_builder()
 config.font = wezterm.font_with_fallback({
 	{ family = "Maple Mono NF", weight = "Medium" },
 	{ family = "DejaVu Sans Mono" },
-	{ family = "Amiri", weight = "Regular" }, -- Excellent Arabic rendering
+	{ family = "Cairo", weight = "Regular" },
+	{ family = "Noto Sans Arabic", weight = "Regular" },
+	{ family = "Amiri", weight = "Regular" },
 })
 config.font_size = 11.3
 config.line_height = 1.15
 
 -- Rendering Engine & Stability
 config.front_end = "OpenGL"
-config.use_cap_height_to_scale_fallback_fonts = false
+config.use_cap_height_to_scale_fallback_fonts = true
 config.max_fps = 60
 config.custom_block_glyphs = true
 config.audible_bell = "Disabled"
