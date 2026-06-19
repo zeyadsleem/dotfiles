@@ -187,10 +187,6 @@ export PATH="$HOME/.jdks/openjdk-25.0.1/bin/:$PATH"
 export PATH="$PATH:/home/zeyad/.turso"
 export PATH="/home/zeyad/.opencode/bin:$PATH"
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-
 # Rust
 [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
 
@@ -212,3 +208,4 @@ export DBX_CONTAINER_MANAGER=docker
 # Yazi: cd to last directory on exit (canonical wrapper lives in .alias.zsh as `yy`)
 # ApexYard: enable Claude Code LSP (added by /setup on 2026-06-04)
 export ENABLE_LSP_TOOL=1
+eval "$(~/.local/bin/mise activate zsh)"
