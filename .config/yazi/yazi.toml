@@ -8,17 +8,16 @@ sort_dir_first = true
 show_hidden = true
 
 [preview]
-max_width = 3024  # default = 600
-max_height = 1964 # default = 900
-# https://yazi-rs.github.io/docs/tips#make-yazi-even-faster
+max_width = 800
+max_height = 600
 image_delay = 0
-image_filter = "lanczos3"
-image_quality = 90
+image_filter = "triangle"
+image_quality = 75
 
 [plugin]
 prepend_previewers = [
-  # Markdown rendering
-  { url = "*.md", run = "glow" },
+  # Markdown rendering via Piper + Glow
+  { url = "*.md", run = 'piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"' },
   # Archive previews
   { mime = "application/*zip", run = "archive" },
   { mime = "application/x-tar", run = "archive" },
