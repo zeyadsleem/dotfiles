@@ -380,7 +380,7 @@ bind=NONE,XF86Sleep,spawn,systemctl suspend
 # =============================================================================
 
 # File explorer
-bind=SUPER,n,spawn,thunar
+bind=SUPER,e,spawn,thunar
 
 # Browser
 bind=SUPER,o,spawn,brave
@@ -418,7 +418,7 @@ bind=ALT,Print,spawn_shell,grim -g "$(slurp)" - | swappy -f -
 # =============================================================================
 
 # Emoji picker
-bind=SUPER,period,spawn,~/.local/bin/emoji-picker
+bind=SUPER+SHIFT,period,spawn,~/.local/bin/emoji-picker
 
 # Notifications center
 bind=SUPER+SHIFT,n,spawn,swaync-client -t -sw
