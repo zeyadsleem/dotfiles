@@ -107,7 +107,7 @@
 
     "custom/keyboard_layout": {
         "format": "{}",
-        "exec": "mmsg get keyboardlayout 2>/dev/null | cut -d' ' -f4 || echo 'us'",
+        "exec": "mmsg get keyboardlayout 2>/dev/null | jq -r '.layout' || echo 'us'",
         "interval": 1,
         "on-click": "mmsg dispatch switch_keyboard_layout"
     },
