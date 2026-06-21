@@ -23,6 +23,9 @@ swayosd-server &
 wl-paste --type text --watch cliphist store &
 wl-paste --type image --watch cliphist store &
 
+# GTK settings from gtk-3.0/settings.ini
+~/.config/mango/scripts/import-gsettings &
+
 # Network applet
 nm-applet --indicator &
 

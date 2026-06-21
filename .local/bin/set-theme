@@ -229,10 +229,7 @@ main() {
         apply_symlink "$THEME_DIR/nwg-drawer/drawer.css" "$HOME/.config/nwg-drawer/drawer.css" "" "nwg-drawer style"
     fi
     
-    # 11. Sway
-    if [ -f "$THEME_DIR/sway/theme" ]; then
-        apply_symlink "$THEME_DIR/sway/theme" "$HOME/.config/sway/config.d/theme" "" "Sway theme"
-    fi
+    # 11. (removed - sway no longer used)
     
     # 12. gtklock
     if [ -f "$THEME_DIR/gtklock/style.css" ]; then
@@ -246,9 +243,9 @@ main() {
     
     # ============ Reload Applications ============
     
-    # Reload Sway
-    if command -v swaymsg >/dev/null 2>&1; then
-        swaymsg reload 2>/dev/null || log_warn "Failed to reload Sway"
+    # Reload WM config
+    if command -v mmsg >/dev/null 2>&1; then
+        mmsg reload_config 2>/dev/null || log_warn "Failed to reload Mango"
     fi
     
     # Reload Waybar

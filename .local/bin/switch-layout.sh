@@ -1,3 +1,3 @@
 #!/bin/sh
-swaymsg input "type:keyboard" xkb_switch_layout next
+mmsg dispatch switch_keyboard_layout
 pkill -RTMIN+1 waybar
