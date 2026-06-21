@@ -8,7 +8,7 @@
 
 /* ==================== Control Center ==================== */
 .control-center {
-    background: rgba(30, 30, 38, 0.98);
+    background: #1e1e26;
     border: 2px solid #5294e2;
     border-radius: 16px;
     padding: 12px;
@@ -127,7 +127,7 @@
 /* ==================== Notifications ==================== */
 .notification-row {
     outline: none;
-    margin: 2px 0;
+    margin: 0;
 }
 
 .notification-row:focus,
@@ -136,27 +136,27 @@
 }
 
 .notification {
-    background: rgba(30, 30, 38, 0.98);
+    background: #1e1e26;
     border: 2px solid #5294e2;
     border-radius: 14px;
     padding: 0;
-    margin: 2px 5px;
+    margin: 4px 0;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     transition: all 200ms ease;
 }
 
 .notification:hover {
-    background: rgba(35, 35, 45, 0.98);
+    background: #23232d;
 }
 
 /* Critical Notifications */
 .notification.critical {
     border-color: #f44336;
-    background: rgba(244, 67, 54, 0.15);
+    background: #2d0f0f;
 }
 
 .notification.critical:hover {
-    background: rgba(244, 67, 54, 0.2);
+    background: #3d1414;
 }
 
 /* Low Priority */
