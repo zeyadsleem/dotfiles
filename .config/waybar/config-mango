@@ -1,0 +1,198 @@
+{
+    "layer": "top", // Waybar at top layer
+    "position": "top", // Waybar position (top|bottom|left|right)
+    // "height": 30, // Auto-height is used when commented
+    // "width": 1280, // Full screen width when commented
+    "spacing": 4, // Gaps between modules (in px)
+    // See `man waybar` for more configuration options
+
+// Configuration - modules-left
+
+    "modules-left": [
+        "custom/launcher",
+        "wlr/workspaces",
+        "sway/window"
+    ],
+
+    "custom/launcher": {
+        "format":"<span size='x-large'></span>",
+        "on-click": "exec nwg-drawer",
+        "tooltip": false
+    },
+
+    "wlr/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{icon}",
+        "format-icons": {
+            "3": "3",
+            "4": "4",
+            "5": "5",
+            "6": "6",
+            "7": "7",
+            "8": "8",
+            "9": "9",
+            "10": "10"
+        }
+    },
+
+    "sway/window": {
+        "format": "{}",
+        //"all-outputs": true, // Active window shows only on active display when commented
+        "max-length": 120
+    },
+
+    "network": {
+        "format-wifi": "  {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣",
+        "format-ethernet": "󰈀  {bandwidthDownBits:>} 󰶡 {bandwidthUpBits:>} 󰶣",
+        "tooltip-format": "{essid} - {ipaddr}",
+        "format-linked": "{ifname}",
+        "format-disconnected": "  Disconnected",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}",
+        "interval": 1,
+        // "on-click": "wezterm start --class waybar_nmtui -- nmtui"
+    },
+
+// Configuration - modules-center
+
+    "modules-center": [
+        "network"
+    ],
+
+
+// Configuration - modules-right
+
+    "modules-right": [
+        "custom/keyboard_layout",
+        "clock",
+        "custom/notification",
+        "group/hardware",
+        "idle_inhibitor",
+        "backlight",
+        "pulseaudio",
+        "battery",
+        "tray",
+        "custom/power"
+    ],
+
+    "group/hardware": {
+        "orientation": "horizontal",
+        "modules": [
+            "cpu",
+            "memory"
+        ]
+    },
+
+    "custom/notification": {
+        "tooltip": false,
+        "format": "{icon}",
+        "format-icons": {
+            "notification": "<span foreground='red'><sup></sup></span>",
+            "none": "",
+            "dnd-notification": "<span foreground='red'><sup></sup></span>",
+            "dnd-none": "",
+            "inhibited-notification": "<span foreground='red'><sup></sup></span>",
+            "inhibited-none": "",
+            "dnd-inhibited-notification": "<span foreground='red'><sup></sup></span>",
+            "dnd-inhibited-none": ""
+        },
+        "return-type": "json",
+        "exec-if": "which swaync-client",
+        "exec": "swaync-client -swb",
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "escape": true
+    },
+
+    "custom/keyboard_layout": {
+        "format": "{}",
+        "exec": "mmsg get keyboardlayout 2>/dev/null | cut -d' ' -f4 || echo 'us'",
+        "interval": 1,
+        "on-click": "mmsg dispatch switch_keyboard_layout"
+    },
+
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "format-icons": {
+            "activated": "",
+            "deactivated": ""
+        },
+        "tooltip-format-activated": "Idle Inhibitor Activated",
+        "tooltip-format-deactivated": "Idle Inhibitor Deactivated"
+    },
+
+    "cpu": {
+        "interval": 5,
+        "format": "{usage:>3}%",
+        "states": {
+            "warning": 70,
+            "critical": 90,
+        },
+        "on-click": "wezterm start --class waybar_btop -- btop"
+    },
+
+    "memory": {
+        "interval": 5,
+        "format": "{:>3}%",
+        "on-click": "wezterm start --class waybar_btop -- btop",
+        "states": {
+            "warning": 70,
+            "critical": 90
+        }
+    },
+
+    "backlight": {
+        "format": "{icon} {percent}%",
+        "format-icons": ["󰄰", "󰪞", "󰪟", "󰪠", "󰪡", "󰪢", "󰪣", "󰪤", "󰪥"],
+        "tooltip-format": "Backlight (Scroll): {percent:}%",
+        "on-scroll-down": "brightnessctl -c backlight set 5%-",
+        "on-scroll-up": "brightnessctl -c backlight set +5%"
+    },
+
+    "pulseaudio": {
+        "scroll-step": 2,
+        "format": "{icon} {volume}%",
+        "format-muted":"󰝟 muted",
+        "format-icons": {
+            "headphones": "",
+            "handsfree": "",
+            "headset": "",
+            "phone": "",
+            "portable": "",
+            "car": "",
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "on-click": "pavucontrol"
+    },
+
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-icons": ["", "", "", "", ""]
+    },
+
+    "clock": {
+        "format": " {:%I:%M %p}",
+        "format-alt": " {:%H:%M}",
+        "tooltip-format": "<span>{:%A, %d %B %Y}</span>",
+        "actions": {
+            "on-click-right": "mode",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
+        }
+    },
+
+    "tray": {
+        "icon-size": 16,
+        "spacing":10
+     },
+
+    "custom/power": {
+        "format":"⏻",
+        "on-click": "exec ~/.config/sway/scripts/power_menu.sh",
+        "tooltip": false
+    },
+}

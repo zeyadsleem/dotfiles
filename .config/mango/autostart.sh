@@ -37,4 +37,7 @@ protonvpn-app &
 # Wallpaper (via Azote wrapper)
 ~/.azotebg &
 
+# Start Waybar with mango config
+waybar -c ~/.config/waybar/config-mango &
+
 wait
