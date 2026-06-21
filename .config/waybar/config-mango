@@ -107,9 +107,10 @@
 
     "custom/keyboard_layout": {
         "format": "{}",
-        "exec": "mmsg get keyboardlayout 2>/dev/null | jq -r '.layout' || echo 'us'",
+        "exec": "/usr/bin/bash -c 'set -o pipefail; /usr/bin/mmsg get keyboardlayout 2>/dev/null | /usr/bin/jq -c \"{text: .layout, alt: .layout}\" 2>/dev/null' || printf '{\"text\":\"us\",\"alt\":\"us\"}'",
         "interval": 1,
-        "on-click": "mmsg dispatch switch_keyboard_layout"
+        "return-type": "json",
+        "on-click": "/usr/bin/mmsg dispatch switch_keyboard_layout"
     },
 
     "idle_inhibitor": {
