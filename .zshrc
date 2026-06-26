@@ -168,7 +168,6 @@ bindkey -M emacs '^N' history-substring-search-down
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 bindkey '^[[3~' delete-char
-bindkey '^[[1;5C' forward-word
 bindkey '^[[1;5D' backward-word
 bindkey '^H' backward-kill-word
 bindkey '^?' backward-delete-char
@@ -178,6 +177,25 @@ bindkey '^[/' redo
 bindkey '^[[C' forward-char
 bindkey '^ ' autosuggest-accept
 bindkey '^f' autosuggest-accept
+
+function autosuggest-forward-word() {
+  if [[ -n $POSTDISPLAY ]]; then
+    local suffix="$POSTDISPLAY"
+    if [[ $suffix =~ ^([^[:space:]]+)([[:space:]]*)(.*) ]]; then
+      local accept="${match[1]}${match[2]}"
+      BUFFER+="$accept"
+      CURSOR=$#BUFFER
+      POSTDISPLAY="${match[3]}"
+      zle -R
+    fi
+  else
+    zle .forward-word
+  fi
+}
+
+zle -N autosuggest-forward-word
+bindkey '^[[1;5C' autosuggest-forward-word
+ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(autosuggest-forward-word)
 
 # PATH Configuration
 export PATH="$HOME/.local/bin:$PATH"
