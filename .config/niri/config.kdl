@@ -61,6 +61,10 @@ blur {
     saturation 1.2
 }
 
+animations {
+    off
+}
+
 prefer-no-csd
 
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
@@ -106,6 +110,9 @@ binds {
     Mod+J     { focus-window-down; }
     Mod+K     { focus-window-up; }
     Mod+L     { focus-column-right; }
+
+    Mod+WheelScrollDown cooldown-ms=150 { focus-column-right; }
+    Mod+WheelScrollUp   cooldown-ms=150 { focus-column-left; }
 
     Mod+Ctrl+Left  { move-column-left; }
     Mod+Ctrl+Down  { move-window-down; }
@@ -213,6 +220,8 @@ binds {
 
     Mod+Grave { spawn "niri" "msg" "action" "load-config-file"; }
 
+    Mod+B repeat=false { spawn "brave"; }
+
     Mod+Shift+O { spawn "brave"; }
 
     Mod+Shift+C { spawn-sh "cliphist list | fuzzel -d -w 50 -l 15 -p 'Select from clipboard: ' | cliphist decode | wl-copy"; }
@@ -229,6 +238,7 @@ binds {
 
 window-rule {
     match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    open-maximized true
     default-column-width {}
 }
 window-rule {
@@ -270,18 +280,28 @@ window-rule {
     default-window-height { fixed 600; }
 }
 window-rule {
-    match app-id="brave" title="(?i)(save file|open file)"
-    open-floating true
-    default-column-width { fixed 800; }
-    default-window-height { fixed 600; }
+    match app-id=r#"^brave-browser$"#
+    exclude app-id=r#"^brave-browser$"# title=r#"(?i)(sign in|google accounts|accounts.google|oauth|login|authorize|authentication)"#
+    open-maximized true
 }
 window-rule {
-    match app-id="brave" title="(?i)(extension|picture-in-picture)"
+    match app-id=r#"^brave-browser$"# title=r#"(?i)(sign in|google accounts|accounts.google|oauth|login|authorize|authentication)"#
     open-floating true
+    default-column-width { proportion 0.45; }
+    default-window-height { proportion 0.70; }
+    default-floating-position x=0 y=0 relative-to="top"
+    open-focused true
 }
 window-rule {
     match app-id="protonvpn-app"
     open-floating true
+}
+window-rule {
+    match app-id=r#"(?i)(cloudflare|warp)"#
+    open-floating true
+    default-column-width { proportion 0.45; }
+    default-window-height { proportion 0.70; }
+    default-floating-position x=32 y=32 relative-to="top-right"
 }
 window-rule {
     match title="(?i)(save as|save file|open file|open folder|open project)"
