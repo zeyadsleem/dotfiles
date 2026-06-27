@@ -36,7 +36,7 @@ done
 # 3. check key dependencies
 echo "==> checking dependencies..."
 missing=()
-for cmd in nvim zsh tmux wezterm git lazygit fzf zoxide bat eza yazi mango; do
+for cmd in nvim zsh tmux wezterm git lazygit fzf zoxide bat eza yazi niri; do
   command -v "$cmd" &>/dev/null || missing+=("$cmd")
 done
 

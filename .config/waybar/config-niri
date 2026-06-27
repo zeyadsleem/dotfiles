@@ -1,0 +1,79 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 34,
+  "spacing": 8,
+
+  "modules-left": ["custom/launcher", "niri/workspaces", "niri/window"],
+  "modules-center": ["clock"],
+  "modules-right": ["niri/language", "network", "pulseaudio", "backlight", "tray", "custom/power"],
+
+  "custom/launcher": {
+    "format": "",
+    "tooltip": false,
+    "on-click": "nwg-drawer"
+  },
+
+  "niri/workspaces": {
+    "format": "{index}",
+    "all-outputs": true,
+    "disable-click": false
+  },
+
+  "niri/window": {
+    "format": "{title}",
+    "max-length": 80,
+    "rewrite": {
+      "(.*) - Brave": "$1",
+      "(.*) - Mozilla Firefox": "$1",
+      "(.*) - zsh": " $1"
+    }
+  },
+
+  "niri/language": {
+    "format": "{}",
+    "on-click": "$HOME/.local/bin/switch-layout.sh"
+  },
+
+  "network": {
+    "interval": 2,
+    "format-wifi": " {essid}",
+    "format-ethernet": "󰈀 wired",
+    "format-disconnected": "󰖪 offline",
+    "tooltip-format": "{ifname}: {ipaddr}/{cidr}"
+  },
+
+  "pulseaudio": {
+    "scroll-step": 2,
+    "format": "{icon} {volume}%",
+    "format-muted": "󰝟 muted",
+    "format-icons": {
+      "headphones": "",
+      "default": ["", "", ""]
+    },
+    "on-click": "pavucontrol"
+  },
+
+  "backlight": {
+    "format": "󰃠 {percent}%",
+    "on-scroll-up": "brightnessctl -c backlight set +5%",
+    "on-scroll-down": "brightnessctl -c backlight set 5%-"
+  },
+
+  "clock": {
+    "format": " {:%I:%M %p}",
+    "format-alt": " {:%A, %d %B %Y}",
+    "tooltip-format": "{:%A, %d %B %Y}"
+  },
+
+  "tray": {
+    "icon-size": 16,
+    "spacing": 8
+  },
+
+  "custom/power": {
+    "format": "⏻",
+    "tooltip": false,
+    "on-click": "sh $HOME/.local/bin/power-menu-niri.sh"
+  }
+}

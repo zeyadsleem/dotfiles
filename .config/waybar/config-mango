@@ -10,7 +10,15 @@
 
     "modules-left": [
         "custom/launcher",
-        "wlr/workspaces",
+        "custom/tag1",
+        "custom/tag2",
+        "custom/tag3",
+        "custom/tag4",
+        "custom/tag5",
+        "custom/tag6",
+        "custom/tag7",
+        "custom/tag8",
+        "custom/tag9",
         "sway/window"
     ],
 
@@ -20,21 +28,94 @@
         "tooltip": false
     },
 
-    "wlr/workspaces": {
-        "disable-scroll": true,
-        "all-outputs": true,
-        "format": "{icon}",
-        "format-icons": {
-            "1": "1",
-            "2": "2",
-            "3": "3",
-            "4": "4",
-            "5": "5",
-            "6": "6",
-            "7": "7",
-            "8": "8",
-            "9": "9"
-        }
+    "custom/tag1": {
+        "format": "{text}",
+        "exec": "/usr/bin/bash /home/zeyad/.config/mango/scripts/mango_tags.sh 1",
+        "return-type": "json",
+        "escape": false,
+        "on-click": "mmsg dispatch view,1",
+        "on-scroll-up": "mmsg dispatch viewtoright_have_client",
+        "on-scroll-down": "mmsg dispatch viewtoleft_have_client"
+    },
+
+    "custom/tag2": {
+        "format": "{text}",
+        "exec": "/usr/bin/bash /home/zeyad/.config/mango/scripts/mango_tags.sh 2",
+        "return-type": "json",
+        "escape": false,
+        "on-click": "mmsg dispatch view,2",
+        "on-scroll-up": "mmsg dispatch viewtoright_have_client",
+        "on-scroll-down": "mmsg dispatch viewtoleft_have_client"
+    },
+
+    "custom/tag3": {
+        "format": "{text}",
+        "exec": "/usr/bin/bash /home/zeyad/.config/mango/scripts/mango_tags.sh 3",
+        "return-type": "json",
+        "escape": false,
+        "on-click": "mmsg dispatch view,3",
+        "on-scroll-up": "mmsg dispatch viewtoright_have_client",
+        "on-scroll-down": "mmsg dispatch viewtoleft_have_client"
+    },
+
+    "custom/tag4": {
+        "format": "{text}",
+        "exec": "/usr/bin/bash /home/zeyad/.config/mango/scripts/mango_tags.sh 4",
+        "return-type": "json",
+        "escape": false,
+        "on-click": "mmsg dispatch view,4",
+        "on-scroll-up": "mmsg dispatch viewtoright_have_client",
+        "on-scroll-down": "mmsg dispatch viewtoleft_have_client"
+    },
+
+    "custom/tag5": {
+        "format": "{text}",
+        "exec": "/usr/bin/bash /home/zeyad/.config/mango/scripts/mango_tags.sh 5",
+        "return-type": "json",
+        "escape": false,
+        "on-click": "mmsg dispatch view,5",
+        "on-scroll-up": "mmsg dispatch viewtoright_have_client",
+        "on-scroll-down": "mmsg dispatch viewtoleft_have_client"
+    },
+
+    "custom/tag6": {
+        "format": "{text}",
+        "exec": "/usr/bin/bash /home/zeyad/.config/mango/scripts/mango_tags.sh 6",
+        "return-type": "json",
+        "escape": false,
+        "on-click": "mmsg dispatch view,6",
+        "on-scroll-up": "mmsg dispatch viewtoright_have_client",
+        "on-scroll-down": "mmsg dispatch viewtoleft_have_client"
+    },
+
+    "custom/tag7": {
+        "format": "{text}",
+        "exec": "/usr/bin/bash /home/zeyad/.config/mango/scripts/mango_tags.sh 7",
+        "return-type": "json",
+        "escape": false,
+        "on-click": "mmsg dispatch view,7",
+        "on-scroll-up": "mmsg dispatch viewtoright_have_client",
+        "on-scroll-down": "mmsg dispatch viewtoleft_have_client"
+    },
+
+    "custom/tag8": {
+        "format": "{text}",
+        "exec": "/usr/bin/bash /home/zeyad/.config/mango/scripts/mango_tags.sh 8",
+        "return-type": "json",
+        "escape": false,
+        "on-click": "mmsg dispatch view,8",
+        "on-scroll-up": "mmsg dispatch viewtoright_have_client",
+        "on-scroll-down": "mmsg dispatch viewtoleft_have_client"
+    },
+
+    "custom/tag9": {
+        "format": "{text}",
+        "exec": "/usr/bin/bash /home/zeyad/.config/mango/scripts/mango_tags.sh 9",
+        "return-type": "json",
+        "escape": false,
+        "on-click": "mmsg dispatch view,9",
+        "on-scroll-up": "mmsg dispatch viewtoright_have_client",
+        "on-scroll-down": "mmsg dispatch viewtoleft_have_client"
     },
 
     "sway/window": {
@@ -106,11 +187,11 @@
     },
 
     "custom/keyboard_layout": {
-        "format": "{}",
-        "exec": "/usr/bin/bash -c 'set -o pipefail; /usr/bin/mmsg get keyboardlayout 2>/dev/null | /usr/bin/jq -c \"{text: .layout, alt: .layout}\" 2>/dev/null' || printf '{\"text\":\"us\",\"alt\":\"us\"}'",
-        "interval": 1,
+        "format": "{text}",
+        "exec": "/usr/bin/bash /home/zeyad/.config/mango/scripts/keyboard_layout.sh",
+        "signal": 1,
         "return-type": "json",
-        "on-click": "/usr/bin/mmsg dispatch switch_keyboard_layout"
+        "on-click": "$HOME/.local/bin/switch-layout.sh"
     },
 
     "idle_inhibitor": {
