@@ -12,7 +12,7 @@ export FZF_DEFAULT_OPTS="
 "
 
 # FZF-Tab Settings
-zstyle ':fzf-tab:*' fzf-flags --border=rounded --height=50% --preview-window=rounded:border-bold --color=bg:#1e1e1e,fg:#dcdcdc
+export FZF_DEFAULT_OPTS='--color=bg:#1e1e1e,fg:#dcdcdc'
 
 # Colorls for Orchis Dark (using Dracula as base)
 export LS_COLORS="$(vivid generate dracula 2>/dev/null || echo '')"
