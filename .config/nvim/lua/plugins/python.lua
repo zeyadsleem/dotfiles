@@ -1,10 +1,15 @@
 return {
   {
-    "neovim/nvim-lspconfig",
+    "mfussenegger/nvim-lint",
     opts = {
-      servers = {
+      linters_by_ft = {
+        python = { "mypy" },
+      },
+      linters = {
         mypy = {
-          enabled = true,
+          cmd = { "mypy" },
+          args = { "--no-error-summary" },
+          stdin = false,
         },
       },
     },
