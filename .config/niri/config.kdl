@@ -208,9 +208,9 @@ binds {
 
     Mod+Shift+E { spawn-sh "sh ~/.local/bin/power-menu-niri.sh"; }
 
-    Print { screenshot; }
-    Ctrl+Print { screenshot-screen; }
-    Alt+Print { screenshot-window; }
+    Print { spawn "flameshot" "gui"; }
+    Ctrl+Print { spawn "flameshot" "full" "-p" "~/Pictures/Screenshots"; }
+    Alt+Print { spawn "flameshot" "gui"; }
 
     Mod+Escape { toggle-keyboard-shortcuts-inhibit; }
 
@@ -226,6 +226,9 @@ binds {
 
     Mod+Shift+C { spawn-sh "cliphist list | fuzzel -d -w 50 -l 15 -p 'Select from clipboard: ' | cliphist decode | wl-copy"; }
     Mod+Shift+X { spawn-sh "cliphist list | fuzzel -d -w 50 -l 15 -p 'Select entry to delete: ' | cliphist delete"; }
+
+    Mod+H { spawn "handy" "--toggle-transcription"; }
+    Mod+Shift+H { spawn "handy" "--toggle-post-process"; }
 
     Mod+Shift+Period { spawn "hyprpicker" "--autocopy"; }
 
