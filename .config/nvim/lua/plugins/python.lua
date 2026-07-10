@@ -7,7 +7,7 @@ return {
       },
       linters = {
         mypy = {
-          cmd = { "mypy" },
+          cmd = "mypy",
           args = { "--no-error-summary" },
           stdin = false,
         },
