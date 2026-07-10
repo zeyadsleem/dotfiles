@@ -6,28 +6,11 @@ return {
       enabled = true,
       hidden = true,
       ignored = true,
-    },
-    scroll = { enabled = false },
-    picker = {
-      sources = {
-        explorer = {
-          hidden = true,
-          ignored = true,
-        },
-        files = {
-          hidden = true,
-          ignored = true,
-        },
-        grep = {
-          hidden = true,
-          ignored = true,
-        },
-      },
       exclude = {
         "node_modules",
         "pnpm-lock.yaml",
         "package-lock.json",
-        "bun.lcok",
+        "bun.lock",
         ".git",
         "target",
         "build",
@@ -36,7 +19,13 @@ return {
         "venv",
         "env",
         ".venv",
+        "__pycache__",
+        "*.pyc",
+        ".mypy_cache",
+        ".ruff_cache",
       },
     },
+    scroll = { enabled = false },
+    picker = { enabled = false },
   },
 }
