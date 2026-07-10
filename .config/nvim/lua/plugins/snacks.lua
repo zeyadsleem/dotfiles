@@ -26,6 +26,5 @@ return {
       },
     },
     scroll = { enabled = false },
-    picker = { enabled = false },
   },
 }
