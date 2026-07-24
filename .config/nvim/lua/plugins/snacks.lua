@@ -1,30 +1,43 @@
 return {
   "folke/snacks.nvim",
+
   opts = {
-    win = { input = { border = "rounded" } },
     explorer = {
       enabled = true,
-      hidden = true,
-      ignored = true,
-      exclude = {
-        "node_modules",
-        "pnpm-lock.yaml",
-        "package-lock.json",
-        "bun.lock",
-        ".git",
-        "target",
-        "build",
-        "dist",
-        "out",
-        "venv",
-        "env",
-        ".venv",
-        "__pycache__",
-        "*.pyc",
-        ".mypy_cache",
-        ".ruff_cache",
+    },
+
+    picker = {
+      enabled = true,
+
+      sources = {
+        explorer = {
+          hidden = true,
+          ignored = true,
+
+          exclude = {
+            "node_modules",
+            "pnpm-lock.yaml",
+            "package-lock.json",
+            "bun.lock",
+            ".git",
+            "target",
+            "build",
+            "dist",
+            "out",
+            "venv",
+            "env",
+            ".venv",
+            "__pycache__",
+            "*.pyc",
+            ".mypy_cache",
+            ".ruff_cache",
+          },
+        },
       },
     },
-    scroll = { enabled = false },
+
+    scroll = {
+      enabled = false,
+    },
   },
 }
