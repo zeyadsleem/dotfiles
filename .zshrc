@@ -58,12 +58,6 @@ export EDITOR="nvim"
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 export MANROFFOPT="-c"
 
-export DBX_CONTAINER_MANAGER=docker
-export ENABLE_LSP_TOOL=1
-
-# Herd Lite / PHP
-export PHP_INI_SCAN_DIR="/home/zeyad/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
-
 # ============================================================
 # PATH Configuration — No Duplicates
 # ============================================================
@@ -75,7 +69,6 @@ path=(
   "$HOME/bin"
   "$HOME/go/bin"
   "$HOME/.jdks/openjdk-25.0.1/bin"
-  "$HOME/.opencode/bin"
   "$HOME/.bun/bin"
   "$HOME/.config/herd-lite/bin"
   "$HOME/.turso"
@@ -131,8 +124,6 @@ setopt HIST_EXPIRE_DUPS_FIRST
 setopt HIST_SAVE_NO_DUPS
 setopt HIST_VERIFY
 
-# لو عايز التاريخ يتشارك بين كل التيرمنالات فعل السطر ده.
-# لو حسيت إن الـ history بيتلخبط، سيبه مقفول.
 # setopt SHARE_HISTORY
 
 zshaddhistory() {
