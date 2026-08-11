@@ -10,4 +10,14 @@
 	<startup-notify/>
 	<directories/>
 </action>
+<action>
+	<icon>image-x-generic</icon>
+	<name>Set as Wallpaper</name>
+	<unique-id>set-wallpaper-1</unique-id>
+	<command>bash /home/zeyad/.local/bin/set-wallpaper %f</command>
+	<description>Apply the selected image as the desktop background</description>
+	<patterns>*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif</patterns>
+	<image-files/>
+	<startup-notify/>
+</action>
 </actions>

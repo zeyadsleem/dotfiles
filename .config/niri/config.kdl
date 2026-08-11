@@ -51,7 +51,6 @@ layout {
         offset x=0 y=2
         color "#0000007f"
     }
-    background-color "#201b14"
 }
 
 blur {
@@ -320,6 +319,7 @@ window-rule {
 }
 
 spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+spawn-at-startup "bash" "/home/zeyad/.local/bin/set-wallpaper"
 spawn-at-startup "kanshi"
 spawn-at-startup "swaync"
 spawn-at-startup "swayosd-server"
@@ -332,3 +332,4 @@ spawn-at-startup "waybar" "-c" "/home/zeyad/.config/waybar/config-niri"
 spawn-sh-at-startup "gnome-keyring-daemon --start --components=secrets,ssh"
 spawn-sh-at-startup "swayidle -w before-sleep $HOME/.local/bin/lock-if-not-running.sh &"
 spawn-sh-at-startup "protonvpn-app"
+spawn-sh-at-startup "$HOME/.local/bin/headset-popup-daemon"

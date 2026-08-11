@@ -1,0 +1,20 @@
+#!/bin/bash
+# Set the desktop wallpaper and remember it for the next login.
+# Usage: set-wallpaper [image-path]  (no args = restore last set wallpaper)
+set -euo pipefail
+
+cache="$HOME/.cache/current-wallpaper"
+default_img="/home/zeyad/Pictures/9e9qdvgwcdih1.jpeg"
+
+img="${1:-}"
+if [[ -n "$img" ]]; then
+    [[ -f "$img" ]] || { echo "image not found: $img" >&2; exit 1; }
+    mkdir -p "$HOME/.cache"
+    printf '%s\n' "$img" > "$cache"
+else
+    img="$(cat "$cache" 2>/dev/null || true)"
+fi
+
+img="${img:-$default_img}"
+pkill -x swaybg 2>/dev/null || true
+exec swaybg -i "$img" -m fill
