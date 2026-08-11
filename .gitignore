@@ -1,1 +1,5 @@
 # .local/bin is tracked via .local/bin/.gitignore whitelist
+
+# Tooling session artifacts
+.playwright-mcp/
+lazyvim-guide.html

@@ -27,6 +27,7 @@ function cd() {
 }
 
 alias x=exit
+alias o='opencode'
 
 # FILE LISTING - Enhanced with eza/bat
 command -v eza &>/dev/null && {
