@@ -22,9 +22,10 @@ stow --restow --target "$HOME" .
 echo "==> linking scripts to ~/.local/bin/..."
 mkdir -p "$HOME/.local/bin"
 for script in "$DOTFILES"/.local/bin/*.sh "$DOTFILES"/.local/bin/*.py \
-  "$DOTFILES"/.local/bin/editor-config "$DOTFILES"/.local/bin/swaybg \
-  "$DOTFILES"/.local/bin/emoji-picker "$DOTFILES"/.local/bin/set-theme \
-  "$DOTFILES"/.local/bin/set-theme-picker "$DOTFILES"/.local/bin/theme-info; do
+  "$DOTFILES"/.local/bin/editor-config "$DOTFILES"/.local/bin/emoji-picker \
+  "$DOTFILES"/.local/bin/set-theme "$DOTFILES"/.local/bin/set-theme-picker \
+  "$DOTFILES"/.local/bin/set-wallpaper "$DOTFILES"/.local/bin/theme-info; do
+  [ -e "$script" ] || continue
   base=$(basename "$script")
   target="$HOME/.local/bin/$base"
   if [ ! -L "$target" ]; then

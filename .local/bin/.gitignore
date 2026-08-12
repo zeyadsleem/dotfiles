@@ -6,7 +6,6 @@
 !*.sh
 !*.py
 !editor-config
-!swaybg
 !emoji-picker
 !set-theme
 !set-theme-picker
