@@ -237,7 +237,7 @@ binds {
 
 window-rule {
     match app-id=r#"^org\.wezfurlong\.wezterm$"#
-    default-column-width {}
+    open-maximized true
 }
 window-rule {
     match app-id=r#"firefox$"# title="^Picture-in-Picture$"
