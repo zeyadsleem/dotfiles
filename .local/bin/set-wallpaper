@@ -17,4 +17,4 @@ fi
 
 img="${img:-$default_img}"
 pkill -x swaybg 2>/dev/null || true
-exec swaybg -i "$img" -m fill
+setsid /usr/bin/swaybg -i "$img" -m fill >/dev/null 2>&1 & disown

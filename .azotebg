@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-pkill swaybg
-swaybg -i "/home/zeyad/Pictures/ahmet-yuksek-zSiqe6j9Aao-unsplash.jpg" -m fill &

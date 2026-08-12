@@ -145,6 +145,9 @@ alias pnu="pnpm update"
 alias open='gio open'
 alias c='clear'
 
+# WALLPAPER - Set desktop background (persists across reboots)
+alias wp='set-wallpaper'
+
 if command -v systemctl &>/dev/null; then
     alias sctl='sudo systemctl'
     alias jctl='sudo journalctl'
