@@ -37,7 +37,7 @@ fi
 
 # Environment
 export BROWSER=brave
-export TERMINAL=wezterm
+export TERMINAL=kitty
 export EDITOR=nvim
 export VISUAL=nvim
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"

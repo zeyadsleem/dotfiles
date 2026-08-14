@@ -70,7 +70,7 @@ cursor {
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
 
-    Mod+T { spawn "wezterm"; }
+    Mod+T { spawn "kitty"; }
     Mod+D { spawn "fuzzel"; }
     Super+Alt+L { spawn "gtklock"; }
 
@@ -207,8 +207,8 @@ binds {
     Mod+Escape { toggle-keyboard-shortcuts-inhibit; }
 
     Mod+Shift+P { spawn "thunar"; }
-    Mod+Return { spawn "wezterm"; }
-    Mod+Shift+D { spawn "nwg-drawer" "-term" "wezterm"; }
+    Mod+Return { spawn "kitty"; }
+    Mod+Shift+D { spawn "nwg-drawer" "-term" "kitty"; }
 
     Mod+Grave { spawn "niri" "msg" "action" "load-config-file"; }
 
@@ -229,7 +229,7 @@ binds {
 }
 
 window-rule {
-    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    match app-id=r#"^kitty$"#
     open-maximized true
 }
 window-rule {
@@ -319,7 +319,7 @@ spawn-at-startup "swayosd-server"
 spawn-at-startup "wl-paste" "--type" "text" "--watch" "cliphist" "store"
 spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
 spawn-at-startup "nm-applet" "--indicator"
-spawn-at-startup "nwg-drawer" "-r" "-term" "wezterm" "-c" "6" "-is" "48" "-mb" "15" "-ml" "18" "-mr" "18" "-mt" "15"
+spawn-at-startup "nwg-drawer" "-r" "-term" "kitty" "-c" "6" "-is" "48" "-mb" "15" "-ml" "18" "-mr" "18" "-mt" "15"
 spawn-at-startup "waybar" "-c" "/home/zeyad/.config/waybar/config-niri"
 
 spawn-sh-at-startup "gnome-keyring-daemon --start --components=secrets,ssh"

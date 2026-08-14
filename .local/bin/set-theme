@@ -193,50 +193,40 @@ main() {
         log_success "SwayNC reloaded"
     fi
     
-    # 4. Kitty (Deprecated - using WezTerm)
-    # if [ -f "$THEME_DIR/kitty/theme.conf" ]; then
-    #     # Kitty reads directly from the theme directory via include
-    #     log_success "Kitty theme configured"
-    # fi
+    # 4. Kitty (reads ../themes/current/kitty/theme.conf via include)
+    log_success "Kitty theme configured"
     
     # 5. Tmux
     if [ -f "$THEME_DIR/tmux/colors.conf" ]; then
         log_success "Tmux colors configured"
     fi
     
-    # 6. WezTerm
-    if [ -f "$THEME_DIR/wezterm/colors.lua" ]; then
-        apply_symlink "$THEME_DIR/wezterm/colors.lua" "$HOME/.config/wezterm/colors.lua" "" "WezTerm colors"
-    fi
-    
-    # 7. Neovim
+    # 6. Neovim
     if [ -f "$THEME_DIR/nvim/lualine_theme.lua" ]; then
         apply_symlink "$THEME_DIR/nvim/lualine_theme.lua" "$HOME/.config/nvim/lua/current_theme.lua" "" "Neovim theme"
     fi
     
-    # 8. Fuzzel
+    # 7. Fuzzel
     if [ -f "$THEME_DIR/fuzzel/fuzzel.ini" ]; then
         apply_symlink "$THEME_DIR/fuzzel/fuzzel.ini" "$HOME/.config/fuzzel/fuzzel.ini" "" "Fuzzel config"
     fi
     
-    # 9. Yazi
+    # 8. Yazi
     if [ -f "$THEME_DIR/yazi/theme.toml" ]; then
         apply_symlink "$THEME_DIR/yazi/theme.toml" "$HOME/.config/yazi/theme.toml" "" "Yazi theme"
     fi
     
-    # 10. nwg-drawer
+    # 9. nwg-drawer
     if [ -f "$THEME_DIR/nwg-drawer/drawer.css" ]; then
         apply_symlink "$THEME_DIR/nwg-drawer/drawer.css" "$HOME/.config/nwg-drawer/drawer.css" "" "nwg-drawer style"
     fi
     
-    # 11. (removed - sway no longer used)
-    
-    # 12. gtklock
+    # 10. gtklock
     if [ -f "$THEME_DIR/gtklock/style.css" ]; then
         apply_symlink "$THEME_DIR/gtklock/style.css" "$HOME/.config/gtklock/style.css" "" "gtklock style"
     fi
     
-    # 13. Zsh environment
+    # 11. Zsh environment
     if [ -f "$THEME_DIR/zsh/env.zsh" ]; then
         apply_symlink "$THEME_DIR/zsh/env.zsh" "$HOME/.config/themes/current_zsh_env.zsh" "" "Zsh theme env"
     fi
@@ -254,6 +244,12 @@ main() {
     if pgrep waybar >/dev/null 2>&1; then
         pkill -USR2 waybar 2>/dev/null || true
         log_success "Waybar reloaded"
+    fi
+    
+    # Reload Kitty
+    if pgrep kitty >/dev/null 2>&1; then
+        pkill -USR1 kitty 2>/dev/null || true
+        log_success "Kitty reloaded"
     fi
     
     # Reload Tmux

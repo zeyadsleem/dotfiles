@@ -1,5 +1,8 @@
 .git
-scripts
+.gitignore
+.gitmodules
+# Tooling artifacts - not part of dotfiles
+\.opencode
 # Binaries and tool symlinks - not part of dotfiles
 bd
 claude
