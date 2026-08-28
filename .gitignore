@@ -3,3 +3,7 @@
 # Tooling session artifacts
 .playwright-mcp/
 lazyvim-guide.html
+
+# Session logs and scratch
+session-ses_*.md
+nix-ar/
