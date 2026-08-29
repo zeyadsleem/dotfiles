@@ -183,6 +183,34 @@ function nxin() {
     (cd "$HOME/dotfiles" && nix run home-manager/master -- switch --flake '.#zeyad')
 }
 
+# nxrm <pkg> removes the package from home.packages (nix/modules/packages.nix)
+# and re-activates Home Manager. Use the Nix package name (e.g. `nxrm duf`).
+function nxrm() {
+    local pkg="$1"
+    local file="$HOME/dotfiles/nix/modules/packages.nix"
+
+    if [[ -z "$pkg" ]]; then
+        echo "usage: nxrm <nix-package-name>"
+        return 1
+    fi
+    if [[ ! "$pkg" =~ ^[a-zA-Z0-9._+-]+$ ]]; then
+        echo "error: invalid package name '$pkg'"
+        return 1
+    fi
+    if [[ ! -f "$file" ]]; then
+        echo "error: packages.nix not found at $file"
+        return 1
+    fi
+    if ! grep -qE "^[[:space:]]*${pkg}[[:space:]]*\$" "$file"; then
+        echo "'$pkg' is not in packages.nix"
+        return 1
+    fi
+
+    sed -i "/^[[:space:]]*${pkg}[[:space:]]*$/d" "$file"
+    echo "removed '$pkg' from packages.nix - re-activating Home Manager..."
+    (cd "$HOME/dotfiles" && nix run home-manager/master -- switch --flake '.#zeyad')
+}
+
 # ADVANCED FUNCTIONS
 # LazyGit - Terminal UI for Git
 function lg() {

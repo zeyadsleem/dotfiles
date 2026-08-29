@@ -17,6 +17,5 @@
     btop
     tree
     unzip
-    starship
   ];
 }
