@@ -210,8 +210,6 @@ rules = [
 
   # Documents
   { mime = "application/{pdf,doc,rtf}", fg = "#dcdcdc" },
-
-  { name = "*/", fg = "#5294e2" },
 ]
 
 # : }}}

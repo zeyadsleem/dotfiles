@@ -7,3 +7,12 @@ lazyvim-guide.html
 # Session logs and scratch
 session-ses_*.md
 nix-ar/
+
+# Runtime-generated theme artifacts (set-theme retargets these)
+.config/yazi/theme.toml
+.config/waybar/colors.css
+.config/swaync/style.css
+.config/nvim/lua/current_theme.lua
+.config/gtklock/style.css
+.config/themes/current
+.config/themes/current_zsh_env.zsh
