@@ -153,6 +153,36 @@ if command -v systemctl &>/dev/null; then
     alias jctl='sudo journalctl'
 fi
 
+# NIX - Declarative package management
+# nxin <pkg> adds the package to home.packages (nix/modules/packages.nix) and
+# re-activates Home Manager, so the tool lands on PATH and is persisted across
+# machines. Use the Nix package name (e.g. `nxin ripgrep`, `nxin duf`).
+function nxin() {
+    local pkg="$1"
+    local file="$HOME/dotfiles/nix/modules/packages.nix"
+
+    if [[ -z "$pkg" ]]; then
+        echo "usage: nxin <nix-package-name>"
+        return 1
+    fi
+    if [[ ! "$pkg" =~ ^[a-zA-Z0-9._+-]+$ ]]; then
+        echo "error: invalid package name '$pkg'"
+        return 1
+    fi
+    if [[ ! -f "$file" ]]; then
+        echo "error: packages.nix not found at $file"
+        return 1
+    fi
+    if grep -qE "^[[:space:]]*${pkg}[[:space:]]*\$" "$file"; then
+        echo "'$pkg' is already in packages.nix"
+        return 0
+    fi
+
+    sed -i "0,/^[[:space:]]*\];\$/s//    ${pkg}\n  ]/" "$file"
+    echo "added '$pkg' to packages.nix - re-activating Home Manager..."
+    (cd "$HOME/dotfiles" && nix run home-manager/master -- switch --flake '.#zeyad')
+}
+
 # ADVANCED FUNCTIONS
 # LazyGit - Terminal UI for Git
 function lg() {
