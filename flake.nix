@@ -15,8 +15,8 @@
       homeConfigurations."zeyad" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = [
-          ({ lib, ... }: {
-            _module.args.dotfilesDir = ./.;
+          ({ config, ... }: {
+            _module.args.dotfilesDir = config.home.homeDirectory + "/dotfiles";
           })
           ./nix/home.nix
         ];

@@ -5,34 +5,21 @@ DOTFILES="$HOME/dotfiles"
 
 echo "==> bootstrapping dotfiles..."
 
-# 1. stow symlinks for config files
-if ! command -v stow &>/dev/null; then
-  echo "ERROR: GNU stow is required. Install it first."
-  echo "  arch:  sudo pacman -S stow"
-  echo "  mac:   brew install stow"
-  echo "  ubuntu:sudo apt install stow"
+# 1. Nix / Home Manager managed configs + packages
+#    (note: single source of truth; dotfiles + scripts are symlinked from here)
+if ! command -v nix &>/dev/null && [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
+  echo "ERROR: Nix with flakes is required."
+  echo "  install via the Determinate Nix installer:"
+  echo "  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install"
   exit 1
 fi
 
-echo "==> stowing configs..."
+echo "==> activating home-manager..."
 cd "$DOTFILES"
-stow --restow --target "$HOME" .
-
-# 2. symlink scripts into ~/.local/bin/
-echo "==> linking scripts to ~/.local/bin/..."
-mkdir -p "$HOME/.local/bin"
-for script in "$DOTFILES"/.local/bin/*.sh "$DOTFILES"/.local/bin/*.py \
-  "$DOTFILES"/.local/bin/editor-config "$DOTFILES"/.local/bin/emoji-picker \
-  "$DOTFILES"/.local/bin/set-theme "$DOTFILES"/.local/bin/set-theme-picker \
-  "$DOTFILES"/.local/bin/set-wallpaper "$DOTFILES"/.local/bin/theme-info; do
-  [ -e "$script" ] || continue
-  base=$(basename "$script")
-  target="$HOME/.local/bin/$base"
-  if [ ! -L "$target" ]; then
-    ln -sf "$script" "$target"
-    echo "  linked $base"
-  fi
-done
+PREV_NIX_PATH="$PATH"
+export PATH="/nix/var/nix/profiles/default/bin:$PATH"
+nix run home-manager/master -- switch --flake '.#zeyad'
+export PATH="$PREV_NIX_PATH"
 
 # 3. check key dependencies
 echo "==> checking dependencies..."
