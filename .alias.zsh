@@ -178,7 +178,7 @@ function nxin() {
         return 0
     fi
 
-    sed -i "0,/^[[:space:]]*\];\$/s//    ${pkg}\n  ]/" "$file"
+    sed -i "0,/^[[:space:]]*\];\$/s//    ${pkg}\n  ];/" "$file"
     echo "added '$pkg' to packages.nix - re-activating Home Manager..."
     (cd "$HOME/dotfiles" && nix run home-manager/master -- switch --flake '.#zeyad')
 }
