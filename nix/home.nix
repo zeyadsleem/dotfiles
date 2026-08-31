@@ -13,7 +13,6 @@
     ./modules/kitty.nix
     ./modules/yazi.nix
     ./modules/dotfiles.nix
-    ./modules/scripts.nix
   ];
 
   programs.home-manager.enable = true;
