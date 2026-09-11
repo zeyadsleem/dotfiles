@@ -3,6 +3,9 @@
   home.packages = with pkgs; [
     git
     neovim
+    nil
+    nixfmt-rfc-style
+    statix
     ripgrep
     fd
     zoxide
