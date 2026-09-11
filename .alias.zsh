@@ -33,7 +33,7 @@ alias o='opencode'
 command -v eza &>/dev/null && {
     alias ls='eza -la --icons --git --group-directories-first'
     alias l='eza -a --icons --group-directories-first'
-    alias lt='eza -la --icons --tree --level=2 --ignore-glob="**/node_modules|**/.git"'
+    alias lt='eza -la --icons --tree --level=4 --ignore-glob="**/node_modules|**/.git"'
 }
 
 command -v bat &>/dev/null && alias cat='bat --style=plain'
