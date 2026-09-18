@@ -5,3 +5,9 @@ local map = vim.keymap.set
 
 map("i", "jj", "<Esc>", { desc = "Exit insert mode" })
 map("n", "<leader>w", "<cmd>w<cr>", { desc = "Save file" })
+map(
+  "n",
+  "<leader>fd",
+  "<cmd>lua os.remove(vim.api.nvim_buf_get_name(0))<CR><cmd>bd!<CR>",
+  { desc = "Delete current file" }
+)
