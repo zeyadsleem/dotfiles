@@ -20,5 +20,7 @@
     btop
     tree
     unzip
+    ffmpeg
+    yt-dlp
   ];
 }

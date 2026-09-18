@@ -7,17 +7,21 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
-  outputs = { nixpkgs, home-manager, ... }:
+  outputs =
+    { nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-    in {
+    in
+    {
       homeConfigurations."zeyad" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
+
+        extraSpecialArgs = {
+          dotfilesDir = "/home/zeyad/dotfiles";
+        };
+
         modules = [
-          ({ config, ... }: {
-            _module.args.dotfilesDir = config.home.homeDirectory + "/dotfiles";
-          })
           ./nix/home.nix
         ];
       };
