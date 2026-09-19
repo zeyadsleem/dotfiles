@@ -11,4 +11,3 @@ map(
   "<cmd>lua os.remove(vim.api.nvim_buf_get_name(0))<CR><cmd>bd!<CR>",
   { desc = "Delete current file" }
 )
-map("n", "dm", "<cmd>delmarks m<cr>", { desc = "Delete mark m" })
