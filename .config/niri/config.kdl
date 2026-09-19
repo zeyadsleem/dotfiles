@@ -192,7 +192,7 @@ binds {
     Mod+Shift+F { fullscreen-window; }
     Mod+M { maximize-window-to-edges; }
     Mod+Ctrl+F { expand-column-to-available-width; }
-    Mod+C { center-column; }
+    Mod+Shift+C { center-column; }
     Mod+Ctrl+C { center-visible-columns; }
 
     Mod+Minus { set-column-width "-10%"; }
@@ -223,8 +223,8 @@ binds {
 
     Mod+Shift+O { spawn "brave"; }
 
-    Mod+Shift+C { spawn-sh "cliphist list | fuzzel -d -w 50 -l 15 -p 'Select from clipboard: ' | cliphist decode | wl-copy"; }
-    Mod+Shift+X { spawn-sh "cliphist list | fuzzel -d -w 50 -l 15 -p 'Select entry to delete: ' | cliphist delete"; }
+    Mod+C { spawn-sh "cliphist list | fuzzel -d -w 50 -l 15 -p 'Select from clipboard: ' | cliphist decode | wl-copy"; }
+    Mod+X { spawn-sh "cliphist list | fuzzel -d -w 50 -l 15 -p 'Select entry to delete: ' | cliphist delete"; }
 
     Mod+Shift+Period { spawn "hyprpicker" "--autocopy"; }
 
