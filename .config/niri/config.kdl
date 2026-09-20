@@ -232,7 +232,8 @@ binds {
 
     Mod+Space { spawn-sh "~/.local/bin/switch-layout.sh"; }
 
-    Mod+Ctrl+Grave { spawn "pkill" "-SIGUSR1" "waybar"; }
+    Mod+Ctrl+Grave { spawn-sh "~/.local/bin/toggle-waybar.sh"; }
+    Mod+Shift+Grave { spawn-sh "~/.local/bin/toggle-waybar.sh"; }
 }
 
 window-rule {
