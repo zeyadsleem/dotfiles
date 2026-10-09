@@ -1,6 +1,35 @@
-{ config, lib, dotfilesDir, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  dotfilesDir,
+  ...
+}:
 {
   home.file = {
+    # Keep OpenCode's existing config repo; manage only these integrations here.
+    ".config/opencode/plugins/desktop-notifications.ts" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/opencode/plugins/desktop-notifications.ts";
+    };
+    ".config/opencode/plugins/workmux-status.ts" = {
+      source =
+        pkgs.runCommand "workmux-status.ts"
+          {
+            src = pkgs.fetchurl {
+              url = "https://raw.githubusercontent.com/raine/workmux/v0.1.269/resources/opencode/plugins/workmux-status.ts";
+              hash = "sha256-JsGKnyDes7jxIW7G5Xxiok7YcMKv0txZRQT5Ud9VGUw=";
+            };
+          }
+          ''
+            # message.updated carries the session ID inside info, not properties.
+            substitute "$src" "$out" \
+              --replace-fail 'acceptBusyBySession.set(event.properties.sessionID, true)' \
+                             'acceptBusyBySession.set(event.properties.info.sessionID, true)'
+          '';
+    };
+    ".config/workmux/config.yaml" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/workmux/config.yaml";
+    };
     # --- Wayland compositor + friends (Layer 2: config managed, binary stays pacman) ---
     # NOTE: niri linked per-file ONLY (config.kdl). ~/.config/niri is a real dir with
     # local extras (config.kdl.bak*, fix-greetd-keyring.sh, fix-pam-only.sh,

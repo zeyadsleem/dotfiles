@@ -1,0 +1,13 @@
+agent: opencode
+
+panes:
+  - command: <agent>
+    focus: true
+  - split: horizontal
+    size: 12
+
+status_icons:
+  working: '🤖'
+  waiting: '💬'
+  done: '✅'
+nerdfont: false

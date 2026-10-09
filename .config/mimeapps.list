@@ -21,6 +21,8 @@ image/webp=org.gnome.Loupe.desktop
 inode/directory=thunar.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 x-scheme-handler/flywheel-local=Local.desktop
+x-scheme-handler/codex=chatgpt.desktop
+x-scheme-handler/antigravity=antigravity.desktop
 
 [Added Associations]
 x-scheme-handler/mailto=userapp-Evolution-0Q0AF3.desktop;
@@ -43,3 +45,4 @@ image/jpeg=org.gnome.Loupe.desktop;
 image/vnd.microsoft.icon=org.gnome.Loupe.desktop;
 image/gif=org.gnome.Loupe.desktop;
 image/webp=org.gnome.Loupe.desktop;
+x-scheme-handler/antigravity=antigravity.desktop;

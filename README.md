@@ -100,6 +100,40 @@ symlinks would end up pointing at a read-only snapshot, breaking theme switching
 
 ## Notes / pitfalls already hit
 
+### OpenCode + Workmux
+
+Home Manager installs Workmux 0.1.269 and `notify-send`, links the global
+Workmux configuration, and loads two OpenCode plugins automatically:
+
+- The upstream, hash-pinned Workmux status plugin tracks working/waiting/done,
+  with a session-ID compatibility fix for subsequent user messages.
+- `desktop-notifications.ts` sends desktop alerts on questions, permission
+  requests, errors, and completed responses, even when the terminal is focused.
+  Completion alerts for native subagents are suppressed; questions still alert.
+
+These integration files live in this repo. The rest of `~/.config/opencode`
+continues to use its existing independent configuration repo. Do not enable
+another notification plugin alongside this one, to avoid duplicate alerts.
+
+After activating Home Manager, restart OpenCode and reload tmux with
+`tmux source-file ~/.tmux.conf`. Inside a Git project in tmux:
+
+```bash
+workmux add feature-name -p "Describe the task here"
+workmux list
+workmux dashboard
+```
+
+Each task gets its own branch, worktree, and OpenCode window. `Ctrl-a Ctrl-w`
+opens the dashboard, `Ctrl-a Ctrl-t` toggles the sidebar, and `Ctrl-a L` jumps
+to the most recently completed/waiting agent. `workmux merge feature-name`
+merges locally and cleans up; run it only when you intend to merge.
+
+Project-specific setup commands and ignored files belong in the project's
+`.workmux.yaml`; the global configuration only launches OpenCode and a shell.
+
+### Home Manager pitfalls
+
 - **No `executable = true` on out-of-store script links.** Home Manager builds
   `executable = true` files with `cp`, which dereferences the symlink to the
   live-repo path *outside* the Nix sandbox and fails the build. The repo scripts
