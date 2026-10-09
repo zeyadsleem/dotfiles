@@ -7,7 +7,7 @@
 }
 
 window#waybar {
-  background: rgba(18, 18, 24, 0.95);
+  background: rgba(18, 18, 24, 0.8);
   color: #e6e6ef;
 }
 
@@ -22,7 +22,7 @@ window#waybar {
 #clock,
 #tray,
 #custom-power {
-  background: rgba(40, 42, 54, 0.9);
+  background: rgba(40, 42, 54, 0.8);
   border-radius: 10px;
   margin: 4px 2px;
   padding: 0 10px;
