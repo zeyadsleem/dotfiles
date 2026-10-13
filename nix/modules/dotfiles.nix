@@ -7,9 +7,6 @@
 {
   home.file = {
     # Keep OpenCode's existing config repo; manage only these integrations here.
-    ".config/opencode/plugins/desktop-notifications.ts" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/opencode/plugins/desktop-notifications.ts";
-    };
     ".config/opencode/plugins/workmux-status.ts" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/opencode/plugins/workmux-status.ts";
     };
