@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   dotfilesDir,
   ...
 }:
@@ -12,20 +11,7 @@
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/opencode/plugins/desktop-notifications.ts";
     };
     ".config/opencode/plugins/workmux-status.ts" = {
-      source =
-        pkgs.runCommand "workmux-status.ts"
-          {
-            src = pkgs.fetchurl {
-              url = "https://raw.githubusercontent.com/raine/workmux/v0.1.269/resources/opencode/plugins/workmux-status.ts";
-              hash = "sha256-JsGKnyDes7jxIW7G5Xxiok7YcMKv0txZRQT5Ud9VGUw=";
-            };
-          }
-          ''
-            # message.updated carries the session ID inside info, not properties.
-            substitute "$src" "$out" \
-              --replace-fail 'acceptBusyBySession.set(event.properties.sessionID, true)' \
-                             'acceptBusyBySession.set(event.properties.info.sessionID, true)'
-          '';
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/opencode/plugins/workmux-status.ts";
     };
     ".config/workmux/config.yaml" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/workmux/config.yaml";
