@@ -103,17 +103,15 @@ symlinks would end up pointing at a read-only snapshot, breaking theme switching
 ### OpenCode + Workmux
 
 Home Manager installs Workmux 0.1.269 and `notify-send`, links the global
-Workmux configuration, and loads two OpenCode plugins automatically:
+Workmux configuration, and loads the Workmux status OpenCode plugin automatically:
 
 - The upstream, hash-pinned Workmux status plugin tracks working/waiting/done,
   with a session-ID compatibility fix for subsequent user messages.
-- `desktop-notifications.ts` sends desktop alerts on questions, permission
-  requests, errors, and completed responses, even when the terminal is focused.
-  Completion alerts for native subagents are suppressed; questions still alert.
 
 These integration files live in this repo. The rest of `~/.config/opencode`
-continues to use its existing independent configuration repo. Do not enable
-another notification plugin alongside this one, to avoid duplicate alerts.
+continues to use its existing independent configuration repo. Notifications are
+handled natively by OpenCode V2 (system alerts when the terminal is unfocused);
+the custom `desktop-notifications.ts` plugin was removed to avoid duplicate alerts.
 
 After activating Home Manager, restart OpenCode and reload tmux with
 `tmux source-file ~/.tmux.conf`. Inside a Git project in tmux:
