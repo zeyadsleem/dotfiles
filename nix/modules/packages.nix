@@ -42,5 +42,6 @@
     ffmpeg
     yt-dlp
     antigravity
+    mypy
   ];
 }
