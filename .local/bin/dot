@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import datetime
 import json
 import os
 import re
@@ -762,6 +763,238 @@ def nix_drift(
                 command="",
             ))
     return findings
+
+
+COLOR = {
+    "broken": "31",         # red
+    "stale": "35",          # magenta
+    "missing": "38;5;208",  # orange
+    "drift": "33",          # yellow
+    "ok": "32",             # green
+    "muted": "2",           # dim
+}
+
+HEADLINE_SEVERITIES = ("broken", "stale", "missing", "drift")
+
+COUNT_KEYS = ("broken", "stale", "missing", "drift", "info")
+
+RUNTIME_OWNER = "runtime"
+
+TOP_CLI_LIMIT = 12
+
+
+@dataclasses.dataclass(frozen=True)
+class Inventory:
+    """Everything `dot` knows about this machine."""
+    apps: list[dict]
+    cli: list[Source]
+    scripts: dict[str, list[str]]
+    configs: list[Entry]
+    findings: list[Finding]
+    meta: dict
+
+
+def _use_color() -> bool:
+    """True when the output may carry color: a terminal, and no NO_COLOR."""
+    if os.environ.get("NO_COLOR"):
+        return False
+    try:
+        return sys.stdout.isatty()
+    except (AttributeError, ValueError):
+        return False
+
+
+def _paint(text: str, key: str) -> str:
+    code = COLOR.get(key)
+    if not code or not _use_color():
+        return text
+    return f"\033[{code}m{text}\033[0m"
+
+
+def _severity_counts(findings: list[Finding]) -> dict[str, int]:
+    counts = {key: 0 for key in COUNT_KEYS}
+    for finding in findings:
+        if finding.severity in counts:
+            counts[finding.severity] += 1
+    return counts
+
+
+def _managed_configs(inventory: Inventory) -> list[Entry]:
+    """The config entries the user or a tool owns — not the app runtime dirs."""
+    return [entry for entry in inventory.configs if entry.owner.kind != RUNTIME_OWNER]
+
+
+def _breakdown(counts: dict[str, int]) -> str:
+    ordered = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return " · ".join(f"{name} {count}" for name, count in ordered)
+
+
+def _count_line(label: str, count: int, breakdown: str = "") -> str:
+    line = f"  {label:<16}{count:>6}"
+    return f"{line}     {breakdown}" if breakdown else line
+
+
+def _top_cli(inventory: Inventory) -> list[str]:
+    """The curated command line tools: the nix profile, or the tool shims."""
+    names: list[str] = []
+    for kind in ("cli", "binary"):
+        for source in inventory.cli:
+            if source.kind == kind:
+                names.extend(source.items)
+        if names:
+            break
+    return sorted(names)
+
+
+def _inventory_counts(inventory: Inventory) -> list[str]:
+    app_sources: dict[str, int] = {}
+    for app in inventory.apps:
+        source = app.get("source", "unknown")
+        app_sources[source] = app_sources.get(source, 0) + 1
+    packages = {s.name: len(s.items) for s in inventory.cli if s.kind in ("package", "cli")}
+    tooling = {s.name: len(s.items) for s in inventory.cli if s.kind == "binary"}
+    managed = _managed_configs(inventory)
+    owners: dict[str, int] = {}
+    for entry in managed:
+        owners[entry.owner.kind] = owners.get(entry.owner.kind, 0) + 1
+    groups = {group: len(names) for group, names in inventory.scripts.items()}
+    return [
+        _count_line("Desktop apps", len(inventory.apps), _breakdown(app_sources)),
+        _count_line("CLI packages", sum(packages.values()), _breakdown(packages)),
+        _count_line("Tooling", sum(tooling.values()), _breakdown(tooling)),
+        _count_line("AUR / foreign", int(inventory.meta.get("foreign", 0))),
+        _count_line("Orphans", int(inventory.meta.get("orphans", 0)), "safe to remove"),
+        _count_line("Managed configs", len(managed), _breakdown(owners)),
+        _count_line("Local scripts", sum(groups.values()), _breakdown(groups)),
+    ]
+
+
+def _full_lists(inventory: Inventory) -> list[str]:
+    lines = [""]
+    lines.append(f"  Desktop apps ({len(inventory.apps)}):")
+    for app in inventory.apps:
+        lines.append(f"    {app.get('name', '')}")
+    for source in inventory.cli:
+        lines.append(f"  {source.name} ({len(source.items)}):")
+        for item in source.items:
+            lines.append(f"    {item}")
+    for group, names in inventory.scripts.items():
+        lines.append(f"  {group} scripts ({len(names)}):")
+        for name in names:
+            lines.append(f"    {name}")
+    managed = _managed_configs(inventory)
+    lines.append(f"  Managed configs ({len(managed)}):")
+    for entry in managed:
+        lines.append(f"    {entry.path} → {entry.owner.target}  ({entry.owner.kind})")
+    return lines
+
+
+def render_list(inventory: Inventory, *, wide: bool = False, show_all: bool = False) -> str:
+    """The `dot list` view: what is installed, grouped by source."""
+    distro = inventory.meta.get("distro", "unknown")
+    host = inventory.meta.get("host", "unknown")
+    lines = [
+        f"System inventory · {distro} · {host}",
+        "─" * 60,
+    ]
+    lines.extend(_inventory_counts(inventory))
+    top_cli = _top_cli(inventory)
+    if top_cli:
+        lines.append("")
+        lines.append("  Top CLI: " + "  ".join(top_cli if wide else top_cli[:TOP_CLI_LIMIT]))
+    if show_all:
+        lines.extend(_full_lists(inventory))
+    lines.append("")
+    lines.append("  Full lists: dot list --all --cli")
+    return "\n".join(lines)
+
+
+def render_status(inventory: Inventory) -> str:
+    """The `dot status` view: what is broken, stale, missing or drifted."""
+    counts = _severity_counts(inventory.findings)
+    total = sum(counts[key] for key in HEADLINE_SEVERITIES)
+    lines: list[str] = []
+    if total == 0:
+        lines.append(_paint("● no findings", "ok"))
+    else:
+        parts = [f"{counts[key]} {key}" for key in HEADLINE_SEVERITIES if counts[key]]
+        worst = next((key for key in HEADLINE_SEVERITIES if counts[key]), "muted")
+        lines.append(_paint(f"● {total} findings — {', '.join(parts)}", worst))
+    for severity in SEVERITIES:
+        group = [finding for finding in inventory.findings if finding.severity == severity]
+        if not group:
+            continue
+        lines.append("")
+        lines.append(_paint(f"{severity.upper()} ({len(group)})", severity))
+        marker = "✗" if severity in ("broken", "missing") else "~"
+        for finding in group:
+            lines.append(f"  {marker} {finding.path}")
+            if finding.detail:
+                lines.append(f"      {finding.detail}")
+            if finding.fix:
+                lines.append(f"      fix: {finding.fix}")
+    return "\n".join(lines)
+
+
+def _sections(inventory: Inventory) -> dict:
+    cli_items = [
+        {"source": source.name, "name": item}
+        for source in inventory.cli
+        for item in source.items
+    ]
+    script_items = [
+        {"group": group, "name": name}
+        for group, names in inventory.scripts.items()
+        for name in names
+    ]
+    config_items = [
+        {"path": entry.path, "owner": entry.owner.kind, "target": entry.owner.target}
+        for entry in _managed_configs(inventory)
+    ]
+    return {
+        "apps": {"count": len(inventory.apps), "items": list(inventory.apps)},
+        "cli": {"count": len(cli_items), "items": cli_items},
+        "scripts": {"count": len(script_items), "items": script_items},
+        "configs": {"count": len(config_items), "items": config_items},
+    }
+
+
+def _summary(inventory: Inventory) -> dict:
+    by_owner: dict[str, int] = {}
+    for entry in inventory.configs:
+        kind = entry.owner.kind
+        by_owner[kind] = by_owner.get(kind, 0) + 1
+    by_source = {source.name: len(source.items) for source in inventory.cli}
+    total = sum(section["count"] for section in _sections(inventory).values())
+    return {"total": total, "by_source": by_source, "by_owner": by_owner}
+
+
+def inventory_json(inventory: Inventory, *, command: str) -> dict:
+    """The machine readable view, in the frozen shape of spec §7.6."""
+    data = {
+        "tool": "dot",
+        "version": TOOL_VERSION,
+        "command": command,
+        "generated_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "summary": _summary(inventory),
+        "sections": _sections(inventory),
+    }
+    if command == "status":
+        counts = _severity_counts(inventory.findings)
+        data["ok"] = not any(counts[key] for key in HEADLINE_SEVERITIES)
+        data["counts"] = counts
+        data["findings"] = [
+            {
+                "id": finding.id,
+                "severity": finding.severity,
+                "path": finding.path,
+                "detail": finding.detail,
+                "fix": finding.fix,
+                "command": finding.command,
+            }
+            for finding in inventory.findings
+        ]
+    return data
 
 
 def main(argv: list[str] | None = None) -> int:

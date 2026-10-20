@@ -479,3 +479,85 @@ class NixDriftTests(unittest.TestCase):
 
             result = dot.package_binary_map(str(profile), runner=fake_runner)
             self.assertEqual(result, {"neovim": ["nvim"]})
+
+
+class RenderTests(unittest.TestCase):
+    def _inventory(self):
+        return dot.Inventory(
+            apps=[{"name": "Brave Browser", "desktop_file": "Brave.desktop", "source": "system"}],
+            cli=[dot.Source("pacman", ["git", "nvim"], "package")],
+            scripts={"repo": ["set-theme"], "local": ["my-tool"]},
+            configs=[dot.Entry("/home/z/.config/niri", dot.Owner("home-manager", "/repo/.config/niri", "HM"))],
+            findings=[dot.Finding("broken-symlink", "broken", "/home/z/.config/ghostty/config",
+                                   "target missing", "rm /home/z/.config/ghostty/config", "rm /home/z/.config/ghostty/config")],
+            meta={"host": "zeyad", "distro": "EndeavourOS"},
+        )
+
+    def test_render_list_contains_sections_and_counts(self):
+        out = dot.render_list(self._inventory())
+        self.assertIn("Desktop apps", out)
+        self.assertIn("CLI packages", out)
+        self.assertIn("Managed configs", out)
+        self.assertIn("Local scripts", out)
+
+    def test_render_status_groups_by_severity(self):
+        out = dot.render_status(self._inventory())
+        self.assertIn("BROKEN", out)
+        self.assertIn("broken-symlink", out.replace("BROKEN", "broken-symlink") or out)
+        self.assertIn("fix:", out)
+
+    def test_render_status_states_no_findings(self):
+        inv = self._inventory()
+        empty = dot.Inventory(apps=inv.apps, cli=inv.cli, scripts=inv.scripts,
+                              configs=inv.configs, findings=[], meta=inv.meta)
+        self.assertIn("no findings", dot.render_status(empty).lower())
+
+    def test_inventory_json_matches_frozen_schema(self):
+        data = dot.inventory_json(self._inventory(), command="list")
+        self.assertEqual(set(data) >= {"tool", "version", "command", "generated_at", "summary", "sections"}, True)
+        self.assertEqual(data["tool"], "dot")
+        self.assertEqual(data["version"], "1")
+        self.assertEqual(set(data["sections"]), {"apps", "cli", "scripts", "configs"})
+
+    def test_status_json_has_counts_and_findings(self):
+        data = dot.inventory_json(self._inventory(), command="status")
+        self.assertEqual(data["ok"], False)
+        self.assertEqual(data["counts"]["broken"], 1)
+        self.assertEqual(data["findings"][0]["severity"], "broken")
+
+    def test_render_list_shows_the_source_breakdown(self):
+        out = dot.render_list(self._inventory())
+        self.assertIn("system 1", out)
+        self.assertIn("pacman 2", out)
+        self.assertIn("EndeavourOS", out)
+
+    def test_render_list_leaves_runtime_configs_out_of_the_count(self):
+        inv = dot.Inventory(
+            apps=[], cli=[], scripts={},
+            configs=[
+                dot.Entry("/home/z/.config/niri", dot.Owner("home-manager", "/repo/.config/niri", "HM")),
+                dot.Entry("/home/z/.config/app", dot.Owner("runtime", "/home/z/.config/app", "local file")),
+            ],
+            findings=[], meta={},
+        )
+        out = dot.render_list(inv)
+        self.assertIn("Managed configs      1", out)
+
+    def test_inventory_json_uses_the_frozen_item_shapes(self):
+        data = dot.inventory_json(self._inventory(), command="list")
+        self.assertEqual(set(data["sections"]["apps"]["items"][0]), {"name", "desktop_file", "source"})
+        self.assertEqual(set(data["sections"]["cli"]["items"][0]), {"source", "name"})
+        self.assertEqual(set(data["sections"]["scripts"]["items"][0]), {"group", "name"})
+        self.assertEqual(set(data["sections"]["configs"]["items"][0]), {"path", "owner", "target"})
+
+    def test_status_json_counts_have_the_frozen_keys(self):
+        data = dot.inventory_json(self._inventory(), command="status")
+        self.assertEqual(set(data["counts"]), {"broken", "stale", "missing", "drift", "info"})
+
+    def test_status_json_is_ok_without_findings(self):
+        inv = self._inventory()
+        empty = dot.Inventory(apps=inv.apps, cli=inv.cli, scripts=inv.scripts,
+                              configs=inv.configs, findings=[], meta=inv.meta)
+        data = dot.inventory_json(empty, command="status")
+        self.assertEqual(data["ok"], True)
+        self.assertEqual(data["findings"], [])
