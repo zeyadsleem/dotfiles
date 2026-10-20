@@ -382,6 +382,199 @@ def findings_from_entries(entries: list[Entry]) -> list[Finding]:
     return findings
 
 
+@dataclasses.dataclass(frozen=True)
+class Source:
+    """One place software comes from: pacman, the nix profile, desktop files, scripts."""
+
+    name: str
+    items: list[str]
+    kind: str
+
+
+TOOL_DIRS: tuple[tuple[str, str], ...] = (
+    ("mise", ".local/share/mise/shims"),
+    ("uv", ".local/share/uv/tools"),
+    ("go", "go/bin"),
+    ("vite-plus", ".vite-plus/bin"),
+    ("opencode", ".opencode/bin"),
+)
+
+PROFILE_BIN_REL = ".local/state/nix/profiles/profile/bin"
+
+
+def _run(cmd: list[str], runner=None) -> str:
+    """The stdout of a command, or an empty string when it is missing or fails."""
+    run = runner or subprocess.run
+    try:
+        proc = run(cmd, capture_output=True, text=True, check=False)
+    except (FileNotFoundError, OSError):
+        return ""
+    if proc.returncode != 0:
+        return ""
+    return proc.stdout
+
+
+def _split_lines(text: str) -> list[str]:
+    return [line.strip() for line in text.splitlines() if line.strip()]
+
+
+def _dir_names(directory: str) -> list[str] | None:
+    """The sorted entries of a directory, or None when it cannot be read."""
+    try:
+        names = os.listdir(directory)
+    except OSError:
+        return None
+    return sorted(names)
+
+
+def default_repo_dir() -> str:
+    """The dotfiles repository that ships this script, found by walking up to `.git`."""
+    directory = os.path.dirname(os.path.realpath(__file__))
+    while True:
+        if os.path.exists(os.path.join(directory, ".git")):
+            return directory
+        parent = os.path.dirname(directory)
+        if parent == directory:
+            return ""
+        directory = parent
+
+
+def collect_pacman(runner=None) -> dict[str, list[str]]:
+    """Installed system packages, foreign (AUR) packages and orphans."""
+    return {
+        "system": _split_lines(_run(["pacman", "-Qq"], runner)),
+        "foreign": _split_lines(_run(["pacman", "-Qmq"], runner)),
+        "orphans": _split_lines(_run(["pacman", "-Qdtq"], runner)),
+    }
+
+
+def collect_profile_bins(profile_dir: str | None = None) -> list[str]:
+    """The binaries the nix profile puts on PATH, without the hidden wrappers."""
+    directory = profile_dir or str(Path.home() / PROFILE_BIN_REL)
+    names = _dir_names(directory)
+    if names is None:
+        return []
+    return [name for name in names if not name.startswith(".")]
+
+
+def collect_desktop_entries(dirs: list[str], *, home: str | None = None) -> list[dict]:
+    """The installed applications, read from their `.desktop` files."""
+    base = home if home is not None else str(Path.home())
+    entries: list[dict] = []
+    for directory in dirs:
+        names = _dir_names(directory)
+        if names is None:
+            continue
+        for name in names:
+            if not name.endswith(".desktop"):
+                continue
+            path = os.path.join(directory, name)
+            try:
+                with open(path, encoding="utf-8", errors="replace") as handle:
+                    content = handle.read()
+            except OSError:
+                continue
+            label = ""
+            for line in content.splitlines():
+                if line.startswith("Name="):
+                    label = line[len("Name="):].strip()
+                    break
+            if not label:
+                continue
+            entries.append({
+                "name": label,
+                "desktop_file": path,
+                "source": "user" if _is_under(os.path.realpath(path), base) else "system",
+            })
+    return entries
+
+
+def _git_tracked(path: str, repo_dir: str) -> bool:
+    """True when git tracks `path` inside `repo_dir`."""
+    repo = os.path.realpath(repo_dir)
+    try:
+        relative = os.path.relpath(path, repo)
+    except ValueError:
+        return False
+    if relative.startswith(".."):
+        return False
+    output = _run(["git", "-C", repo, "ls-files", "--error-unmatch", "--", relative])
+    return bool(output.strip())
+
+
+def collect_scripts(bin_dir: str, repo_dir: str | None = None) -> dict[str, list[str]]:
+    """The scripts in `bin_dir`, split into repo-owned and locally installed."""
+    names = _dir_names(bin_dir)
+    if names is None:
+        return {"repo": [], "local": []}
+    repo: list[str] = []
+    local: list[str] = []
+    for name in names:
+        if name.startswith("."):
+            continue
+        path = os.path.join(os.path.realpath(bin_dir), name)
+        if repo_dir and _git_tracked(path, repo_dir):
+            repo.append(name)
+        else:
+            local.append(name)
+    return {"repo": repo, "local": local}
+
+
+def collect_outdated(runner=None) -> list[str]:
+    """Packages with a newer version available. Reaches the network — opt in only."""
+    packages: list[str] = []
+    for line in _run(["checkupdates"], runner).splitlines():
+        parts = line.split()
+        if parts:
+            packages.append(parts[0])
+    return packages
+
+
+def collect_repo_state(repo_dir: str | None = None) -> dict[str, list[str]]:
+    """The uncommitted changes in the dotfiles repository."""
+    directory = repo_dir if repo_dir is not None else default_repo_dir()
+    if not directory:
+        return {"modified": [], "untracked": []}
+    modified: list[str] = []
+    untracked: list[str] = []
+    for raw in _run(["git", "-C", directory, "status", "--porcelain"]).splitlines():
+        if not raw.strip():
+            continue
+        # Porcelain lines are `XY<space>path`; the status field may start with a
+        # space, so the path starts at index 3 and is only left-trimmed.
+        path = raw[2:].lstrip()
+        if raw.startswith("??"):
+            untracked.append(path)
+        else:
+            modified.append(path)
+    return {"modified": modified, "untracked": untracked}
+
+
+def tool_dir_paths(home: str | None = None) -> list[str]:
+    """The absolute paths of the tool directories, for the given home."""
+    base = home if home is not None else str(Path.home())
+    return [os.path.join(base, relative) for _, relative in TOOL_DIRS]
+
+
+def _tool_label(path: str) -> str:
+    normalized = os.path.normpath(path)
+    for label, relative in TOOL_DIRS:
+        if normalized.endswith(relative):
+            return label
+    return os.path.basename(normalized)
+
+
+def collect_tool_dirs(dirs: list[str]) -> dict[str, list[str]]:
+    """The entries of each tool directory that exists, keyed by tool."""
+    found: dict[str, list[str]] = {}
+    for directory in dirs:
+        names = _dir_names(directory)
+        if names is None:
+            continue
+        found[_tool_label(directory)] = names
+    return found
+
+
 def main(argv: list[str] | None = None) -> int:
     raise NotImplementedError("subcommands land in later tasks")
 

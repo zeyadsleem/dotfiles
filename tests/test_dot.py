@@ -271,3 +271,133 @@ class TokenResolutionTests(unittest.TestCase):
             target.write_text("x")
             with mock.patch.dict(os.environ, {"HOME": str(t.path)}):
                 self.assertEqual(dot.resolve_token("$HOME/bin/tool"), str(target))
+
+
+class CollectorTests(unittest.TestCase):
+    def test_collect_pacman_splits_system_foreign_orphans(self):
+        def fake_runner(cmd, **kwargs):
+            if cmd[:2] == ["pacman", "-Qq"]:
+                return subprocess.CompletedProcess(cmd, 0, "a\nb\nc\n", "")
+            if cmd[:2] == ["pacman", "-Qmq"]:
+                return subprocess.CompletedProcess(cmd, 0, "c\n", "")
+            if cmd[:2] == ["pacman", "-Qdtq"]:
+                return subprocess.CompletedProcess(cmd, 0, "b\n", "")
+            raise AssertionError(f"unexpected command {cmd}")
+        result = dot.collect_pacman(runner=fake_runner)
+        self.assertEqual(result["system"], ["a", "b", "c"])
+        self.assertEqual(result["foreign"], ["c"])
+        self.assertEqual(result["orphans"], ["b"])
+
+    def test_collect_pacman_degrades_when_pacman_missing(self):
+        def fake_runner(cmd, **kwargs):
+            raise FileNotFoundError("pacman")
+        self.assertEqual(dot.collect_pacman(runner=fake_runner),
+                         {"system": [], "foreign": [], "orphans": []})
+
+    def test_collect_profile_bins_skips_hidden_wrappers(self):
+        with TempTree() as t:
+            (t.path / "nvim").write_text("x")
+            (t.path / ".nvim-wrapped").write_text("x")
+            self.assertEqual(dot.collect_profile_bins(str(t.path)), ["nvim"])
+
+    def test_collect_profile_bins_missing_dir_returns_empty(self):
+        self.assertEqual(dot.collect_profile_bins("/nonexistent/path"), [])
+
+    def test_collect_scripts_splits_repo_and_local(self):
+        with TempTree() as t:
+            (t.path / "set-theme").write_text("x")
+            (t.path / "my-tool").write_text("x")
+            result = dot.collect_scripts(str(t.path), repo_dir=str(t.path))
+            self.assertIn("my-tool", result["local"])
+
+    def test_collect_scripts_separates_git_tracked_from_untracked(self):
+        with TempTree() as t:
+            repo = t.path / "dotfiles"
+            (repo / ".local" / "bin").mkdir(parents=True)
+            (repo / ".local" / "bin" / "tracked-tool").write_text("x")
+            subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(repo), "add", ".local/bin/tracked-tool"],
+                           check=True, capture_output=True)
+            (repo / ".local" / "bin" / "loose-tool").write_text("x")
+            result = dot.collect_scripts(str(repo / ".local" / "bin"), repo_dir=str(repo))
+            self.assertEqual(result["repo"], ["tracked-tool"])
+            self.assertEqual(result["local"], ["loose-tool"])
+
+    def test_collect_desktop_entries_reads_name(self):
+        with TempTree() as t:
+            (t.path / "Brave.desktop").write_text("[Desktop Entry]\nName=Brave Browser\nExec=brave\n")
+            entries = dot.collect_desktop_entries([str(t.path)])
+            self.assertEqual(entries[0]["name"], "Brave Browser")
+
+    def test_collect_desktop_entries_skips_entries_without_a_name(self):
+        with TempTree() as t:
+            (t.path / "Nameless.desktop").write_text("[Desktop Entry]\nExec=x\n")
+            (t.path / "Named.desktop").write_text("[Desktop Entry]\nName=Named\nExec=x\n")
+            entries = dot.collect_desktop_entries([str(t.path)])
+            self.assertEqual([e["name"] for e in entries], ["Named"])
+
+    def test_collect_desktop_entries_marks_user_source(self):
+        with TempTree() as t:
+            home = t.path / "home"
+            applications = home / ".local" / "share" / "applications"
+            applications.mkdir(parents=True)
+            (applications / "A.desktop").write_text("[Desktop Entry]\nName=App A\nExec=a\n")
+            entries = dot.collect_desktop_entries([str(applications)], home=str(home))
+            self.assertEqual(entries[0]["source"], "user")
+            self.assertEqual(sorted(entries[0]), ["desktop_file", "name", "source"])
+
+    def test_collect_outdated_is_empty_when_command_missing(self):
+        def fake_runner(cmd, **kwargs):
+            raise FileNotFoundError("checkupdates")
+        self.assertEqual(dot.collect_outdated(runner=fake_runner), [])
+
+    def test_collect_outdated_keeps_only_the_package_name(self):
+        def fake_runner(cmd, **kwargs):
+            return subprocess.CompletedProcess(cmd, 0, "linux 6.9.1-1 -> 6.9.2-1\n", "")
+        self.assertEqual(dot.collect_outdated(runner=fake_runner), ["linux"])
+
+    def test_collect_repo_state_missing_repo_is_empty(self):
+        self.assertEqual(dot.collect_repo_state("/nonexistent/repo"),
+                         {"modified": [], "untracked": []})
+
+    def test_collect_repo_state_splits_modified_and_untracked(self):
+        with TempTree() as t:
+            repo = t.path / "dotfiles"
+            repo.mkdir()
+            tracked = repo / "file.txt"
+            tracked.write_text("one\n")
+            subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(repo), "add", "file.txt"], check=True, capture_output=True)
+            tracked.write_text("two\n")
+            (repo / "loose.txt").write_text("x")
+            state = dot.collect_repo_state(str(repo))
+            self.assertIn("file.txt", state["modified"])
+            self.assertIn("loose.txt", state["untracked"])
+
+    def test_collect_repo_state_keeps_dotted_paths_intact(self):
+        with TempTree() as t:
+            repo = t.path / "dotfiles"
+            repo.mkdir()
+            tracked = repo / ".config"
+            tracked.mkdir()
+            (tracked / "accels.scm").write_text("x")
+            subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(repo), "add", ".config/accels.scm"],
+                           check=True, capture_output=True)
+            subprocess.run(
+                ["git", "-C", str(repo), "-c", "user.email=dot@example.com",
+                 "-c", "user.name=dot", "commit", "-q", "-m", "init"],
+                check=True, capture_output=True,
+            )
+            (tracked / "accels.scm").write_text("y")
+            state = dot.collect_repo_state(str(repo))
+            self.assertIn(".config/accels.scm", state["modified"])
+
+    def test_collect_tool_dirs_omits_missing_and_labels_existing(self):
+        with TempTree() as t:
+            shims = t.path / ".local" / "share" / "mise" / "shims"
+            shims.mkdir(parents=True)
+            (shims / "node").write_text("x")
+            result = dot.collect_tool_dirs(dot.tool_dir_paths(home=str(t.path)))
+            self.assertEqual(result["mise"], ["node"])
+            self.assertNotIn("uv", result)
