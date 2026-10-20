@@ -575,6 +575,195 @@ def collect_tool_dirs(dirs: list[str]) -> dict[str, list[str]]:
     return found
 
 
+DECLARATIONS_FILE = "nix/modules/packages.nix"
+
+DECLARED_NAME_RE = re.compile(r"^\s{4}([a-zA-Z0-9_.-]+)\s*$")
+
+PNAME_RE = re.compile(r'pname\s*=\s*"([^"]+)"')
+
+STORE_NAME_RE = re.compile(r"^[a-z0-9]{32}-(.+)$")
+
+VERSION_RE = re.compile(r"-\d")
+
+
+def parse_declared_packages(text: str) -> set[str]:
+    """The package names declared in `nix/modules/packages.nix`."""
+    names: set[str] = set()
+    in_derivation = False
+    for line in text.splitlines():
+        if "mkDerivation" in line:
+            in_derivation = True
+        if in_derivation:
+            # A hand written derivation declares its package through `pname`;
+            # the attribute names inside the block are not packages.
+            match = PNAME_RE.search(line)
+            if match:
+                names.add(match.group(1))
+            if line.strip().startswith("})"):
+                in_derivation = False
+            continue
+        match = DECLARED_NAME_RE.match(line)
+        if match:
+            names.add(match.group(1))
+    return names
+
+
+def _store_package_path(target: str) -> str:
+    """The store path of the nix package that provides `target`."""
+    index = target.find(STORE_MARKER)
+    if index < 0:
+        return ""
+    package, _, _ = target[index + len(STORE_MARKER):].partition("/")
+    return STORE_MARKER + package if package else ""
+
+
+def _strip_version(name: str) -> str:
+    """A nixpkgs package name without its version suffix."""
+    match = VERSION_RE.search(name)
+    return name[:match.start()] if match else name
+
+
+def _package_name(store_path: str) -> str:
+    """The package name of a nix store path."""
+    base = os.path.basename(store_path)
+    match = STORE_NAME_RE.match(base)
+    return _strip_version(match.group(1) if match else base)
+
+
+def package_binary_map(profile_dir: str | None = None, runner=None) -> dict[str, list[str]]:
+    """The profile binaries each nix package provides, keyed by package name."""
+    directory = profile_dir or str(Path.home() / PROFILE_BIN_REL)
+    packages: dict[str, list[str]] = {}
+    for name in collect_profile_bins(directory):
+        target = os.path.realpath(os.path.join(directory, name))
+        package = _store_package_path(target)
+        if package:
+            packages.setdefault(package, []).append(name)
+    if not packages:
+        return {}
+    output = _run(["nix", "path-info", "--json", *sorted(packages)], runner)
+    if not output.strip():
+        return {}
+    try:
+        data = json.loads(output)
+    except ValueError:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    result: dict[str, list[str]] = {}
+    for package_path, binaries in packages.items():
+        info = data.get(package_path)
+        label = ""
+        if isinstance(info, dict):
+            name = info.get("name")
+            if isinstance(name, str) and name:
+                label = _strip_version(name)
+        if not label:
+            label = _package_name(package_path)
+        result.setdefault(label, []).extend(binaries)
+    return {label: sorted(bins) for label, bins in sorted(result.items())}
+
+
+def _same_package(declared: str, other: str) -> bool:
+    """True when `other` names the same package as `declared`.
+
+    nixpkgs is not consistent about package names: the attribute `antigravity`
+    ships the package `antigravity-ide`, `nixfmt-rfc-style` ships `nixfmt`, and
+    the python packages carry a `python3.14-` prefix.
+    """
+    if declared == other:
+        return True
+    return (
+        other.startswith(declared + "-")
+        or declared.startswith(other + "-")
+        or other.endswith("-" + declared)
+        or declared.endswith("-" + other)
+    )
+
+
+def nix_drift(
+    declared: set[str],
+    installed: set[str],
+    package_bins: dict[str, list[str]],
+) -> list[Finding]:
+    """The drift between the declared packages and the ones the profile provides."""
+    findings: list[Finding] = []
+    for package in sorted(declared):
+        candidates = set(package_bins.get(package) or [package])
+        satisfied = any(candidate in installed for candidate in candidates)
+        if not satisfied:
+            satisfied = any(_same_package(package, binary) for binary in installed)
+        if not satisfied:
+            findings.append(Finding(
+                id="nix-not-installed",
+                severity="drift",
+                path=DECLARATIONS_FILE,
+                detail=f"`{package}` declared in nix/modules/packages.nix but not installed",
+                fix="dot pkg sync",
+                command="",
+            ))
+
+    owner_of: dict[str, str] = {}
+    for package, binaries in package_bins.items():
+        for binary in binaries:
+            owner_of.setdefault(binary, package)
+
+    if package_bins:
+        undeclared: dict[str, list[str]] = {}
+        unknown_owner: list[str] = []
+        for binary in sorted(installed):
+            owner = owner_of.get(binary)
+            if owner is None:
+                if not any(_same_package(name, binary) for name in declared):
+                    unknown_owner.append(binary)
+                continue
+            if any(_same_package(name, owner) for name in declared):
+                continue
+            undeclared.setdefault(owner, []).append(binary)
+        for owner, binaries in sorted(undeclared.items()):
+            findings.append(Finding(
+                id="nix-undeclared",
+                severity="drift",
+                path=DECLARATIONS_FILE,
+                detail=(
+                    f"`{owner}` is installed in the Nix profile but not declared "
+                    f"in packages.nix ({', '.join(binaries)})"
+                ),
+                fix=f"add {owner} to nix/modules/packages.nix",
+                command="",
+            ))
+        for binary in unknown_owner:
+            findings.append(Finding(
+                id="nix-undeclared",
+                severity="drift",
+                path=DECLARATIONS_FILE,
+                detail=(
+                    f"`{binary}` is installed in the Nix profile but not declared "
+                    "in packages.nix (owner unknown)"
+                ),
+                fix=f"add {binary} to nix/modules/packages.nix",
+                command="",
+            ))
+    elif not findings:
+        unattributed = [
+            binary for binary in sorted(installed)
+            if not any(_same_package(name, binary) for name in declared)
+        ]
+        if unattributed:
+            findings.append(Finding(
+                id="nix-unattributed",
+                severity="drift",
+                path=DECLARATIONS_FILE,
+                detail=(
+                    "installed in the Nix profile but not declared in packages.nix "
+                    f"(owner unknown): {', '.join(unattributed)}"
+                ),
+                fix="add them to nix/modules/packages.nix",
+                command="",
+            ))
+    return findings
+
+
 def main(argv: list[str] | None = None) -> int:
     raise NotImplementedError("subcommands land in later tasks")
 

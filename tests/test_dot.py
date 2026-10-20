@@ -1,6 +1,7 @@
 import contextlib
 import importlib.machinery
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -401,3 +402,80 @@ class CollectorTests(unittest.TestCase):
             result = dot.collect_tool_dirs(dot.tool_dir_paths(home=str(t.path)))
             self.assertEqual(result["mise"], ["node"])
             self.assertNotIn("uv", result)
+
+
+class NixDriftTests(unittest.TestCase):
+    def test_parses_declared_names(self):
+        text = "{\n  home.packages = with pkgs; [\n    git\n    ripgrep\n    traceroute\n  ];\n}\n"
+        self.assertEqual(dot.parse_declared_packages(text), {"git", "ripgrep", "traceroute"})
+
+    def test_keeps_the_package_name_of_a_derivation_block(self):
+        text = (
+            "{\n  home.packages = with pkgs; [\n"
+            "    git\n"
+            "    (stdenvNoCC.mkDerivation {\n"
+            "      pname = \"workmux\";\n"
+            "      version = \"0.1.269\";\n"
+            "    })\n"
+            "    ripgrep\n"
+            "  ];\n}\n"
+        )
+        self.assertEqual(dot.parse_declared_packages(text), {"git", "workmux", "ripgrep"})
+
+    def test_detects_declared_but_not_installed(self):
+        findings = dot.nix_drift({"traceroute"}, {"nvim", "git"}, {})
+        self.assertEqual([f.severity for f in findings], ["drift"])
+        self.assertIn("traceroute", findings[0].detail)
+
+    def test_detects_installed_but_not_declared(self):
+        findings = dot.nix_drift({"git"}, {"git", "mandb"}, {"git": ["git"]})
+        self.assertEqual([f.severity for f in findings], ["drift"])
+        self.assertIn("mandb", findings[0].detail)
+
+    def test_no_findings_when_all_declared_are_installed(self):
+        findings = dot.nix_drift({"git"}, {"git"}, {"git": ["git"]})
+        self.assertEqual(findings, [])
+
+    def test_declared_package_is_satisfied_by_a_renamed_binary(self):
+        # nixpkgs ships `antigravity` as the package `antigravity-ide`.
+        findings = dot.nix_drift({"antigravity"}, {"antigravity-ide"}, {})
+        self.assertEqual(findings, [])
+
+    def test_declared_package_is_satisfied_by_a_shorter_package_name(self):
+        # the attribute `nixfmt-rfc-style` provides the package `nixfmt`.
+        findings = dot.nix_drift({"nixfmt-rfc-style"}, {"nixfmt"}, {})
+        self.assertEqual(findings, [])
+
+    def test_reports_an_undeclared_package_once(self):
+        findings = dot.nix_drift(
+            {"git"}, {"git", "man", "mandb"}, {"git": ["git"], "man-db": ["man", "mandb"]}
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertIn("man-db", findings[0].detail)
+
+    def test_reports_unattributed_binaries_when_nix_is_unavailable(self):
+        findings = dot.nix_drift({"git"}, {"git", "mystery"}, {})
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].id, "nix-unattributed")
+        self.assertIn("mystery", findings[0].detail)
+
+    def test_package_binary_map_is_empty_without_nix(self):
+        def fake_runner(cmd, **kwargs):
+            raise FileNotFoundError("nix")
+        self.assertEqual(dot.package_binary_map(runner=fake_runner), {})
+
+    def test_package_binary_map_maps_binaries_to_their_package(self):
+        with TempTree() as t:
+            store = t.path / "nix" / "store" / ("a" * 32 + "-neovim-0.12.5") / "bin"
+            store.mkdir(parents=True)
+            (store / "nvim").write_text("x")
+            profile = t.path / "profile" / "bin"
+            profile.mkdir(parents=True)
+            (profile / "nvim").symlink_to(store / "nvim")
+
+            def fake_runner(cmd, **kwargs):
+                payload = json.dumps({path: {} for path in cmd[3:]})
+                return subprocess.CompletedProcess(cmd, 0, payload, "")
+
+            result = dot.package_binary_map(str(profile), runner=fake_runner)
+            self.assertEqual(result, {"neovim": ["nvim"]})
