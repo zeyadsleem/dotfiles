@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 REPO = Path(__file__).resolve().parent.parent
 DOT_PATH = REPO / ".local" / "bin" / "dot"
@@ -144,3 +145,73 @@ class RepoHygieneTests(unittest.TestCase):
             cwd=REPO, capture_output=True,
         )
         self.assertNotEqual(result.returncode, 0, ".local/bin/dot is git-ignored")
+
+
+class SpawnExtractionTests(unittest.TestCase):
+    def test_extracts_plain_spawn(self):
+        refs = dot.extract_spawns('binds {\n  Mod+T { spawn "kitty"; }\n}')
+        self.assertEqual([r.token for r in refs], ["kitty"])
+
+    def test_ignores_arguments_of_a_spawn(self):
+        refs = dot.extract_spawns('spawn "swayosd-client" "--output-volume" "raise";')
+        self.assertEqual([r.token for r in refs], ["swayosd-client"])
+
+    def test_splits_shell_pipeline_into_each_command(self):
+        text = 'spawn-sh "cliphist list | fuzzel -d -w 50 | wl-copy";'
+        self.assertEqual([r.token for r in dot.extract_spawns(text)], ["cliphist", "fuzzel", "wl-copy"])
+
+    def test_splits_shell_operators_or_and_semicolon(self):
+        text = 'spawn-sh "pkill orca || exec orca";'
+        self.assertEqual([r.token for r in dot.extract_spawns(text)], ["pkill", "orca"])
+
+    def test_skips_shell_builtins(self):
+        text = 'spawn-sh "export FOO=1 && niri msg action close-window";'
+        self.assertEqual([r.token for r in dot.extract_spawns(text)], ["niri"])
+
+    def test_records_absolute_path_token(self):
+        text = 'spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1";'
+        self.assertEqual([r.token for r in dot.extract_spawns(text)],
+                         ["/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"])
+
+    def test_records_path_argument_of_a_spawn(self):
+        # `spawn-at-startup "bash" "/home/zeyad/.local/bin/headset-popup-daemon"`
+        # first token is the program, the path argument is checked too
+        refs = dot.extract_spawns('spawn-at-startup "bash" "/home/zeyad/.local/bin/headset-popup-daemon";')
+        self.assertEqual([r.token for r in refs], ["bash", "/home/zeyad/.local/bin/headset-popup-daemon"])
+
+    def test_startup_spawns_are_not_labelled_with_a_stale_block_header(self):
+        text = 'window-rule {\n    match app-id="x"\n}\n\nspawn-at-startup "kanshi";'
+        refs = dot.extract_spawns(text)
+        self.assertEqual([r.context for r in refs], ["startup"])
+
+    def test_records_the_keybind_that_owns_a_spawn(self):
+        refs = dot.extract_spawns('Mod+Shift+S allow-when-locked=true { spawn "kitty"; }')
+        self.assertEqual([r.context for r in refs], ["Mod+Shift+S"])
+
+
+class TokenResolutionTests(unittest.TestCase):
+    def test_resolves_bare_name_on_path(self):
+        self.assertEqual(dot.resolve_token("kitty", path_env="/usr/bin:/bin"), "/usr/bin/kitty")
+
+    def test_returns_none_for_unknown_bare_name(self):
+        self.assertIsNone(dot.resolve_token("definitely-not-installed-xyz", path_env="/usr/bin"))
+
+    def test_resolves_absolute_path(self):
+        with TempTree() as t:
+            f = t.path / "prog"
+            f.write_text("x")
+            self.assertEqual(dot.resolve_token(str(f)), str(f))
+
+    def test_returns_none_for_missing_absolute_path(self):
+        self.assertIsNone(dot.resolve_token("/usr/lib/nope/definitely-missing"))
+
+    def test_expands_tilde_path(self):
+        self.assertIsNone(dot.resolve_token("~/.definitely-missing-xyz"))
+
+    def test_expands_home_environment_prefix(self):
+        with TempTree() as t:
+            target = t.path / "bin" / "tool"
+            target.parent.mkdir()
+            target.write_text("x")
+            with mock.patch.dict(os.environ, {"HOME": str(t.path)}):
+                self.assertEqual(dot.resolve_token("$HOME/bin/tool"), str(target))

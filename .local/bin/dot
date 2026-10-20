@@ -7,6 +7,7 @@ import argparse
 import dataclasses
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -25,6 +26,23 @@ EXCLUDED_CONFIG_DIRS = (
 )
 
 SINGLETON_PREFIX = "Singleton"
+
+SPAWN_KEYWORDS = ("spawn", "spawn-sh", "spawn-at-startup", "spawn-sh-at-startup")
+
+SHELL_SEPARATORS = ("||", "&&", "|", ";")
+
+SHELL_BUILTINS = frozenset({
+    "cd", "exec", "export", "source", ".", "test", "[", "echo", "printf",
+    "command", "builtin", "eval", "set", "unset", "read", "return", "true", "false",
+})
+
+SPAWN_RE = re.compile(
+    r"\b(" + "|".join(sorted(SPAWN_KEYWORDS, key=len, reverse=True)) + r")\b"
+)
+
+QUOTED_RE = re.compile(r'"([^"]*)"')
+
+KEYBIND_RE = re.compile(r"^[A-Za-z0-9_+.\-]+")
 
 STORE_MARKER = "/nix/store/"
 HM_MARKER = "-home-manager-files"
@@ -123,6 +141,104 @@ def classify(
         return Owner("local:tool", target, "nix store path")
 
     return Owner("local:tool", target, "external target")
+
+
+@dataclasses.dataclass(frozen=True)
+class SpawnRef:
+    token: str
+    context: str
+    line: int
+
+
+def _split_shell_segments(text: str) -> list[str]:
+    parts = [text]
+    for sep in SHELL_SEPARATORS:
+        nxt: list[str] = []
+        for part in parts:
+            nxt.extend(part.split(sep))
+        parts = nxt
+    return [p.strip() for p in parts if p.strip()]
+
+
+def _shell_tokens(command: str) -> list[str]:
+    """The command word of every shell segment, skipping builtins, flags and assignments."""
+    tokens: list[str] = []
+    for segment in _split_shell_segments(command):
+        for word in segment.split():
+            if word in SHELL_BUILTINS or word.startswith("-") or "=" in word:
+                continue
+            tokens.append(word)
+            break
+    return tokens
+
+
+def _is_path_token(token: str) -> bool:
+    """True for a quoted path argument a spawn may execute."""
+    if "/" not in token or token.startswith("-"):
+        return False
+    if token.endswith(".sh"):
+        return True
+    home = str(Path.home())
+    if token.startswith(f"{home}/.local/bin/") or token.startswith(f"{home}/.config/niri/scripts/"):
+        return True
+    return "/.local/bin/" in token or "/niri/scripts/" in token
+
+
+def _context_for(line: str, keyword: str, header: str) -> str:
+    """The keybind that owns this spawn, or `startup` when there is none."""
+    index = line.find(keyword)
+    prefix = line[:index].strip() if index >= 0 else ""
+    match = KEYBIND_RE.match(prefix)
+    if match:
+        return match.group(0)
+    return header or "startup"
+
+
+def extract_spawns(config_text: str) -> list[SpawnRef]:
+    """Every command token the niri config spawns, in file order."""
+    refs: list[SpawnRef] = []
+    header = ""
+    for number, line in enumerate(config_text.splitlines(), start=1):
+        match = SPAWN_RE.search(line)
+        if match is None:
+            stripped = line.strip()
+            if stripped == "}":
+                header = ""
+            elif stripped.endswith("{"):
+                candidate = KEYBIND_RE.match(stripped)
+                if candidate:
+                    header = candidate.group(0)
+            continue
+        keyword = match.group(1)
+        quoted = QUOTED_RE.findall(line)
+        if not quoted:
+            continue
+        context = _context_for(line, keyword, "" if keyword.endswith("-at-startup") else header)
+        if keyword.startswith("spawn-sh"):
+            for token in _shell_tokens(quoted[0]):
+                refs.append(SpawnRef(token, context, number))
+            continue
+        if quoted[0]:
+            refs.append(SpawnRef(quoted[0], context, number))
+        for token in quoted[1:]:
+            if _is_path_token(token):
+                refs.append(SpawnRef(token, context, number))
+    return refs
+
+
+def _expand_home(token: str) -> str:
+    """Expand a leading `~` or `$HOME` to the user's home directory."""
+    if token.startswith("$HOME"):
+        return str(Path.home()) + token[len("$HOME"):]
+    return os.path.expanduser(token)
+
+
+def resolve_token(token: str, *, path_env: str | None = None) -> str | None:
+    """The absolute path of a spawn token, or None when it cannot be found."""
+    expanded = _expand_home(token)
+    if "/" in expanded:
+        return expanded if os.path.exists(expanded) else None
+    return shutil.which(expanded, path=path_env)
 
 
 def main(argv: list[str] | None = None) -> int:
