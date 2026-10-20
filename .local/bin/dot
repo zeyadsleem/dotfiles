@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""dot — inventory and health check for this machine. Read-only by design."""
+
+from __future__ import annotations
+
+import argparse
+import dataclasses
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+TOOL_VERSION = "1"
+
+OWNER_KINDS = (
+    "home-manager", "home-manager-stale", "frozen-store", "dotfiles",
+    "local:user", "local:tool", "runtime", "broken",
+)
+
+EXCLUDED_CONFIG_DIRS = (
+    "crush", "goose", "opencode", "Codex", "BraveSoftware",
+    "Local", "chromium", "Antigravity",
+)
+
+SINGLETON_PREFIX = "Singleton"
+
+STORE_MARKER = "/nix/store/"
+HM_MARKER = "-home-manager-files"
+SOURCE_MARKER = "-source"
+
+
+@dataclasses.dataclass(frozen=True)
+class Owner:
+    kind: str
+    target: str
+    reason: str
+
+
+@dataclasses.dataclass(frozen=True)
+class Entry:
+    path: str
+    owner: Owner
+
+
+def is_excluded(name: str) -> bool:
+    return name in EXCLUDED_CONFIG_DIRS or name.startswith(SINGLETON_PREFIX)
+
+
+def _resolve(path: str) -> tuple[str, bool]:
+    """Return (final_target, exists). Uses os.path.realpath, which is cycle-safe."""
+    real = os.path.realpath(path)
+    return real, os.path.exists(path)
+
+
+def _first_hop(path: str) -> str:
+    """The immediate link target of `path`, absolute and normalized."""
+    target = os.readlink(path)
+    if not os.path.isabs(target):
+        target = os.path.join(os.path.dirname(path), target)
+    return os.path.normpath(target)
+
+
+def _store_dir(path: str) -> str:
+    """The nix store directory name inside a store path."""
+    return path.split(STORE_MARKER, 1)[1].split("/", 1)[0]
+
+
+def _is_under(path: str, root: str) -> bool:
+    """True when `path` is `root` or lives inside it (both sides resolved)."""
+    if not root:
+        return False
+    root = os.path.realpath(root)
+    if path == root:
+        return True
+    return path.startswith(root.rstrip("/") + "/")
+
+
+def classify(
+    path: str,
+    *,
+    current_generation: str | None,
+    repo_dir: str,
+    home: str | None = None,
+) -> Owner:
+    if not os.path.islink(path):
+        return Owner("runtime", path, "local file")
+
+    target, exists = _resolve(path)
+    if not exists:
+        return Owner("broken", target, "target missing")
+
+    # A link that lands on a baked `-source` copy reads frozen content, not the repo.
+    if STORE_MARKER in target and SOURCE_MARKER in target:
+        return Owner("frozen-store", target, "frozen store copy")
+
+    # Home Manager links hop through a `home-manager-files` store directory; the
+    # link itself may resolve straight into the repo, so look at the first hop.
+    hop = ""
+    try:
+        hop = _first_hop(path)
+    except OSError:
+        hop = ""
+    if STORE_MARKER in hop and HM_MARKER in hop:
+        hm_source = hop
+    elif STORE_MARKER in target and HM_MARKER in target:
+        hm_source = target
+    else:
+        hm_source = ""
+    if hm_source:
+        if current_generation is not None and current_generation not in _store_dir(hm_source):
+            return Owner("home-manager-stale", target, "older Home Manager generation")
+        return Owner("home-manager", target, "Home Manager (live repo)")
+
+    if _is_under(target, repo_dir):
+        return Owner("dotfiles", target, "dotfiles repo")
+
+    if _is_under(target, home if home is not None else str(Path.home())):
+        return Owner("local:user", target, "user-managed")
+
+    if STORE_MARKER in target:
+        return Owner("local:tool", target, "nix store path")
+
+    return Owner("local:tool", target, "external target")
+
+
+def main(argv: list[str] | None = None) -> int:
+    raise NotImplementedError("subcommands land in later tasks")
+
+
+if __name__ == "__main__":
+    sys.exit(main())

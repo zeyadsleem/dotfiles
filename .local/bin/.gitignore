@@ -5,6 +5,7 @@
 # Custom scripts (shell, python, executable)
 !*.sh
 !*.py
+!dot
 !editor-config
 !emoji-picker
 !set-theme
