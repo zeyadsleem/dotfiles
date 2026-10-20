@@ -189,6 +189,62 @@ class SpawnExtractionTests(unittest.TestCase):
         self.assertEqual([r.context for r in refs], ["Mod+Shift+S"])
 
 
+class ConfigScanTests(unittest.TestCase):
+    def test_reports_broken_link_inside_config_dir(self):
+        with TempTree() as t:
+            cfg = t.path / "config"
+            (cfg / "ghostty").mkdir(parents=True)
+            (cfg / "ghostty" / "config").symlink_to(t.path / "dotfiles" / ".config" / "ghostty" / "config")
+            entries = dot.scan_configs([str(cfg)], current_generation=None, repo_dir=str(t.path / "dotfiles"))
+            kinds = {e.path.split("/")[-1]: e.owner.kind for e in entries}
+            self.assertEqual(kinds.get("config"), "broken")
+
+    def test_skips_excluded_tool_dirs(self):
+        with TempTree() as t:
+            cfg = t.path / "config"
+            (cfg / "crush" / "skills").mkdir(parents=True)
+            (cfg / "crush" / "skills" / "x").symlink_to(t.path / "nope")
+            (cfg / "niri").mkdir()
+            (cfg / "niri" / "config.kdl").write_text("x")
+            entries = dot.scan_configs([str(cfg)], current_generation=None, repo_dir=str(t.path))
+            self.assertFalse(any("/crush/" in e.path for e in entries))
+
+    def test_skips_unreadable_directory(self):
+        with TempTree() as t:
+            cfg = t.path / "config"
+            (cfg / "locked").mkdir(parents=True)
+            (cfg / "locked" / "secret").write_text("x")
+            (cfg / "niri").mkdir()
+            (cfg / "niri" / "config.kdl").write_text("x")
+            os.chmod(cfg / "locked", 0o000)
+            try:
+                entries = dot.scan_configs([str(cfg)], current_generation=None, repo_dir=str(t.path))
+            finally:
+                os.chmod(cfg / "locked", 0o755)
+            self.assertTrue(any(e.path.endswith("config.kdl") for e in entries))
+
+    def test_findings_from_entries_marks_broken_and_stale(self):
+        with TempTree() as t:
+            entries = [dot.Entry("/x/ghostty/config", dot.Owner("broken", "/x/missing", "target missing")),
+                       dot.Entry("/x/lazygit", dot.Owner("frozen-store", "/nix/store/abc-source/.config/lazygit", "frozen store copy"))]
+            findings = dot.findings_from_entries(entries)
+            self.assertEqual([f.severity for f in findings], ["broken", "stale"])
+            self.assertTrue(all(f.fix for f in findings))
+
+    def test_user_exclusion_file_removes_a_directory(self):
+        with TempTree() as t:
+            cfg = t.path / "config"
+            (cfg / "skipme").mkdir(parents=True)
+            (cfg / "skipme" / "inner").symlink_to(t.path / "nope")
+            (cfg / "keep").mkdir()
+            exclude = t.path / "exclude"
+            exclude.write_text("# comment\n\nskipme\n")
+            entries = dot.scan_configs([str(cfg)], current_generation=None, repo_dir=str(t.path),
+                                       exclude_file=str(exclude))
+            self.assertFalse(any("skipme" in e.path for e in entries))
+            self.assertTrue(any("keep" in e.path for e in entries))
+
+
 class TokenResolutionTests(unittest.TestCase):
     def test_resolves_bare_name_on_path(self):
         self.assertEqual(dot.resolve_token("kitty", path_env="/usr/bin:/bin"), "/usr/bin/kitty")

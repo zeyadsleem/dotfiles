@@ -241,6 +241,147 @@ def resolve_token(token: str, *, path_env: str | None = None) -> str | None:
     return shutil.which(expanded, path=path_env)
 
 
+@dataclasses.dataclass(frozen=True)
+class Finding:
+    id: str
+    severity: str
+    path: str
+    detail: str
+    fix: str
+    command: str
+
+
+SEVERITIES = ("broken", "stale", "missing", "drift", "orphan", "info")
+
+DEFAULT_EXCLUDE_FILE = str(Path.home() / ".config" / "dot" / "exclude")
+
+
+def _read_exclusions(exclude_file: str | None) -> tuple[set[str], list[str]]:
+    """Directory basenames and absolute path prefixes the user wants skipped."""
+    path = exclude_file if exclude_file is not None else DEFAULT_EXCLUDE_FILE
+    names: set[str] = set()
+    prefixes: list[str] = []
+    try:
+        with open(path, encoding="utf-8") as handle:
+            raw_lines = handle.readlines()
+    except OSError:
+        return names, prefixes
+    for raw in raw_lines:
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("/"):
+            prefixes.append(line.rstrip("/"))
+        else:
+            names.add(line)
+    return names, prefixes
+
+
+def _is_skipped(path: str, name: str, names: set[str], prefixes: list[str]) -> bool:
+    if is_excluded(name) or name in names:
+        return True
+    for prefix in prefixes:
+        if path == prefix or path.startswith(prefix + "/"):
+            return True
+    return False
+
+
+def _scan_dir(
+    directory: str,
+    *,
+    current_generation: str | None,
+    repo_dir: str,
+    names: set[str],
+    prefixes: list[str],
+    depth: int,
+) -> list[Entry]:
+    try:
+        children = sorted(os.scandir(directory), key=lambda child: child.name)
+    except OSError:
+        return []
+    found: list[Entry] = []
+    for child in children:
+        path = child.path
+        if _is_skipped(path, child.name, names, prefixes):
+            continue
+        try:
+            is_link = child.is_symlink()
+            is_dir = child.is_dir(follow_symlinks=False)
+            owner = classify(path, current_generation=current_generation, repo_dir=repo_dir)
+        except OSError:
+            continue
+        found.append(Entry(path, owner))
+        if depth == 1 and not is_link and is_dir:
+            found.extend(_scan_dir(
+                path,
+                current_generation=current_generation,
+                repo_dir=repo_dir,
+                names=names,
+                prefixes=prefixes,
+                depth=2,
+            ))
+    return found
+
+
+def scan_configs(
+    roots: list[str],
+    *,
+    current_generation: str | None,
+    repo_dir: str,
+    exclude_file: str | None = None,
+) -> list[Entry]:
+    """Every config entry at depth 1, plus the links inside each config dir."""
+    names, prefixes = _read_exclusions(exclude_file)
+    entries: list[Entry] = []
+    for root in roots:
+        entries.extend(_scan_dir(
+            root,
+            current_generation=current_generation,
+            repo_dir=repo_dir,
+            names=names,
+            prefixes=prefixes,
+            depth=1,
+        ))
+    return entries
+
+
+def findings_from_entries(entries: list[Entry]) -> list[Finding]:
+    """Turn ownership entries into findings, ordered by severity."""
+    findings: list[Finding] = []
+    for entry in entries:
+        kind = entry.owner.kind
+        if kind == "broken":
+            findings.append(Finding(
+                id="broken-symlink",
+                severity="broken",
+                path=entry.path,
+                detail=f"the link target does not exist: {entry.owner.target}",
+                fix=f"rm {entry.path}",
+                command=f"rm {entry.path}",
+            ))
+        elif kind == "home-manager-stale":
+            findings.append(Finding(
+                id="stale-home-manager",
+                severity="stale",
+                path=entry.path,
+                detail=f"the link points at an older Home Manager generation: {entry.owner.target}",
+                fix="re-point the link at the current generation",
+                command="",
+            ))
+        elif kind == "frozen-store":
+            findings.append(Finding(
+                id="frozen-store-copy",
+                severity="stale",
+                path=entry.path,
+                detail="the app reads a frozen store copy, not your repo — edits do not apply",
+                fix="re-point the link at the repo path",
+                command="",
+            ))
+    order = {severity: index for index, severity in enumerate(SEVERITIES)}
+    findings.sort(key=lambda finding: order[finding.severity])
+    return findings
+
+
 def main(argv: list[str] | None = None) -> int:
     raise NotImplementedError("subcommands land in later tasks")
 
