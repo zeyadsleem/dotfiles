@@ -8,6 +8,10 @@ lazyvim-guide.html
 session-ses_*.md
 nix-ar/
 
+# Python bytecode from the test suite
+__pycache__/
+*.pyc
+
 # Runtime-generated theme artifacts (set-theme retargets these)
 .config/yazi/theme.toml
 .config/waybar/colors.css

@@ -18,6 +18,26 @@ owns the dots.
 | Undo a broken change | `home-manager switch --rollback` |
 | Change theme | run `~/.local/bin/set-theme <name>` |
 
+## The dot CLI
+
+`dot` is a read-only inventory and health check for this machine. It answers the two questions
+that used to need guessing: *what is installed* and *who owns it* — one command across pacman,
+the Nix profile, the tool shims, your scripts and your config files.
+
+| Command | What it tells you |
+|---|---|
+| `dot list` | what is installed (apps, CLI tools, scripts, managed configs) |
+| `dot list --all` | every item, ungrouped |
+| `dot list --ownership` | who owns each config file |
+| `dot list --json` | machine-readable |
+| `dot status` | broken links, stale copies, missing binaries, drift |
+| `dot status --json` | machine-readable findings |
+
+`dot status` exits `1` when it finds problems, so it can be used in a check or a hook.
+
+The tool is read-only. It never installs, removes or runs `sudo`; every finding comes with a
+fix hint for you to run yourself.
+
 ## How it's organized
 
 ```
@@ -27,15 +47,14 @@ owns the dots.
 ├── .envrc               # `use flake` for direnv
 ├── nix/
 │   ├── home.nix         # imports the modules below
-│   └── modules/         # 8 modules, one concern each:
+│   └── modules/         # 7 modules, one concern each:
 │       ├── packages.nix # home.packages — the CLI tool set
 │       ├── git.nix      # programs.git — git global config
 │       ├── tmux.nix     # links ~/.tmux.conf
 │       ├── zsh.nix      # links ~/.zshrc, ~/.p10k.zsh, ~/.alias.zsh
 │       ├── kitty.nix    # links kitty.conf
 │       ├── yazi.nix     # links ~/.config/yazi
-│       ├── dotfiles.nix # Level 2 configs (niri, waybar, swaync, …)
-│       └── scripts.nix  # Level 3 user scripts → ~/.local/bin
+│       └── dotfiles.nix # Level 2 configs (niri, waybar, swaync, …)
 ├── .config/             # the actual configs (source of truth)
 └── .local/bin/          # user scripts
 ```
@@ -135,7 +154,7 @@ Project-specific setup commands and ignored files belong in the project's
 - **No `executable = true` on out-of-store script links.** Home Manager builds
   `executable = true` files with `cp`, which dereferences the symlink to the
   live-repo path *outside* the Nix sandbox and fails the build. The repo scripts
-  are already `+x`, so plain symlinks preserve executability. (`scripts.nix`)
+  are already `+x`, so plain symlinks preserve executability.
 - **One path, one manager.** Don't declare `.config/lazygit` as a whole directory
   in one module *and* `.config/lazygit/config.yml` per-file in another — Home
   Manager errors with `Error installing file ... outside $HOME`. Link each path

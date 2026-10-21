@@ -1,7 +1,7 @@
 # Design: `dot` — a system CLI layer for the workstation
 
 - **Date:** 2026-10-20
-- **Status:** **Approved by the owner 2026-10-21** — v2 corrected against a live machine audit
+- **Status:** **Phase 1 implemented 2026-10-21** — approved and built per this document
 - **Scope:** Phase 1 — system inventory (`dot list`) and health check (`dot status`)
 - **Author:** designed with zeyad (owner of the machine)
 
