@@ -200,6 +200,10 @@ def extract_spawns(config_text: str) -> list[SpawnRef]:
     refs: list[SpawnRef] = []
     header = ""
     for number, line in enumerate(config_text.splitlines(), start=1):
+        stripped = line.strip()
+        if stripped.startswith("#") or stripped.startswith("//"):
+            # A commented out spawn is not a spawn.
+            continue
         match = SPAWN_RE.search(line)
         if match is None:
             stripped = line.strip()
@@ -295,9 +299,11 @@ def _scan_dir(
     names: set[str],
     prefixes: list[str],
     depth: int,
+    home: str | None = None,
 ) -> list[Entry]:
     try:
-        children = sorted(os.scandir(directory), key=lambda child: child.name)
+        with os.scandir(directory) as scan:
+            children = sorted(scan, key=lambda child: child.name)
     except OSError:
         return []
     found: list[Entry] = []
@@ -308,7 +314,7 @@ def _scan_dir(
         try:
             is_link = child.is_symlink()
             is_dir = child.is_dir(follow_symlinks=False)
-            owner = classify(path, current_generation=current_generation, repo_dir=repo_dir)
+            owner = classify(path, current_generation=current_generation, repo_dir=repo_dir, home=home)
         except OSError:
             continue
         found.append(Entry(path, owner))
@@ -320,6 +326,7 @@ def _scan_dir(
                 names=names,
                 prefixes=prefixes,
                 depth=2,
+                home=home,
             ))
     return found
 
@@ -330,6 +337,7 @@ def scan_configs(
     current_generation: str | None,
     repo_dir: str,
     exclude_file: str | None = None,
+    home: str | None = None,
 ) -> list[Entry]:
     """Every config entry at depth 1, plus the links inside each config dir."""
     names, prefixes = _read_exclusions(exclude_file)
@@ -342,6 +350,7 @@ def scan_configs(
             names=names,
             prefixes=prefixes,
             depth=1,
+            home=home,
         ))
     return entries
 
@@ -494,17 +503,18 @@ def collect_desktop_entries(dirs: list[str], *, home: str | None = None) -> list
     return entries
 
 
-def _git_tracked(path: str, repo_dir: str) -> bool:
-    """True when git tracks `path` inside `repo_dir`."""
+def _git_tracked_paths(bin_dir: str, repo_dir: str) -> set[str]:
+    """The repo relative paths of the tracked files inside `bin_dir`."""
     repo = os.path.realpath(repo_dir)
+    directory = os.path.realpath(bin_dir)
     try:
-        relative = os.path.relpath(path, repo)
+        relative = os.path.relpath(directory, repo)
     except ValueError:
-        return False
+        return set()
     if relative.startswith(".."):
-        return False
-    output = _run(["git", "-C", repo, "ls-files", "--error-unmatch", "--", relative])
-    return bool(output.strip())
+        return set()
+    output = _run(["git", "-C", repo, "ls-files", "--", relative])
+    return {line.strip() for line in output.splitlines() if line.strip()}
 
 
 def collect_scripts(bin_dir: str, repo_dir: str | None = None) -> dict[str, list[str]]:
@@ -512,13 +522,24 @@ def collect_scripts(bin_dir: str, repo_dir: str | None = None) -> dict[str, list
     names = _dir_names(bin_dir)
     if names is None:
         return {"repo": [], "local": []}
+    repo_root = ""
+    tracked: set[str] = set()
+    if repo_dir:
+        repo_root = os.path.realpath(repo_dir)
+        tracked = _git_tracked_paths(bin_dir, repo_root)
     repo: list[str] = []
     local: list[str] = []
     for name in names:
         if name.startswith("."):
             continue
         path = os.path.join(os.path.realpath(bin_dir), name)
-        if repo_dir and _git_tracked(path, repo_dir):
+        relative = ""
+        if repo_root:
+            try:
+                relative = os.path.relpath(path, repo_root)
+            except ValueError:
+                relative = ""
+        if relative and relative in tracked:
             repo.append(name)
         else:
             local.append(name)
@@ -583,7 +604,7 @@ def collect_tool_dirs(dirs: list[str]) -> dict[str, list[str]]:
 
 DECLARATIONS_FILE = "nix/modules/packages.nix"
 
-DECLARED_NAME_RE = re.compile(r"^\s{4}([a-zA-Z0-9_.-]+)\s*$")
+DECLARED_NAME_RE = re.compile(r"^([a-zA-Z0-9_.-]+)$")
 
 PNAME_RE = re.compile(r'pname\s*=\s*"([^"]+)"')
 
@@ -592,26 +613,67 @@ STORE_NAME_RE = re.compile(r"^[a-z0-9]{32}-(.+)$")
 VERSION_RE = re.compile(r"-\d")
 
 
+def _packages_block(text: str) -> list[str] | None:
+    """The lines of the `home.packages` list, or None when there is no such list."""
+    lines = text.splitlines()
+    start = None
+    for index, line in enumerate(lines):
+        if "home.packages" in line:
+            start = index
+            break
+    if start is None:
+        return None
+    block: list[str] = []
+    opened = False
+    for line in lines[start:]:
+        stripped = line.strip()
+        if not opened:
+            if "[" not in stripped:
+                continue
+            opened = True
+            remainder = stripped.split("[", 1)[1].strip().rstrip(";").rstrip("]").strip()
+            if remainder:
+                block.append(remainder)
+            continue
+        if stripped.startswith("]"):
+            break
+        block.append(line)
+    return block if opened else None
+
+
 def parse_declared_packages(text: str) -> set[str]:
-    """The package names declared in `nix/modules/packages.nix`."""
+    """The package names declared in the `home.packages` list of packages.nix."""
     names: set[str] = set()
+    block = _packages_block(text)
+    if block is None:
+        return names
     in_derivation = False
-    for line in text.splitlines():
-        if "mkDerivation" in line:
+    for line in block:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if "mkDerivation" in stripped:
             in_derivation = True
         if in_derivation:
             # A hand written derivation declares its package through `pname`;
             # the attribute names inside the block are not packages.
-            match = PNAME_RE.search(line)
+            match = PNAME_RE.search(stripped)
             if match:
                 names.add(match.group(1))
-            if line.strip().startswith("})"):
+            if stripped.startswith("})"):
                 in_derivation = False
             continue
-        match = DECLARED_NAME_RE.match(line)
+        match = DECLARED_NAME_RE.match(stripped)
         if match:
             names.add(match.group(1))
     return names
+
+
+def declarations_state(text: str) -> str:
+    """`ok`, `no-list` or `empty`: whether the declarations could be read."""
+    if _packages_block(text) is None:
+        return "no-list"
+    return "ok" if parse_declared_packages(text) else "empty"
 
 
 def _store_package_path(target: str) -> str:
@@ -693,6 +755,12 @@ def nix_drift(
     package_bins: dict[str, list[str]],
 ) -> list[Finding]:
     """The drift between the declared packages and the ones the profile provides."""
+    if not package_bins:
+        # Without the package map a declared package cannot be matched to its
+        # binary — `neovim` ships `nvim`, `ripgrep` ships `rg`. Calling that a
+        # drift would be a lie, so nothing is claimed here; the caller reports
+        # that the nix layer could not be read.
+        return []
     findings: list[Finding] = []
     for package in sorted(declared):
         candidates = set(package_bins.get(package) or [package])
@@ -714,59 +782,41 @@ def nix_drift(
         for binary in binaries:
             owner_of.setdefault(binary, package)
 
-    if package_bins:
-        undeclared: dict[str, list[str]] = {}
-        unknown_owner: list[str] = []
-        for binary in sorted(installed):
-            owner = owner_of.get(binary)
-            if owner is None:
-                if not any(_same_package(name, binary) for name in declared):
-                    unknown_owner.append(binary)
-                continue
-            if any(_same_package(name, owner) for name in declared):
-                continue
-            undeclared.setdefault(owner, []).append(binary)
-        for owner, binaries in sorted(undeclared.items()):
-            findings.append(Finding(
-                id="nix-undeclared",
-                severity="drift",
-                path=DECLARATIONS_FILE,
-                detail=(
-                    f"`{owner}` is installed in the Nix profile but not declared "
-                    f"in packages.nix ({', '.join(binaries)})"
-                ),
-                fix=f"add {owner} to nix/modules/packages.nix",
-                command="",
-            ))
-        for binary in unknown_owner:
-            findings.append(Finding(
-                id="nix-undeclared",
-                severity="drift",
-                path=DECLARATIONS_FILE,
-                detail=(
-                    f"`{binary}` is installed in the Nix profile but not declared "
-                    "in packages.nix (owner unknown)"
-                ),
-                fix=f"add {binary} to nix/modules/packages.nix",
-                command="",
-            ))
-    elif not findings:
-        unattributed = [
-            binary for binary in sorted(installed)
-            if not any(_same_package(name, binary) for name in declared)
-        ]
-        if unattributed:
-            findings.append(Finding(
-                id="nix-unattributed",
-                severity="drift",
-                path=DECLARATIONS_FILE,
-                detail=(
-                    "installed in the Nix profile but not declared in packages.nix "
-                    f"(owner unknown): {', '.join(unattributed)}"
-                ),
-                fix="add them to nix/modules/packages.nix",
-                command="",
-            ))
+    undeclared: dict[str, list[str]] = {}
+    unknown_owner: list[str] = []
+    for binary in sorted(installed):
+        owner = owner_of.get(binary)
+        if owner is None:
+            if not any(_same_package(name, binary) for name in declared):
+                unknown_owner.append(binary)
+            continue
+        if any(_same_package(name, owner) for name in declared):
+            continue
+        undeclared.setdefault(owner, []).append(binary)
+    for owner, binaries in sorted(undeclared.items()):
+        findings.append(Finding(
+            id="nix-undeclared",
+            severity="drift",
+            path=DECLARATIONS_FILE,
+            detail=(
+                f"`{owner}` is installed in the Nix profile but not declared "
+                f"in packages.nix ({', '.join(binaries)})"
+            ),
+            fix=f"add {owner} to nix/modules/packages.nix",
+            command="",
+        ))
+    for binary in unknown_owner:
+        findings.append(Finding(
+            id="nix-undeclared",
+            severity="drift",
+            path=DECLARATIONS_FILE,
+            detail=(
+                f"`{binary}` is installed in the Nix profile but not declared "
+                "in packages.nix (owner unknown)"
+            ),
+            fix=f"add {binary} to nix/modules/packages.nix",
+            command="",
+        ))
     return findings
 
 
@@ -786,6 +836,13 @@ COUNT_KEYS = ("broken", "stale", "missing", "drift", "info")
 RUNTIME_OWNER = "runtime"
 
 TOP_CLI_LIMIT = 12
+
+# The tools a person reaches for daily. They lead the "Top CLI" line, because
+# an alphabetical slice of the profile is mostly man pages and wrappers.
+CURATED_CLI = (
+    "bat", "btop", "delta", "docker", "eza", "fd", "ffmpeg", "fzf", "git", "gh",
+    "htop", "jq", "lazygit", "nvim", "rg", "tmux", "tree", "yq", "zoxide",
+)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -840,7 +897,7 @@ def _count_line(label: str, count: int, breakdown: str = "") -> str:
 
 
 def _top_cli(inventory: Inventory) -> list[str]:
-    """The curated command line tools: the nix profile, or the tool shims."""
+    """The command line tools worth remembering: the profile first, then the shims."""
     names: list[str] = []
     for kind in ("cli", "binary"):
         for source in inventory.cli:
@@ -848,7 +905,10 @@ def _top_cli(inventory: Inventory) -> list[str]:
                 names.extend(source.items)
         if names:
             break
-    return sorted(names)
+    available = set(names)
+    curated = [name for name in CURATED_CLI if name in available]
+    rest = sorted(available - set(curated))
+    return curated + rest
 
 
 def _inventory_counts(inventory: Inventory) -> list[str]:
@@ -909,8 +969,9 @@ def render_list(inventory: Inventory, *, wide: bool = False, show_all: bool = Fa
         lines.append("  Top CLI: " + "  ".join(top_cli if wide else top_cli[:TOP_CLI_LIMIT]))
     if show_all:
         lines.extend(_full_lists(inventory))
-    lines.append("")
-    lines.append("  Full lists: dot list --all --cli")
+    else:
+        lines.append("")
+        lines.append("  Full lists: dot list --all --cli")
     return "\n".join(lines)
 
 
@@ -920,7 +981,8 @@ def render_status(inventory: Inventory) -> str:
     total = sum(counts[key] for key in HEADLINE_SEVERITIES)
     lines: list[str] = []
     if total == 0:
-        lines.append(_paint("● no findings", "ok"))
+        headline = "● no problems" if counts["info"] else "● no findings"
+        lines.append(_paint(headline, "ok"))
     else:
         parts = [f"{counts[key]} {key}" for key in HEADLINE_SEVERITIES if counts[key]]
         worst = next((key for key in HEADLINE_SEVERITIES if counts[key]), "muted")
@@ -964,25 +1026,27 @@ def _sections(inventory: Inventory) -> dict:
     }
 
 
-def _summary(inventory: Inventory) -> dict:
+def _summary(inventory: Inventory, sections: dict | None = None) -> dict:
     by_owner: dict[str, int] = {}
     for entry in inventory.configs:
         kind = entry.owner.kind
         by_owner[kind] = by_owner.get(kind, 0) + 1
     by_source = {source.name: len(source.items) for source in inventory.cli}
-    total = sum(section["count"] for section in _sections(inventory).values())
+    blocks = sections if sections is not None else _sections(inventory)
+    total = sum(section["count"] for section in blocks.values())
     return {"total": total, "by_source": by_source, "by_owner": by_owner}
 
 
 def inventory_json(inventory: Inventory, *, command: str) -> dict:
     """The machine readable view, in the frozen shape of spec §7.6."""
+    sections = _sections(inventory)
     data = {
         "tool": "dot",
         "version": TOOL_VERSION,
         "command": command,
         "generated_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "summary": _summary(inventory),
-        "sections": _sections(inventory),
+        "summary": _summary(inventory, sections),
+        "sections": sections,
     }
     if command == "status":
         counts = _severity_counts(inventory.findings)
@@ -1010,9 +1074,10 @@ SECTION_ORDER = ("apps", "cli", "configs", "scripts", "sources")
 OWNER_TOOL = "local:tool"
 
 
-def current_generation() -> str | None:
+def current_generation(home: str | None = None) -> str | None:
     """The hash of the Home Manager generation this machine is on."""
-    generation = os.path.realpath(os.path.join(str(Path.home()), HM_PROFILE_REL))
+    base = home if home is not None else str(Path.home())
+    generation = os.path.realpath(os.path.join(base, HM_PROFILE_REL))
     if not os.path.isdir(generation):
         return None
     home_files = os.path.realpath(os.path.join(generation, "home-files"))
@@ -1042,6 +1107,15 @@ def _host_name() -> str:
         return "unknown"
 
 
+def _package_for_binary(name: str, runner=None) -> str:
+    """The package that provides a binary, when the pacman file database knows it."""
+    for line in _run(["pacman", "-F", name], runner).splitlines():
+        fields = line.split()
+        if fields and "/" in fields[0]:
+            return fields[0].split("/")[-1]
+    return name
+
+
 def _spawn_findings(config_path: str) -> list[Finding]:
     """The binaries the compositor spawns that are not installed."""
     try:
@@ -1058,22 +1132,38 @@ def _spawn_findings(config_path: str) -> list[Finding]:
         if resolve_token(ref.token) is not None:
             continue
         if "/" in ref.token:
-            fix = f"install the package that provides {ref.token}"
+            detail = f"the compositor spawns `{ref.token}` ({ref.context}) — the file does not exist"
+            fix = f"create or restore {ref.token}"
+            command = ""
         else:
-            fix = f"sudo pacman -S {ref.token}"
+            package = _package_for_binary(ref.token)
+            detail = f"the compositor spawns `{ref.token}` ({ref.context}) — not installed"
+            fix = f"sudo pacman -S {package}"
+            command = fix
         findings.append(Finding(
             id="missing-binary",
             severity="missing",
             path=ref.token,
-            detail=f"the compositor spawns `{ref.token}` ({ref.context}) — not installed",
+            detail=f"{detail} (line {ref.line})",
             fix=fix,
-            command=fix,
+            command=command,
         ))
     return findings
 
 
-def _nix_findings(repo: str, profile_dir: str, profile_bins: list[str]) -> list[Finding]:
-    """The drift between the declared nix packages and the installed ones."""
+def _nix_findings(
+    repo: str,
+    profile_dir: str,
+    profile_bins: list[str],
+    package_bins: dict[str, list[str]] | None = None,
+) -> list[Finding]:
+    """The drift between the declared nix packages and the installed ones.
+
+    The nix layer is read in three steps: the declarations, the profile and
+    the package map that connects them. Each one can fail on its own, and a
+    step that cannot be read is reported as information. Calling it drift
+    would be a claim the tool cannot back.
+    """
     if not repo:
         return []
     try:
@@ -1081,9 +1171,49 @@ def _nix_findings(repo: str, profile_dir: str, profile_bins: list[str]) -> list[
             text = handle.read()
     except OSError:
         return []
+    state = declarations_state(text)
+    if state == "no-list":
+        return [Finding(
+            id="nix-declarations-unreadable",
+            severity="info",
+            path=DECLARATIONS_FILE,
+            detail="the declaration file has no home.packages list, nothing to compare",
+            fix="",
+            command="",
+        )]
     declared = parse_declared_packages(text)
-    package_bins = package_binary_map(profile_dir)
-    return nix_drift(declared, set(profile_bins), package_bins)
+    if state == "empty":
+        return [Finding(
+            id="nix-no-declarations",
+            severity="info",
+            path=DECLARATIONS_FILE,
+            detail="the declaration file lists no packages",
+            fix="",
+            command="",
+        )]
+    if not profile_bins:
+        return [Finding(
+            id="nix-not-present",
+            severity="info",
+            path=DECLARATIONS_FILE,
+            detail="Nix: not present, the profile is gone, so the declarations were not checked",
+            fix="",
+            command="",
+        )]
+    mapping = package_binary_map(profile_dir) if package_bins is None else package_bins
+    if not mapping:
+        return [Finding(
+            id="nix-unverified",
+            severity="info",
+            path=DECLARATIONS_FILE,
+            detail=(
+                f"the nix CLI could not map the profile, {len(declared)} declared "
+                "packages could not be verified"
+            ),
+            fix="",
+            command="",
+        )]
+    return nix_drift(declared, set(profile_bins), mapping)
 
 
 def _repo_dirty_finding(repo: str) -> Finding | None:
@@ -1131,8 +1261,9 @@ def build_inventory(*, home: str | None = None, repo_dir: str | None = None) -> 
 
     entries = scan_configs(
         [os.path.join(base, ".config"), os.path.join(base, ".local", "share")],
-        current_generation=current_generation(),
+        current_generation=current_generation(base),
         repo_dir=repo,
+        home=base,
     )
 
     findings = findings_from_entries(entries)
@@ -1199,7 +1330,8 @@ def _section_lines(inventory: Inventory, section: str) -> list[str]:
         lines.append(f"    {'desktop entries':<18}{len(inventory.apps):>6}  app")
         for group, names in inventory.scripts.items():
             lines.append(f"    {group + ' scripts':<18}{len(names):>6}  script")
-        lines.append(f"    {'configs':<18}{len(inventory.configs):>6}  config")
+        lines.append(f"    {'config entries':<18}{len(inventory.configs):>6}  scanned")
+        lines.append(f"    {'managed configs':<18}{len(_managed_configs(inventory)):>6}  owned")
         return lines
     return []
 
@@ -1216,13 +1348,18 @@ def _ownership_lines(inventory: Inventory) -> list[str]:
         kind = entry.owner.kind
         counts[kind] = counts.get(kind, 0) + 1
     lines = ["  Config ownership:"]
-    for kind, count in sorted(counts.items(), key=lambda item: (-item[1], item[0])):
-        lines.append(f"    {kind:<20}{count:>6}")
+    for kind in OWNER_KINDS:
+        if kind not in counts:
+            continue
+        lines.append(f"    {kind:<20}{counts[kind]:>6}")
     lines.append("")
     for entry in managed:
         if entry.owner.kind == OWNER_TOOL:
             continue
-        lines.append(f"    {entry.path} → {entry.owner.target}  ({entry.owner.kind})")
+        lines.append(
+            f"    {entry.path} → {entry.owner.target}"
+            f"  ({entry.owner.kind} — {entry.owner.reason})"
+        )
     return lines
 
 
@@ -1245,6 +1382,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p_list = sub.add_parser("list", help="show what is installed")
     p_list.add_argument("--all", action="store_true", help="print every item, ungrouped")
+    p_list.add_argument("--wide", action="store_true", help="do not cut the CLI list short")
     p_list.add_argument("--json", action="store_true", help="print the machine readable document")
     p_list.add_argument("--ownership", action="store_true", help="config ownership map only")
     p_list.add_argument("--outdated", action="store_true", help="also query the network for updates")
@@ -1271,7 +1409,7 @@ def main(argv: list[str] | None = None) -> int:
                 if getattr(args, flag):
                     lines.extend(_section_lines(inventory, flag))
         else:
-            lines.append(render_list(inventory, show_all=args.all))
+            lines.append(render_list(inventory, show_all=args.all, wide=args.wide))
         print("\n".join(lines))
         if args.outdated:
             print("")

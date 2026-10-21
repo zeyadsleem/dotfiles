@@ -1,6 +1,7 @@
 import contextlib
 import importlib.machinery
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -211,6 +212,8 @@ class ConfigScanTests(unittest.TestCase):
             self.assertFalse(any("/crush/" in e.path for e in entries))
 
     def test_skips_unreadable_directory(self):
+        if os.geteuid() == 0:
+            self.skipTest("root reads a directory whatever its permission bits say")
         with TempTree() as t:
             cfg = t.path / "config"
             (cfg / "locked").mkdir(parents=True)
@@ -223,6 +226,8 @@ class ConfigScanTests(unittest.TestCase):
             finally:
                 os.chmod(cfg / "locked", 0o755)
             self.assertTrue(any(e.path.endswith("config.kdl") for e in entries))
+            self.assertFalse(any(e.path.endswith("secret") for e in entries),
+                             "the unreadable directory was scanned anyway")
 
     def test_findings_from_entries_marks_broken_and_stale(self):
         with TempTree() as t:
@@ -428,7 +433,11 @@ class NixDriftTests(unittest.TestCase):
         self.assertEqual(dot.parse_declared_packages(text), {"git", "workmux", "ripgrep"})
 
     def test_detects_declared_but_not_installed(self):
-        findings = dot.nix_drift({"traceroute"}, {"nvim", "git"}, {})
+        findings = dot.nix_drift(
+            {"traceroute", "neovim", "git"},
+            {"nvim", "git"},
+            {"neovim": ["nvim"], "git": ["git"]},
+        )
         self.assertEqual([f.severity for f in findings], ["drift"])
         self.assertIn("traceroute", findings[0].detail)
 
@@ -443,12 +452,12 @@ class NixDriftTests(unittest.TestCase):
 
     def test_declared_package_is_satisfied_by_a_renamed_binary(self):
         # nixpkgs ships `antigravity` as the package `antigravity-ide`.
-        findings = dot.nix_drift({"antigravity"}, {"antigravity-ide"}, {})
+        findings = dot.nix_drift({"antigravity"}, {"antigravity-ide"}, {"antigravity-ide": ["antigravity-ide"]})
         self.assertEqual(findings, [])
 
     def test_declared_package_is_satisfied_by_a_shorter_package_name(self):
         # the attribute `nixfmt-rfc-style` provides the package `nixfmt`.
-        findings = dot.nix_drift({"nixfmt-rfc-style"}, {"nixfmt"}, {})
+        findings = dot.nix_drift({"nixfmt-rfc-style"}, {"nixfmt"}, {"nixfmt": ["nixfmt"]})
         self.assertEqual(findings, [])
 
     def test_reports_an_undeclared_package_once(self):
@@ -458,11 +467,12 @@ class NixDriftTests(unittest.TestCase):
         self.assertEqual(len(findings), 1)
         self.assertIn("man-db", findings[0].detail)
 
-    def test_reports_unattributed_binaries_when_nix_is_unavailable(self):
-        findings = dot.nix_drift({"git"}, {"git", "mystery"}, {})
-        self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0].id, "nix-unattributed")
-        self.assertIn("mystery", findings[0].detail)
+    def test_does_not_report_drift_without_a_package_map(self):
+        # Without the nix CLI a package's binary may carry another name
+        # (`neovim` ships `nvim`), so the declarations cannot be checked —
+        # reporting drift here would be a lie.
+        findings = dot.nix_drift({"neovim", "traceroute"}, {"nvim", "git"}, {})
+        self.assertEqual(findings, [])
 
     def test_package_binary_map_is_empty_without_nix(self):
         def fake_runner(cmd, **kwargs):
@@ -507,8 +517,8 @@ class RenderTests(unittest.TestCase):
 
     def test_render_status_groups_by_severity(self):
         out = dot.render_status(self._inventory())
-        self.assertIn("BROKEN", out)
-        self.assertIn("broken-symlink", out.replace("BROKEN", "broken-symlink") or out)
+        self.assertIn("BROKEN (1)", out)
+        self.assertIn("/home/z/.config/ghostty/config", out)
         self.assertIn("fix:", out)
 
     def test_render_status_states_no_findings(self):
@@ -519,7 +529,7 @@ class RenderTests(unittest.TestCase):
 
     def test_inventory_json_matches_frozen_schema(self):
         data = dot.inventory_json(self._inventory(), command="list")
-        self.assertEqual(set(data) >= {"tool", "version", "command", "generated_at", "summary", "sections"}, True)
+        self.assertEqual(set(data), {"tool", "version", "command", "generated_at", "summary", "sections"})
         self.assertEqual(data["tool"], "dot")
         self.assertEqual(data["version"], "1")
         self.assertEqual(set(data["sections"]), {"apps", "cli", "scripts", "configs"})
@@ -624,11 +634,10 @@ class CliTests(unittest.TestCase):
 
         subprocess.run = spy
         self.addCleanup(setattr, subprocess, "run", real_run)
-        with redirect_stdout(io.StringIO()):
-            try:
-                dot.build_inventory()
-            except Exception:
-                pass
+        with TempTree() as t:
+            with redirect_stdout(io.StringIO()):
+                dot.build_inventory(home=str(t.path))
+        self.assertTrue(recorded, "the inventory ran no command at all, so nothing was checked")
         for cmd in recorded:
             program = os.path.basename(cmd[0])
             self.assertNotEqual(program, "sudo")
@@ -656,3 +665,161 @@ class CliTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 dot.main(["list", "--outdated"])
         self.assertIn("System inventory", buf.getvalue())
+
+
+class NixDegradationTests(unittest.TestCase):
+    """The nix layer must degrade instead of inventing findings."""
+
+    def _repo(self, t, text):
+        repo = t.path / "dotfiles"
+        (repo / "nix" / "modules").mkdir(parents=True)
+        (repo / "nix" / "modules" / "packages.nix").write_text(text)
+        return str(repo)
+
+    def test_nix_findings_report_nix_not_present_without_a_profile(self):
+        with TempTree() as t:
+            repo = self._repo(t, "{\n  home.packages = with pkgs; [\n    git\n  ];\n}\n")
+            findings = dot._nix_findings(repo, str(t.path / "profile" / "bin"), [])
+            self.assertEqual([f.severity for f in findings], ["info"])
+            self.assertIn("not present", findings[0].detail)
+
+    def test_nix_findings_report_unverified_packages_when_the_profile_cannot_be_mapped(self):
+        with TempTree() as t:
+            repo = self._repo(t, "{\n  home.packages = with pkgs; [\n    git\n  ];\n}\n")
+            profile = t.path / "profile" / "bin"
+            profile.mkdir(parents=True)
+            (profile / "git").write_text("x")
+            findings = dot._nix_findings(repo, str(profile), ["git"])
+            self.assertEqual([f.severity for f in findings], ["info"])
+            self.assertIn("could not be verified", findings[0].detail)
+
+    def test_nix_findings_report_a_drift_when_the_packages_are_mapped(self):
+        with TempTree() as t:
+            repo = self._repo(t, "{\n  home.packages = with pkgs; [\n    git\n    traceroute\n  ];\n}\n")
+            profile = t.path / "profile" / "bin"
+            profile.mkdir(parents=True)
+            (profile / "git").write_text("x")
+            findings = dot._nix_findings(repo, str(profile), ["git"], package_bins={"git": ["git"]})
+            self.assertEqual([f.severity for f in findings], ["drift"])
+            self.assertIn("traceroute", findings[0].detail)
+
+    def test_declarations_state_reports_a_missing_list(self):
+        text = "{ pkgs, ... }:\n{\n  home.stateVersion = \"24.11\";\n}\n"
+        self.assertEqual(dot.declarations_state(text), "no-list")
+
+    def test_declarations_state_reports_an_empty_list(self):
+        text = "{\n  home.packages = with pkgs; [\n  ];\n}\n"
+        self.assertEqual(dot.declarations_state(text), "empty")
+
+    def test_declarations_state_reports_a_readable_list(self):
+        text = "{\n  home.packages = with pkgs; [\n    git\n  ];\n}\n"
+        self.assertEqual(dot.declarations_state(text), "ok")
+
+    def test_parses_declared_names_with_any_indentation(self):
+        text = "{\n  home.packages = with pkgs; [\n  git\n  ripgrep\n  ];\n}\n"
+        self.assertEqual(dot.parse_declared_packages(text), {"git", "ripgrep"})
+
+
+class SpawnFixHintTests(unittest.TestCase):
+    def test_package_for_binary_names_the_package_that_provides_it(self):
+        def fake_runner(cmd, **kwargs):
+            return SimpleNamespace(returncode=0, stdout="extra/libnotify 4.0-1 (base)\n    usr/bin/notify-send\n")
+        self.assertEqual(dot._package_for_binary("notify-send", runner=fake_runner), "libnotify")
+
+    def test_package_for_binary_falls_back_to_the_binary_name(self):
+        def fake_runner(cmd, **kwargs):
+            return SimpleNamespace(returncode=1, stdout="")
+        self.assertEqual(dot._package_for_binary("mystery", runner=fake_runner), "mystery")
+
+    def test_missing_spawn_path_suggests_restoring_the_file(self):
+        with TempTree() as t:
+            config = t.path / "config.kdl"
+            config.write_text('spawn-at-startup "/nope/missing.sh"\n')
+            findings = dot._spawn_findings(str(config))
+            self.assertEqual([f.severity for f in findings], ["missing"])
+            self.assertIn("does not exist", findings[0].detail)
+            self.assertIn("create or restore", findings[0].fix)
+
+
+class ReviewRegressionTests(unittest.TestCase):
+    def test_top_cli_prefers_the_curated_tools(self):
+        inv = dot.Inventory(
+            apps=[],
+            cli=[dot.Source("nix", ["accessdb", "apropos", "btop", "git", "nvim", "rg", "zoxide"], "cli")],
+            scripts={}, configs=[], findings=[], meta={},
+        )
+        out = dot.render_list(inv)
+        top = out.split("Top CLI:")[1].split("\n")[0]
+        self.assertLess(top.index("git"), top.index("accessdb"))
+
+    def test_render_status_says_no_problems_when_only_info_findings(self):
+        inv = dot.Inventory(apps=[], cli=[], scripts={}, configs=[],
+                            findings=[dot.Finding("repo-dirty", "info", "/repo", "2 modified", "", "")],
+                            meta={})
+        out = dot.render_status(inv)
+        self.assertIn("no problems", out.lower())
+        self.assertNotIn("no findings", out.lower())
+
+    def test_build_inventory_does_not_report_drift_without_a_nix_profile(self):
+        with TempTree() as t:
+            inv = dot.build_inventory(home=str(t.path), repo_dir=str(REPO))
+            drift = [f for f in inv.findings if f.severity == "drift"]
+            self.assertEqual(drift, [])
+
+    def test_build_inventory_classifies_links_against_the_given_home(self):
+        with TempTree() as t:
+            home = t.path / "home"
+            (home / ".config" / "tool").mkdir(parents=True)
+            (home / "bin").mkdir()
+            (home / "bin" / "thing").write_text("x")
+            (home / ".config" / "tool" / "config").symlink_to(home / "bin" / "thing")
+            inv = dot.build_inventory(home=str(home), repo_dir="")
+            kinds = {e.path.split("/")[-1]: e.owner.kind for e in inv.configs}
+            self.assertEqual(kinds.get("config"), "local:user")
+
+    def test_list_ownership_prints_the_config_ownership_map(self):
+        inv = dot.Inventory(
+            apps=[], cli=[], scripts={},
+            configs=[dot.Entry("/home/z/.config/niri", dot.Owner("home-manager", "/repo/.config/niri", "Home Manager (live repo)"))],
+            findings=[], meta={},
+        )
+        original = dot.build_inventory
+        dot.build_inventory = lambda **kwargs: inv
+        self.addCleanup(setattr, dot, "build_inventory", original)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = dot.main(["list", "--ownership"])
+        out = buf.getvalue()
+        self.assertEqual(code, 0)
+        self.assertIn("Config ownership", out)
+        self.assertIn("/home/z/.config/niri", out)
+
+    def test_list_section_flag_prints_only_that_section(self):
+        inv = dot.Inventory(
+            apps=[{"name": "Brave", "desktop_file": "/x.desktop", "source": "system"}],
+            cli=[dot.Source("pacman", ["git"], "package")],
+            scripts={"repo": ["set-theme"]}, configs=[], findings=[], meta={},
+        )
+        original = dot.build_inventory
+        dot.build_inventory = lambda **kwargs: inv
+        self.addCleanup(setattr, dot, "build_inventory", original)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = dot.main(["list", "--apps"])
+        out = buf.getvalue()
+        self.assertEqual(code, 0)
+        self.assertIn("Brave", out)
+        self.assertNotIn("pacman", out)
+
+    def test_list_wide_shows_more_cli_names(self):
+        names = [f"tool{index:02d}" for index in range(20)]
+        inv = dot.Inventory(apps=[], cli=[dot.Source("nix", names, "cli")], scripts={},
+                            configs=[], findings=[], meta={})
+        original = dot.build_inventory
+        dot.build_inventory = lambda **kwargs: inv
+        self.addCleanup(setattr, dot, "build_inventory", original)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            dot.main(["list", "--wide"])
+        top = buf.getvalue().split("Top CLI:")[1].split("\n")[0]
+        self.assertGreater(len(top.split()), 12)
