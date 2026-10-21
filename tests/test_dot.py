@@ -618,9 +618,14 @@ class CliTests(unittest.TestCase):
         self.assertEqual(json.loads(out)["command"], "list")
 
     def test_help_exits_zero(self):
-        with self.assertRaises(SystemExit) as ctx:
-            dot.main(["--help"])
+        import io
+        from contextlib import redirect_stdout
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            with self.assertRaises(SystemExit) as ctx:
+                dot.main(["--help"])
         self.assertEqual(ctx.exception.code, 0)
+        self.assertIn("usage: dot", buf.getvalue())
 
     def test_dot_never_invokes_sudo_or_mutating_pacman(self):
         import io
