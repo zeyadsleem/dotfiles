@@ -403,12 +403,16 @@ TOOL_DIRS: tuple[tuple[str, str], ...] = (
 PROFILE_BIN_REL = ".local/state/nix/profiles/profile/bin"
 
 
-def _run(cmd: list[str], runner=None) -> str:
-    """The stdout of a command, or an empty string when it is missing or fails."""
+COMMAND_TIMEOUT = 120
+OUTDATED_TIMEOUT = 45
+
+
+def _run(cmd: list[str], runner=None, timeout: float = COMMAND_TIMEOUT) -> str:
+    """The stdout of a command, or an empty string when it is missing, fails or hangs."""
     run = runner or subprocess.run
     try:
-        proc = run(cmd, capture_output=True, text=True, check=False)
-    except (FileNotFoundError, OSError):
+        proc = run(cmd, capture_output=True, text=True, check=False, timeout=timeout)
+    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
         return ""
     if proc.returncode != 0:
         return ""
@@ -524,7 +528,8 @@ def collect_scripts(bin_dir: str, repo_dir: str | None = None) -> dict[str, list
 def collect_outdated(runner=None) -> list[str]:
     """Packages with a newer version available. Reaches the network — opt in only."""
     packages: list[str] = []
-    for line in _run(["checkupdates"], runner).splitlines():
+    output = _run(["checkupdates"], runner, timeout=OUTDATED_TIMEOUT)
+    for line in output.splitlines():
         parts = line.split()
         if parts:
             packages.append(parts[0])
@@ -997,8 +1002,288 @@ def inventory_json(inventory: Inventory, *, command: str) -> dict:
     return data
 
 
+HM_PROFILE_REL = ".local/state/nix/profiles/home-manager"
+NIRI_CONFIG_REL = ".config/niri/config.kdl"
+DESKTOP_DIRS = (".local/share/applications",)
+SYSTEM_DESKTOP_DIR = "/usr/share/applications"
+SECTION_ORDER = ("apps", "cli", "configs", "scripts", "sources")
+OWNER_TOOL = "local:tool"
+
+
+def current_generation() -> str | None:
+    """The hash of the Home Manager generation this machine is on."""
+    generation = os.path.realpath(os.path.join(str(Path.home()), HM_PROFILE_REL))
+    if not os.path.isdir(generation):
+        return None
+    home_files = os.path.realpath(os.path.join(generation, "home-files"))
+    directory = os.path.basename(home_files)
+    if not directory.endswith(HM_MARKER):
+        return None
+    return directory[: -len(HM_MARKER)]
+
+
+def _distro_name() -> str:
+    """The name of the running distribution."""
+    try:
+        with open("/etc/os-release", encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith("NAME="):
+                    return line.split("=", 1)[1].strip().strip('"')
+    except OSError:
+        pass
+    return "unknown"
+
+
+def _host_name() -> str:
+    """The name of this machine."""
+    try:
+        return os.uname().nodename
+    except AttributeError:
+        return "unknown"
+
+
+def _spawn_findings(config_path: str) -> list[Finding]:
+    """The binaries the compositor spawns that are not installed."""
+    try:
+        with open(config_path, encoding="utf-8", errors="replace") as handle:
+            text = handle.read()
+    except OSError:
+        return []
+    findings: list[Finding] = []
+    seen: set[str] = set()
+    for ref in extract_spawns(text):
+        if ref.token in seen:
+            continue
+        seen.add(ref.token)
+        if resolve_token(ref.token) is not None:
+            continue
+        if "/" in ref.token:
+            fix = f"install the package that provides {ref.token}"
+        else:
+            fix = f"sudo pacman -S {ref.token}"
+        findings.append(Finding(
+            id="missing-binary",
+            severity="missing",
+            path=ref.token,
+            detail=f"the compositor spawns `{ref.token}` ({ref.context}) — not installed",
+            fix=fix,
+            command=fix,
+        ))
+    return findings
+
+
+def _nix_findings(repo: str, profile_dir: str, profile_bins: list[str]) -> list[Finding]:
+    """The drift between the declared nix packages and the installed ones."""
+    if not repo:
+        return []
+    try:
+        with open(os.path.join(repo, DECLARATIONS_FILE), encoding="utf-8") as handle:
+            text = handle.read()
+    except OSError:
+        return []
+    declared = parse_declared_packages(text)
+    package_bins = package_binary_map(profile_dir)
+    return nix_drift(declared, set(profile_bins), package_bins)
+
+
+def _repo_dirty_finding(repo: str) -> Finding | None:
+    """The uncommitted changes in the repository — information, never a failure."""
+    if not repo:
+        return None
+    state = collect_repo_state(repo)
+    modified = state["modified"]
+    if not modified:
+        return None
+    listed = ", ".join(modified[:5])
+    if len(modified) > 5:
+        listed += f" and {len(modified) - 5} more"
+    return Finding(
+        id="repo-dirty",
+        severity="info",
+        path=repo,
+        detail=f"{len(modified)} modified file(s): {listed}",
+        fix=f"git -C {repo} diff",
+        command=f"git -C {repo} diff",
+    )
+
+
+def _sort_findings(findings: list[Finding]) -> list[Finding]:
+    """Order the findings by severity, the way `dot status` groups them."""
+    order = {severity: index for index, severity in enumerate(SEVERITIES)}
+    return sorted(findings, key=lambda finding: order.get(finding.severity, len(SEVERITIES)))
+
+
+def build_inventory(*, home: str | None = None, repo_dir: str | None = None) -> Inventory:
+    """Everything this machine has installed, and everything wrong with it."""
+    base = os.path.abspath(home) if home is not None else str(Path.home())
+    repo = repo_dir if repo_dir is not None else default_repo_dir()
+    if repo and not os.path.isdir(repo):
+        repo = ""
+
+    packages = collect_pacman()
+    profile_dir = os.path.join(base, PROFILE_BIN_REL)
+    profile_bins = collect_profile_bins(profile_dir)
+    app_dirs = [os.path.join(base, relative) for relative in DESKTOP_DIRS]
+    app_dirs.append(SYSTEM_DESKTOP_DIR)
+    apps = collect_desktop_entries(app_dirs, home=base)
+    scripts = collect_scripts(os.path.join(base, ".local", "bin"), repo or None)
+    tools = collect_tool_dirs(tool_dir_paths(base))
+
+    entries = scan_configs(
+        [os.path.join(base, ".config"), os.path.join(base, ".local", "share")],
+        current_generation=current_generation(),
+        repo_dir=repo,
+    )
+
+    findings = findings_from_entries(entries)
+    findings.extend(_spawn_findings(os.path.join(base, NIRI_CONFIG_REL)))
+    findings.extend(_nix_findings(repo, profile_dir, profile_bins))
+    dirty = _repo_dirty_finding(repo)
+    if dirty is not None:
+        findings.append(dirty)
+
+    cli_sources = [Source("pacman", packages["system"], "package")]
+    if profile_bins:
+        cli_sources.append(Source("nix", profile_bins, "cli"))
+    for label, items in tools.items():
+        cli_sources.append(Source(label, items, "binary"))
+
+    meta = {
+        "distro": _distro_name(),
+        "host": _host_name(),
+        "foreign": len(packages["foreign"]),
+        "orphans": len(packages["orphans"]),
+        "repo": repo,
+    }
+    return Inventory(
+        apps=apps,
+        cli=cli_sources,
+        scripts=scripts,
+        configs=entries,
+        findings=_sort_findings(findings),
+        meta=meta,
+    )
+
+
+def _section_lines(inventory: Inventory, section: str) -> list[str]:
+    """The lines of one section of the list."""
+    if section == "apps":
+        lines = [f"  Desktop apps ({len(inventory.apps)}):"]
+        for app in inventory.apps:
+            lines.append(f"    {app.get('name', '')}  ({app.get('source', '')})")
+        return lines
+    if section == "cli":
+        lines = []
+        for source in inventory.cli:
+            lines.append(f"  {source.name} ({len(source.items)}):")
+            for item in source.items:
+                lines.append(f"    {item}")
+        return lines
+    if section == "configs":
+        managed = _managed_configs(inventory)
+        lines = [f"  Managed configs ({len(managed)}):"]
+        for entry in managed:
+            lines.append(f"    {entry.path} → {entry.owner.target}  ({entry.owner.kind})")
+        return lines
+    if section == "scripts":
+        lines = []
+        for group, names in inventory.scripts.items():
+            lines.append(f"  {group} scripts ({len(names)}):")
+            for name in names:
+                lines.append(f"    {name}")
+        return lines
+    if section == "sources":
+        lines = ["  Sources:"]
+        for source in inventory.cli:
+            lines.append(f"    {source.name:<18}{len(source.items):>6}  {source.kind}")
+        lines.append(f"    {'desktop entries':<18}{len(inventory.apps):>6}  app")
+        for group, names in inventory.scripts.items():
+            lines.append(f"    {group + ' scripts':<18}{len(names):>6}  script")
+        lines.append(f"    {'configs':<18}{len(inventory.configs):>6}  config")
+        return lines
+    return []
+
+
+def _ownership_lines(inventory: Inventory) -> list[str]:
+    """The config ownership map: every owner, its count, and where it points.
+
+    `local:tool` links are only counted — the tool farms are noise, the
+    user's own links are the point of the map.
+    """
+    managed = _managed_configs(inventory)
+    counts: dict[str, int] = {}
+    for entry in managed:
+        kind = entry.owner.kind
+        counts[kind] = counts.get(kind, 0) + 1
+    lines = ["  Config ownership:"]
+    for kind, count in sorted(counts.items(), key=lambda item: (-item[1], item[0])):
+        lines.append(f"    {kind:<20}{count:>6}")
+    lines.append("")
+    for entry in managed:
+        if entry.owner.kind == OWNER_TOOL:
+            continue
+        lines.append(f"    {entry.path} → {entry.owner.target}  ({entry.owner.kind})")
+    return lines
+
+
+def _outdated_lines(packages: list[str]) -> list[str]:
+    """The packages that have a newer version waiting for them."""
+    if not packages:
+        return ["  Outdated: nothing"]
+    lines = [f"  Outdated ({len(packages)}):"]
+    for package in packages:
+        lines.append(f"    {package}")
+    return lines
+
+
 def main(argv: list[str] | None = None) -> int:
-    raise NotImplementedError("subcommands land in later tasks")
+    parser = argparse.ArgumentParser(
+        prog="dot",
+        description="Inventory and health check for this machine.",
+    )
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_list = sub.add_parser("list", help="show what is installed")
+    p_list.add_argument("--all", action="store_true", help="print every item, ungrouped")
+    p_list.add_argument("--json", action="store_true", help="print the machine readable document")
+    p_list.add_argument("--ownership", action="store_true", help="config ownership map only")
+    p_list.add_argument("--outdated", action="store_true", help="also query the network for updates")
+    for flag in SECTION_ORDER:
+        p_list.add_argument(f"--{flag}", action="store_true", help=f"show the {flag} section only")
+
+    p_status = sub.add_parser("status", help="show what is broken or drifted")
+    p_status.add_argument("--json", action="store_true", help="print the machine readable document")
+
+    args = parser.parse_args(argv)
+    inventory = build_inventory()
+
+    if args.command == "list":
+        if args.json:
+            # The frozen document has no slot for the update check, so `--outdated`
+            # stays a text mode addition and the JSON never touches the network.
+            print(json.dumps(inventory_json(inventory, command="list"), indent=2))
+            return 0
+        lines: list[str] = []
+        if args.ownership:
+            lines.extend(_ownership_lines(inventory))
+        elif any(getattr(args, flag) for flag in SECTION_ORDER):
+            for flag in SECTION_ORDER:
+                if getattr(args, flag):
+                    lines.extend(_section_lines(inventory, flag))
+        else:
+            lines.append(render_list(inventory, show_all=args.all))
+        print("\n".join(lines))
+        if args.outdated:
+            print("")
+            print("\n".join(_outdated_lines(collect_outdated())))
+        return 0
+
+    if args.json:
+        print(json.dumps(inventory_json(inventory, command="status"), indent=2))
+    else:
+        print(render_status(inventory))
+    counts = _severity_counts(inventory.findings)
+    return 1 if any(counts[key] for key in HEADLINE_SEVERITIES) else 0
 
 
 if __name__ == "__main__":

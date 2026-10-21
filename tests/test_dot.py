@@ -357,6 +357,11 @@ class CollectorTests(unittest.TestCase):
             return subprocess.CompletedProcess(cmd, 0, "linux 6.9.1-1 -> 6.9.2-1\n", "")
         self.assertEqual(dot.collect_outdated(runner=fake_runner), ["linux"])
 
+    def test_collect_outdated_gives_up_when_the_check_hangs(self):
+        def hanging_runner(cmd, **kwargs):
+            raise subprocess.TimeoutExpired(cmd, kwargs.get("timeout", 0))
+        self.assertEqual(dot.collect_outdated(runner=hanging_runner), [])
+
     def test_collect_repo_state_missing_repo_is_empty(self):
         self.assertEqual(dot.collect_repo_state("/nonexistent/repo"),
                          {"modified": [], "untracked": []})
@@ -561,3 +566,93 @@ class RenderTests(unittest.TestCase):
         data = dot.inventory_json(empty, command="status")
         self.assertEqual(data["ok"], True)
         self.assertEqual(data["findings"], [])
+
+
+class CliTests(unittest.TestCase):
+    def _stub(self, inventory):
+        original = dot.build_inventory
+        dot.build_inventory = lambda **kwargs: inventory
+        self.addCleanup(setattr, dot, "build_inventory", original)
+
+    def _capture(self, argv):
+        import io
+        from contextlib import redirect_stdout
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            code = dot.main(argv)
+        return code, buf.getvalue()
+
+    def test_status_exit_code_is_one_when_findings_exist(self):
+        inv = dot.Inventory(apps=[], cli=[], scripts={}, configs=[],
+                            findings=[dot.Finding("broken-symlink", "broken", "/x", "d", "rm /x", "rm /x")],
+                            meta={})
+        self._stub(inv)
+        code, out = self._capture(["status"])
+        self.assertEqual(code, 1)
+        self.assertIn("broken", out.lower())
+
+    def test_status_exit_code_is_zero_when_only_info_findings(self):
+        inv = dot.Inventory(apps=[], cli=[], scripts={}, configs=[],
+                            findings=[dot.Finding("repo-dirty", "info", "/repo", "2 modified", "", "")],
+                            meta={})
+        self._stub(inv)
+        code, _ = self._capture(["status"])
+        self.assertEqual(code, 0)
+
+    def test_list_json_prints_valid_json(self):
+        import json
+        inv = dot.Inventory(apps=[], cli=[], scripts={}, configs=[], findings=[], meta={})
+        self._stub(inv)
+        code, out = self._capture(["list", "--json"])
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(out)["command"], "list")
+
+    def test_help_exits_zero(self):
+        with self.assertRaises(SystemExit) as ctx:
+            dot.main(["--help"])
+        self.assertEqual(ctx.exception.code, 0)
+
+    def test_dot_never_invokes_sudo_or_mutating_pacman(self):
+        import io
+        from contextlib import redirect_stdout
+        recorded = []
+        real_run = subprocess.run
+
+        def spy(cmd, *args, **kwargs):
+            recorded.append(cmd if isinstance(cmd, list) else [cmd])
+            return real_run(cmd, *args, **kwargs)
+
+        subprocess.run = spy
+        self.addCleanup(setattr, subprocess, "run", real_run)
+        with redirect_stdout(io.StringIO()):
+            try:
+                dot.build_inventory()
+            except Exception:
+                pass
+        for cmd in recorded:
+            program = os.path.basename(cmd[0])
+            self.assertNotEqual(program, "sudo")
+            if program == "pacman":
+                self.assertNotIn(cmd[1], ("-S", "-R", "-U", "-Sy", "-Rns"))
+
+    def test_build_inventory_survives_missing_repo(self):
+        inv = dot.build_inventory(home="/tmp", repo_dir="/nonexistent/repo")
+        self.assertIsInstance(inv, dot.Inventory)
+
+    def test_list_outdated_prints_the_list_before_the_update_check(self):
+        import io
+        inv = dot.Inventory(apps=[], cli=[], scripts={}, configs=[], findings=[],
+                            meta={"distro": "TestOS", "host": "testhost"})
+        self._stub(inv)
+
+        def boom(*args, **kwargs):
+            raise RuntimeError("the update check hung")
+
+        original = dot.collect_outdated
+        dot.collect_outdated = boom
+        self.addCleanup(setattr, dot, "collect_outdated", original)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            with self.assertRaises(RuntimeError):
+                dot.main(["list", "--outdated"])
+        self.assertIn("System inventory", buf.getvalue())
