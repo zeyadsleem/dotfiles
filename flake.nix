@@ -11,7 +11,13 @@
     { nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
+      # `antigravity` is an unfree IDE and is declared in nix/modules/packages.nix,
+      # so the configuration can only evaluate when that one package is allowed.
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfreePredicate =
+          pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "antigravity-ide" ];
+      };
     in
     {
       homeConfigurations."zeyad" = home-manager.lib.homeManagerConfiguration {

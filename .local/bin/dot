@@ -28,6 +28,12 @@ EXCLUDED_CONFIG_DIRS = (
 
 SINGLETON_PREFIX = "Singleton"
 
+# The config scan reaches three levels deep, so a broken link inside an app's
+# own directory (`~/.config/sway/scripts/x`) is found. Only the first two
+# levels are the inventory: the third level only reports breakage.
+MAX_SCAN_DEPTH = 3
+INVENTORY_DEPTH = 2
+
 SPAWN_KEYWORDS = ("spawn", "spawn-sh", "spawn-at-startup", "spawn-sh-at-startup")
 
 SHELL_SEPARATORS = ("||", "&&", "|", ";")
@@ -61,6 +67,7 @@ class Owner:
 class Entry:
     path: str
     owner: Owner
+    depth: int = 1
 
 
 def is_excluded(name: str) -> bool:
@@ -299,6 +306,7 @@ def _scan_dir(
     names: set[str],
     prefixes: list[str],
     depth: int,
+    max_depth: int = MAX_SCAN_DEPTH,
     home: str | None = None,
 ) -> list[Entry]:
     try:
@@ -317,15 +325,16 @@ def _scan_dir(
             owner = classify(path, current_generation=current_generation, repo_dir=repo_dir, home=home)
         except OSError:
             continue
-        found.append(Entry(path, owner))
-        if depth == 1 and not is_link and is_dir:
+        found.append(Entry(path, owner, depth))
+        if depth < max_depth and not is_link and is_dir:
             found.extend(_scan_dir(
                 path,
                 current_generation=current_generation,
                 repo_dir=repo_dir,
                 names=names,
                 prefixes=prefixes,
-                depth=2,
+                depth=depth + 1,
+                max_depth=max_depth,
                 home=home,
             ))
     return found
@@ -338,9 +347,16 @@ def scan_configs(
     repo_dir: str,
     exclude_file: str | None = None,
     home: str | None = None,
+    shallow_roots: set[str] | None = None,
 ) -> list[Entry]:
-    """Every config entry at depth 1, plus the links inside each config dir."""
+    """Every config entry down to MAX_SCAN_DEPTH levels below each root.
+
+    A root in `shallow_roots` is only scanned two levels deep: `~/.local/share`
+    holds application state, where a broken link is noise rather than a
+    configuration mistake.
+    """
     names, prefixes = _read_exclusions(exclude_file)
+    shallow = shallow_roots or set()
     entries: list[Entry] = []
     for root in roots:
         entries.extend(_scan_dir(
@@ -350,6 +366,7 @@ def scan_configs(
             names=names,
             prefixes=prefixes,
             depth=1,
+            max_depth=INVENTORY_DEPTH if root in shallow else MAX_SCAN_DEPTH,
             home=home,
         ))
     return entries
@@ -732,6 +749,52 @@ def package_binary_map(profile_dir: str | None = None, runner=None) -> dict[str,
     return {label: sorted(bins) for label, bins in sorted(result.items())}
 
 
+def collect_profile_entries(runner=None) -> list[dict]:
+    """The packages the Nix profile holds as its own entries.
+
+    Home Manager installs the whole `home.packages` list as one entry, so the
+    entries — not the binaries they happen to carry — are what says whether
+    the profile still holds something the declarations do not mention.
+    """
+    output = _run(["nix", "profile", "list", "--json"], runner)
+    if not output.strip():
+        return []
+    try:
+        data = json.loads(output)
+    except ValueError:
+        return []
+    if not isinstance(data, dict):
+        return []
+    elements = data.get("elements")
+    if not isinstance(elements, dict):
+        return []
+    entries: list[dict] = []
+    for name, info in elements.items():
+        if not isinstance(info, dict):
+            continue
+        paths = info.get("storePaths")
+        if not isinstance(paths, list):
+            continue
+        for path in paths:
+            if isinstance(path, str) and path:
+                entries.append({
+                    "name": name,
+                    "path": path,
+                    "package": _package_name(path),
+                })
+    return entries
+
+
+def _is_home_manager_entry(entry: dict) -> bool:
+    """True for the profile entry Home Manager owns.
+
+    Home Manager installs its packages as the entry `home-manager-path`, so
+    that entry is never something the declarations have to mention.
+    """
+    name = entry.get("package") or entry.get("name") or ""
+    return name in ("home-manager", "home-manager-path") or name.endswith("-home-manager-path")
+
+
 def _same_package(declared: str, other: str) -> bool:
     """True when `other` names the same package as `declared`.
 
@@ -753,8 +816,16 @@ def nix_drift(
     declared: set[str],
     installed: set[str],
     package_bins: dict[str, list[str]],
+    profile_entries: list[dict] | None = None,
 ) -> list[Finding]:
-    """The drift between the declared packages and the ones the profile provides."""
+    """The drift between the declared packages and the ones the profile provides.
+
+    `installed` are the binaries the profile carries, `package_bins` maps every
+    nix package to the binaries it provides, and `profile_entries` are the
+    packages the profile holds as its own entries. Home Manager installs its
+    whole `home.packages` list as a single entry, so only the entries say
+    whether the profile still holds something the declarations do not mention.
+    """
     if not package_bins:
         # Without the package map a declared package cannot be matched to its
         # binary — `neovim` ships `nvim`, `ripgrep` ships `rg`. Calling that a
@@ -777,44 +848,27 @@ def nix_drift(
                 command="",
             ))
 
-    owner_of: dict[str, str] = {}
-    for package, binaries in package_bins.items():
-        for binary in binaries:
-            owner_of.setdefault(binary, package)
-
-    undeclared: dict[str, list[str]] = {}
-    unknown_owner: list[str] = []
-    for binary in sorted(installed):
-        owner = owner_of.get(binary)
-        if owner is None:
-            if not any(_same_package(name, binary) for name in declared):
-                unknown_owner.append(binary)
+    for entry in profile_entries or []:
+        if _is_home_manager_entry(entry):
             continue
-        if any(_same_package(name, owner) for name in declared):
+        package = entry.get("package") or ""
+        if not package:
             continue
-        undeclared.setdefault(owner, []).append(binary)
-    for owner, binaries in sorted(undeclared.items()):
+        if any(_same_package(name, package) for name in declared):
+            continue
+        binaries = package_bins.get(package) or []
+        detail = (
+            f"`{package}` is installed in the Nix profile but not declared "
+            "in packages.nix"
+        )
+        if binaries:
+            detail += f" ({', '.join(binaries)})"
         findings.append(Finding(
             id="nix-undeclared",
             severity="drift",
             path=DECLARATIONS_FILE,
-            detail=(
-                f"`{owner}` is installed in the Nix profile but not declared "
-                f"in packages.nix ({', '.join(binaries)})"
-            ),
-            fix=f"add {owner} to nix/modules/packages.nix",
-            command="",
-        ))
-    for binary in unknown_owner:
-        findings.append(Finding(
-            id="nix-undeclared",
-            severity="drift",
-            path=DECLARATIONS_FILE,
-            detail=(
-                f"`{binary}` is installed in the Nix profile but not declared "
-                "in packages.nix (owner unknown)"
-            ),
-            fix=f"add {binary} to nix/modules/packages.nix",
+            detail=detail,
+            fix=f"add {package} to nix/modules/packages.nix",
             command="",
         ))
     return findings
@@ -882,8 +936,15 @@ def _severity_counts(findings: list[Finding]) -> dict[str, int]:
 
 
 def _managed_configs(inventory: Inventory) -> list[Entry]:
-    """The config entries the user or a tool owns — not the app runtime dirs."""
-    return [entry for entry in inventory.configs if entry.owner.kind != RUNTIME_OWNER]
+    """The config entries the user or a tool owns — not the app runtime dirs.
+
+    Only the first two levels are the inventory. The third level exists to
+    find broken links deeper in an app's own directory.
+    """
+    return [
+        entry for entry in inventory.configs
+        if entry.owner.kind != RUNTIME_OWNER and entry.depth <= INVENTORY_DEPTH
+    ]
 
 
 def _breakdown(counts: dict[str, int]) -> str:
@@ -1213,7 +1274,8 @@ def _nix_findings(
             fix="",
             command="",
         )]
-    return nix_drift(declared, set(profile_bins), mapping)
+    entries = collect_profile_entries()
+    return nix_drift(declared, set(profile_bins), mapping, entries)
 
 
 def _repo_dirty_finding(repo: str) -> Finding | None:
@@ -1264,6 +1326,7 @@ def build_inventory(*, home: str | None = None, repo_dir: str | None = None) -> 
         current_generation=current_generation(base),
         repo_dir=repo,
         home=base,
+        shallow_roots={os.path.join(base, ".local", "share")},
     )
 
     findings = findings_from_entries(entries)

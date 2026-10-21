@@ -387,3 +387,38 @@ Final: Ruling: the reviewer's disagreement with R22 — accepted in full; R22's 
 exactly the fallback that produced the false findings, and R35 replaces it with an explicit
 "unverified" state. Cost if wrong: none, R35 supersedes it.
 Final: review clean after the fix pass — commit `b27522b`, 92 tests, 0 failures.
+
+---
+
+## Follow-up round (2026-10-22) — after the first live run on the owner's machine
+
+The tool shipped and was run on the real workstation. The owner fixed the machine, and two rules in
+the tool turned out to be wrong. Ruling numbers continue from R45.
+
+- R46: **the config scan reaches depth 3 inside `~/.config` only.** Owner decision. The depth-3
+  walk on the live machine found 20 real broken links (19 in the legacy `~/.config/sway` tree plus
+  `systemd/user/wezterm-mux.service`) and no noise. `~/.local/share` stays at depth 2: it holds
+  application state, where `mise/shims` (30 dead links to a `mise` binary the repo no longer has)
+  and `Trash` would drown the report. Cost if wrong: the report gets noisier, never quieter.
+- R47: **only the first two levels are the inventory.** The counts, `--ownership` and the JSON
+  `configs` section count depth ≤ 2; depth 3 exists to find breakage. Without this the
+  "Managed configs" line would count ~1900 runtime files. Cost if wrong: a bigger number, not a
+  wrong one.
+- R48: **the "installed but not declared" direction uses the profile's entries, not its binaries.**
+  Owner decision, and it replaces the old rule of §7.3. Home Manager installs the whole
+  `home.packages` list as one profile entry (`home-manager-path`), so `man-db` and
+  `shared-mime-info` — dependencies of the Home Manager CLI and of `neovim` — appear among the
+  profile binaries without being undeclared. The old rule reported three false findings on the
+  live machine. The new rule reports a package only when the user holds it as its own profile
+  entry and the declarations do not mention it. Cost if wrong: one extra manual package may slip
+  by; the old rule was outright wrong.
+- R49: **the `home-manager-path` entry is never drift.** It is Home Manager's own container, not
+  something `packages.nix` has to declare. `programs.home-manager.enable = true` is what puts it
+  there. Cost if wrong: one false finding.
+- R50: **the flake must allow the unfree package the configuration declares.**
+  `nix/modules/packages.nix` ships `antigravity` (nixpkgs `antigravity-ide`, unfree), and commit
+  `4d3e5d7` dropped the old nested flake that carried `config.allowUnfree = true`. Since then the
+  configuration could not be evaluated at all — `home-manager switch` failed with "Refusing to
+  evaluate package 'antigravity-ide'". The flake now uses `allowUnfreePredicate` for that one
+  package instead of a blanket `allowUnfree`. Cost if wrong: the switch fails and nothing changes.
+- Final: the machine is clean — `dot status` reports "no problems" and exits 0; 101 tests pass.

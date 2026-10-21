@@ -250,6 +250,45 @@ class ConfigScanTests(unittest.TestCase):
             self.assertFalse(any("skipme" in e.path for e in entries))
             self.assertTrue(any("keep" in e.path for e in entries))
 
+    def test_reports_a_broken_link_three_levels_deep(self):
+        with TempTree() as t:
+            cfg = t.path / "config"
+            (cfg / "sway" / "scripts").mkdir(parents=True)
+            (cfg / "sway" / "scripts" / "power_menu.sh").symlink_to(
+                t.path / "dotfiles" / ".config" / "sway" / "scripts" / "power_menu.sh"
+            )
+            entries = dot.scan_configs([str(cfg)], current_generation=None,
+                                       repo_dir=str(t.path / "dotfiles"))
+            broken = [e.path for e in entries if e.owner.kind == "broken"]
+            self.assertTrue(any(path.endswith("power_menu.sh") for path in broken))
+
+    def test_shallow_root_is_not_scanned_deep(self):
+        # `~/.local/share` holds application state: a broken link there is
+        # noise, not a configuration mistake.
+        with TempTree() as t:
+            share = t.path / "share"
+            (share / "mise" / "shims").mkdir(parents=True)
+            (share / "mise" / "shims" / "node").symlink_to(t.path / "missing")
+            entries = dot.scan_configs([str(share)], current_generation=None,
+                                       repo_dir=str(t.path), shallow_roots={str(share)})
+            self.assertFalse(any(e.owner.kind == "broken" for e in entries))
+
+    def test_deep_entries_are_not_counted_as_managed_configs(self):
+        inventory = dot.Inventory(
+            apps=[],
+            cli=[],
+            scripts={},
+            configs=[
+                dot.Entry("/x/niri", dot.Owner("home-manager", "/repo/.config/niri", "HM"), 1),
+                dot.Entry("/x/niri/scripts", dot.Owner("dotfiles", "/repo/.config/niri/scripts", "repo"), 2),
+                dot.Entry("/x/niri/scripts/broken", dot.Owner("broken", "/x/missing", "missing"), 3),
+            ],
+            findings=[],
+            meta={},
+        )
+        managed = dot._managed_configs(inventory)
+        self.assertEqual([entry.path for entry in managed], ["/x/niri", "/x/niri/scripts"])
+
 
 class TokenResolutionTests(unittest.TestCase):
     def test_resolves_bare_name_on_path(self):
@@ -442,9 +481,52 @@ class NixDriftTests(unittest.TestCase):
         self.assertIn("traceroute", findings[0].detail)
 
     def test_detects_installed_but_not_declared(self):
-        findings = dot.nix_drift({"git"}, {"git", "mandb"}, {"git": ["git"]})
+        findings = dot.nix_drift(
+            {"git"},
+            {"git", "mandb"},
+            {"git": ["git"], "man-db": ["mandb"]},
+            profile_entries=[{
+                "name": "man-db",
+                "path": "/nix/store/" + "a" * 32 + "-man-db-2.13.1",
+                "package": "man-db",
+            }],
+        )
         self.assertEqual([f.severity for f in findings], ["drift"])
-        self.assertIn("mandb", findings[0].detail)
+        self.assertIn("man-db", findings[0].detail)
+
+    def test_home_manager_entry_is_not_reported_as_undeclared(self):
+        # Home Manager installs its own packages as one profile entry; that
+        # entry is not something the declarations have to mention.
+        findings = dot.nix_drift(
+            {"git"},
+            {"git", "man", "home-manager"},
+            {"git": ["git"]},
+            profile_entries=[{
+                "name": "home-manager-path",
+                "path": "/nix/store/" + "b" * 32 + "-home-manager-path",
+                "package": "home-manager-path",
+            }],
+        )
+        self.assertEqual(findings, [])
+
+    def test_declared_package_satisfies_a_profile_entry(self):
+        findings = dot.nix_drift(
+            {"ripgrep"},
+            {"rg"},
+            {"ripgrep": ["rg"]},
+            profile_entries=[{
+                "name": "ripgrep",
+                "path": "/nix/store/" + "c" * 32 + "-ripgrep-15.2.0",
+                "package": "ripgrep",
+            }],
+        )
+        self.assertEqual(findings, [])
+
+    def test_no_undeclared_finding_without_the_profile_entries(self):
+        # Without the profile entries the tool cannot tell an extra package
+        # from a dependency, so it claims nothing.
+        findings = dot.nix_drift({"git"}, {"git", "man"}, {"git": ["git"]})
+        self.assertEqual(findings, [])
 
     def test_no_findings_when_all_declared_are_installed(self):
         findings = dot.nix_drift({"git"}, {"git"}, {"git": ["git"]})
@@ -462,10 +544,51 @@ class NixDriftTests(unittest.TestCase):
 
     def test_reports_an_undeclared_package_once(self):
         findings = dot.nix_drift(
-            {"git"}, {"git", "man", "mandb"}, {"git": ["git"], "man-db": ["man", "mandb"]}
+            {"git"},
+            {"git", "man", "mandb"},
+            {"git": ["git"], "man-db": ["man", "mandb"]},
+            profile_entries=[{
+                "name": "man-db",
+                "path": "/nix/store/" + "d" * 32 + "-man-db-2.13.1",
+                "package": "man-db",
+            }],
         )
         self.assertEqual(len(findings), 1)
         self.assertIn("man-db", findings[0].detail)
+        self.assertIn("mandb", findings[0].detail)
+
+    def test_collect_profile_entries_parses_the_nix_output(self):
+        payload = json.dumps({
+            "elements": {
+                "home-manager-path": {
+                    "active": True,
+                    "storePaths": ["/nix/store/" + "e" * 32 + "-home-manager-path"],
+                },
+            },
+            "version": 3,
+        })
+
+        def fake_runner(cmd, **kwargs):
+            return subprocess.CompletedProcess(cmd, 0, payload, "")
+
+        entries = dot.collect_profile_entries(runner=fake_runner)
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0]["name"], "home-manager-path")
+        self.assertEqual(entries[0]["package"], "home-manager-path")
+
+    def test_collect_profile_entries_is_empty_without_nix(self):
+        def fake_runner(cmd, **kwargs):
+            raise FileNotFoundError("nix")
+        self.assertEqual(dot.collect_profile_entries(runner=fake_runner), [])
+
+    def test_home_manager_entry_is_recognised(self):
+        entry = {
+            "name": "home-manager-path",
+            "path": "/nix/store/" + "f" * 32 + "-home-manager-path",
+            "package": "home-manager-path",
+        }
+        self.assertTrue(dot._is_home_manager_entry(entry))
+        self.assertFalse(dot._is_home_manager_entry({"name": "ripgrep", "package": "ripgrep"}))
 
     def test_does_not_report_drift_without_a_package_map(self):
         # Without the nix CLI a package's binary may carry another name

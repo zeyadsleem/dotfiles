@@ -160,6 +160,12 @@ Findings are ordered by severity, not by discovery order.
 
 - Depth 1 for classification of every entry in `~/.config` and `~/.local/share`.
 - Depth 2 **inside** those directories to validate links (this is where the 5 real broken links are).
+- Depth 3 inside `~/.config` only *(owner decision 2026-10-22)*: an app's own directory
+  (`~/.config/sway/scripts/x`) can hold a broken link too, and the depth-3 walk on this machine
+  found 20 more real breakages and no noise. `~/.local/share` stays at depth 2 — it holds
+  application state (`mise/shims`, `Trash`), where a broken link is noise, not a mistake.
+- Only the first two levels are the **inventory** (the counts, `--ownership`, the JSON sections).
+  The third level is scanned for breakage only, so the report does not drown in runtime files.
 - Default exclusion list for tool-managed subtrees that generate their own symlink farms and
   runtime sockets: `~/.config/{crush,goose,opencode,Codex,BraveSoftware,Local,chromium,Antigravity}`
   and any `Singleton*` entry.
@@ -173,14 +179,18 @@ is therefore reported as two sub-classes — `local:user` (points into `$HOME`, 
 `~/.local/share/uv/tools`) and `local:tool` (points into tool-owned trees). Default output counts
 both; `--ownership` lists `local:user` in full and only counts `local:tool`.
 
-### 7.3 Nix drift is bidirectional *(my call)*
+### 7.3 Nix drift is bidirectional *(my call — rule corrected 2026-10-22)*
 
 - **Declared → installed:** compare `packages.nix` names against the profile binaries, using the
   `nix` CLI (`nix path-info --json`) when available to map packages to their binaries, and falling
-  back to name matching when it is not. `traceroute` is the current positive.
-- **Installed → declared:** profile binaries whose owning package is not declared. When the `nix`
-  CLI is unavailable, report them as "unattributed binaries (transitive or manual)" rather than
-  claiming a false owner.
+  back to name matching when it is not. `traceroute` was the current positive.
+- **Installed → declared:** the profile's **entries**, not its binaries *(owner decision
+  2026-10-22)*. Home Manager installs the whole `home.packages` list as one profile entry
+  (`home-manager-path`), so every dependency it drags in (`man-db`, `shared-mime-info`) appears in
+  the profile's binaries without being undeclared. The entries are what says whether the user
+  installed something the declarations do not mention. The `home-manager-path` entry is never drift.
+- When the `nix` CLI is unavailable, the entries cannot be read, so nothing is claimed in that
+  direction — an empty result, not a guess.
 - The profile is canonical; the HM `home-path` is the fallback when the profile is missing.
 
 ### 7.4 The exit-0 contract *(my call)*
@@ -364,6 +374,19 @@ sheet window.
 2. **Output form — decided:** plain coloured text first. The fzf TUI stays in Phase 2 and will
    consume the frozen `--json` schema in §7.6.
 3. **Scope — decided:** Phase 1 = `dot list` + `dot status` only.
+
+## 12b. Owner decisions (2026-10-22, after the first live run)
+
+1. **Home Manager rebuild — decided:** run `home-manager switch --flake ~/dotfiles#zeyad`. The
+   configuration files are byte-identical to the live ones, so the desktop does not change; the
+   profile gains `traceroute` and every HM-managed link points at the repo again. The flake needed
+   `allowUnfreePredicate` for `antigravity-ide` first — without it the configuration could not
+   even be evaluated, since commit `4d3e5d7` dropped the old nested flake that had it.
+2. **Legacy `~/.config/sway` — decided:** delete the whole directory. Sway was removed from the
+   repo in `d67fbb0`, the compositor is not installed, and the wallpaper it held is not the one
+   niri uses.
+3. **Scan depth — decided:** depth 3 inside `~/.config`, depth 2 inside `~/.local/share` (§7.1).
+4. **Nix drift rule — decided:** the profile's entries, not its binaries (§7.3).
 
 ## 13. Calls the builder made (for review, not up for debate)
 
