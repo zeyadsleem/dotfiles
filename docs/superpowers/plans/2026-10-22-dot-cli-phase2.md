@@ -48,6 +48,8 @@ Six input classes the spec implies but no task's own tests exercise. Each line b
 - Consumes: `scan_configs(roots, *, current_generation, repo_dir, exclude_file, home, shallow_roots)`, `findings_from_entries(entries)`, `_spawn_findings(config_path)`, `current_generation(home)`, `default_repo_dir()`, the `Finding` dataclass, `SEVERITIES`.
 - Produces (later tasks rely on these names):
   - `HEALTH_TEXT = "●"`
+  - `scan_home_configs(base: str, repo: str) -> list[Entry]` — the config scan of the home
+    directory, shared by the health probe, the browser and the inventory
   - `@dataclasses.dataclass(frozen=True) class Health:` with fields `ok: bool`, `counts: dict[str, int]`, `findings: list[Finding]`, `text: str`, `tooltip: str`, `style: str`
   - `collect_health(*, home: str | None = None, repo_dir: str | None = None) -> Health`
   - `health_json(health: Health) -> dict`
@@ -124,6 +126,11 @@ class HealthTests(unittest.TestCase):
         self.assertEqual(dot.health_json(health)["class"], "bad")
 
     def test_health_command_exits_zero_when_healthy(self):
+        original = dot.collect_health
+        dot.collect_health = lambda **kwargs: dot.Health(
+            ok=True, counts={"broken": 0, "stale": 0, "missing": 0}, findings=[],
+            text="●", tooltip="dot: no problems", style="ok")
+        self.addCleanup(setattr, dot, "collect_health", original)
         code, out = self._capture(["health"])
         self.assertEqual(code, 0)
         self.assertIn("no problems", out)
@@ -154,6 +161,22 @@ HEALTH_TEXT = "●"
 HEALTH_SEVERITIES = ("broken", "stale", "missing")
 
 
+def scan_home_configs(base: str, repo: str) -> list[Entry]:
+    """The config entries of this home directory.
+
+    One scan, one rule: `~/.config` is read three levels deep, `~/.local/share`
+    only two, because a broken link in an application's state directory is
+    noise rather than a configuration mistake.
+    """
+    return scan_configs(
+        [os.path.join(base, ".config"), os.path.join(base, ".local", "share")],
+        current_generation=current_generation(base),
+        repo_dir=repo,
+        home=base,
+        shallow_roots={os.path.join(base, ".local", "share")},
+    )
+
+
 @dataclasses.dataclass(frozen=True)
 class Health:
     """The cheap health of the machine: the links and the spawn targets."""
@@ -176,13 +199,7 @@ def collect_health(*, home: str | None = None, repo_dir: str | None = None) -> H
     repo = repo_dir if repo_dir is not None else default_repo_dir()
     if repo and not os.path.isdir(repo):
         repo = ""
-    entries = scan_configs(
-        [os.path.join(base, ".config"), os.path.join(base, ".local", "share")],
-        current_generation=current_generation(base),
-        repo_dir=repo,
-        home=base,
-        shallow_roots={os.path.join(base, ".local", "share")},
-    )
+    entries = scan_home_configs(base, repo)
     findings = findings_from_entries(entries)
     findings.extend(_spawn_findings(os.path.join(base, NIRI_CONFIG_REL)))
     counts = {key: 0 for key in HEALTH_SEVERITIES}
@@ -242,6 +259,11 @@ and handle it **before** `inventory = build_inventory()` so the health probe nev
 
     inventory = build_inventory()
 ```
+
+In `build_inventory`, replace the inline `scan_configs(...)` call with the new helper
+(`entries = scan_home_configs(base, repo)`). The arguments are identical, so the behaviour
+is unchanged — the 101 existing tests are the guard. This keeps one scan rule in the file
+instead of three copies of it.
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
@@ -318,7 +340,7 @@ class PackageEditorTests(unittest.TestCase):
         self.assertEqual(added, ["fd"])
         self.assertIn("\n    fd\n", text)
         self.assertEqual([e.name for e in dot.package_entries(text)],
-                         ["git", "neovim", "ripgrep", "fd", "libnotify"])
+                         ["git", "neovim", "ripgrep", "libnotify", "fd"])
 
     def test_add_packages_skips_a_name_that_is_already_declared(self):
         text, added = dot.add_packages(PACKAGES_NIX, ["git"])
@@ -529,6 +551,11 @@ class PkgTests(unittest.TestCase):
         (repo / "nix" / "modules" / "packages.nix").write_text(text)
         return str(repo)
 
+    def _stub_config(self, name="zeyad"):
+        original = dot.home_manager_configurations
+        dot.home_manager_configurations = lambda repo_dir, runner=None: [name]
+        self.addCleanup(setattr, dot, "home_manager_configurations", original)
+
     def test_nix_attribute_name_accepts_a_known_attribute(self):
         def fake_runner(cmd, **kwargs):
             self.assertIn("legacyPackages", cmd[-1])
@@ -581,25 +608,34 @@ class PkgTests(unittest.TestCase):
     def test_pkg_add_maps_a_binary_name_to_its_package(self):
         with TempTree() as t:
             repo = self._repo(t)
-            original = dot.nix_attribute_name
-            calls = []
+            self._stub_config()
+            path = os.path.join(repo, "nix", "modules", "packages.nix")
 
             def fake_attr(name, repo_dir, runner=None):
-                calls.append(name)
                 return "ripgrep-14.1.0" if name == "ripgrep" else None
 
+            original = dot.nix_attribute_name
             dot.nix_attribute_name = fake_attr
             self.addCleanup(setattr, dot, "nix_attribute_name", original)
 
             original_map = dot.package_binary_map
-            dot.package_binary_map = lambda *a, **k: {"ripgrep": ["rg"]}
+            dot.package_binary_map = lambda *args, **kwargs: {"ripgrep": ["rg"]}
             self.addCleanup(setattr, dot, "package_binary_map", original_map)
 
-            self.assertEqual(dot.resolve_package_name("rg", {"ripgrep": ["rg"]}), "ripgrep")
+            original_switch = dot.run_home_manager_switch
+            dot.run_home_manager_switch = lambda repo_dir, config, runner=None: (True, "ok")
+            self.addCleanup(setattr, dot, "run_home_manager_switch", original_switch)
+
+            code, out = self._capture(["pkg", "add", "rg", "--yes"], repo=repo)
+            self.assertEqual(code, 0)
+            text = open(path).read()
+            self.assertIn("    ripgrep\n", text)
+            self.assertNotIn("    rg\n", text)
 
     def test_pkg_add_refuses_without_a_confirmation(self):
         with TempTree() as t:
             repo = self._repo(t)
+            self._stub_config()
             path = os.path.join(repo, "nix", "modules", "packages.nix")
             before = open(path).read()
 
@@ -617,6 +653,7 @@ class PkgTests(unittest.TestCase):
     def test_pkg_add_writes_the_file_and_runs_the_switch(self):
         with TempTree() as t:
             repo = self._repo(t)
+            self._stub_config()
             path = os.path.join(repo, "nix", "modules", "packages.nix")
             switched = []
 
@@ -645,18 +682,22 @@ class PkgTests(unittest.TestCase):
 
         def spy(cmd, *args, **kwargs):
             recorded.append(cmd if isinstance(cmd, list) else [cmd])
+            if cmd and cmd[0] == "home-manager":
+                return subprocess.CompletedProcess(cmd, 0, "ok\n", "")
             return real_run(cmd, *args, **kwargs)
 
         subprocess.run = spy
         self.addCleanup(setattr, subprocess, "run", real_run)
         with TempTree() as t:
             repo = self._repo(t)
+            self._stub_config()
+            original_repo = dot.default_repo_dir
+            dot.default_repo_dir = lambda: repo
+            self.addCleanup(setattr, dot, "default_repo_dir", original_repo)
             with contextlib.redirect_stdout(io.StringIO()):
-                with contextlib.redirect_stderr(io.StringIO()):
-                    try:
-                        dot.main(["pkg", "sync", "--yes"])
-                    except Exception:
-                        pass
+                code = dot.main(["pkg", "sync", "--yes"])
+        self.assertEqual(code, 0)
+        self.assertTrue(recorded, "dot pkg ran no command at all, so nothing was checked")
         for cmd in recorded:
             program = os.path.basename(cmd[0])
             self.assertNotEqual(program, "sudo")
@@ -998,15 +1039,18 @@ class BrowseTests(unittest.TestCase):
             def fake_runner(cmd, stdin_text=None, **kwargs):
                 raise FileNotFoundError("fzf")
 
-            code, out = self._capture(["browse"], home=str(home), runner=fake_runner)
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = dot.browse(home=str(home), repo_dir=str(t.path / "dotfiles"),
+                                  runner=fake_runner)
             self.assertEqual(code, 0)
-            self.assertIn("config", out)
+            self.assertIn("config", buf.getvalue())
 
     def test_browse_launches_the_selected_app(self):
         launched = []
 
         def fake_runner(cmd, stdin_text=None, **kwargs):
-            return "app:Demo\n"
+            return "app:Demo\0"
 
         def fake_launcher(cmd):
             launched.append(cmd)
@@ -1020,12 +1064,13 @@ class BrowseTests(unittest.TestCase):
             self.assertEqual(code, 0)
             self.assertTrue(launched)
             self.assertEqual(launched[0][0], "gtk-launch")
+            self.assertEqual(launched[0][1], "demo")
 
     def test_browse_opens_the_selected_config(self):
         launched = []
 
         def fake_runner(cmd, stdin_text=None, **kwargs):
-            return "config:/tmp/x\n"
+            return "config:/tmp/x\0"
 
         def fake_launcher(cmd):
             launched.append(cmd)
@@ -1041,7 +1086,7 @@ class BrowseTests(unittest.TestCase):
         launched = []
 
         def fake_runner(cmd, stdin_text=None, **kwargs):
-            return "cli:rg\n"
+            return "cli:rg\0"
 
         def fake_launcher(cmd):
             launched.append(cmd)
@@ -1072,42 +1117,6 @@ class BrowseTests(unittest.TestCase):
             self.assertIn("sh", text)
 ```
 
-The `_capture` helper for this class:
-
-```python
-    def _capture(self, argv, home=None, runner=None):
-        buf = io.StringIO()
-        original_home = os.path.expanduser
-        with contextlib.redirect_stdout(buf):
-            code = dot.main(argv)
-        return code, buf.getvalue()
-```
-
-Note: the class must call `dot.browse(...)` directly for the launcher tests, and `dot.main(["browse"])` only for the fallback test. For the fallback test, stub `dot.browse` to use the fake runner:
-
-```python
-    def test_browse_prints_the_rows_when_fzf_is_missing(self):
-        ...
-        original = dot.browse
-        dot.browse = lambda **kwargs: dot.browse(**kwargs)
-```
-
-Simpler: make `dot.main` call `browse()` with no arguments, and have `browse()` read `HOME` itself. Then the test sets the `HOME` environment variable for the duration of the call:
-
-```python
-    def test_browse_prints_the_rows_when_fzf_is_missing(self):
-        with TempTree() as t:
-            home = self._home(t)
-            (home / ".config" / "demo").mkdir()
-            os.environ["HOME"] = str(home)
-            self.addCleanup(os.environ.__setitem__, "HOME", os.environ.get("HOME", ""))
-            code, out = self._capture(["browse"], runner=fake_runner)
-            self.assertEqual(code, 0)
-            self.assertIn("config", out)
-```
-
-and `dot.main` calls `browse(runner=None)`. For the runner to reach `browse` from `main`, `browse` must accept a module-level override; the simplest way that keeps the test honest is to give `main` a `browse` call with the default runner and let the test call `dot.browse(...)` directly for the fzf-missing case. **Use the direct call for the fzf-missing test** and assert on its return value and the printed rows.
-
 - [ ] **Step 2: Run the tests to verify they fail**
 
 Run: `python3 -m unittest discover -s tests -p test_dot.py -k Browse -v`
@@ -1132,39 +1141,46 @@ def browse_rows(*, home: str | None = None, repo_dir: str | None = None) -> list
     app_dirs.append(SYSTEM_DESKTOP_DIR)
     for app in collect_desktop_entries(app_dirs, home=base):
         name = app.get("name", "")
+        desktop_file = app.get("desktop_file", "")
         rows.append({
             "id": f"app:{name}",
             "kind": "app",
             "label": name,
             "detail": app.get("source", ""),
+            "target": os.path.basename(desktop_file)[:-len(".desktop")] if desktop_file else name,
         })
-    profile = collect_profile_bins(os.path.join(base, PROFILE_BIN_REL))
+    names = collect_profile_bins(os.path.join(base, PROFILE_BIN_REL))
     for tool, items in collect_tool_dirs(tool_dir_paths(base)).items():
-        profile.extend(items)
-    for name in sorted(set(profile)):
-        rows.append({"id": f"cli:{name}", "kind": "cli", "label": name, "detail": "cli"})
+        names.extend(items)
+    for name in sorted(set(names)):
+        rows.append({"id": f"cli:{name}", "kind": "cli", "label": name,
+                     "detail": "cli", "target": name})
     scripts = collect_scripts(os.path.join(base, ".local", "bin"), repo or None)
-    for group, names in scripts.items():
-        for name in names:
+    for group, script_names in scripts.items():
+        for name in script_names:
             rows.append({"id": f"script:{name}", "kind": "script", "label": name,
-                         "detail": group})
-    entries = scan_configs(
-        [os.path.join(base, ".config"), os.path.join(base, ".local", "share")],
-        current_generation=current_generation(base),
-        repo_dir=repo,
-        home=base,
-        shallow_roots={os.path.join(base, ".local", "share")},
-    )
-    for entry in entries:
+                         "detail": group, "target": name})
+    for entry in scan_home_configs(base, repo):
         if entry.owner.kind == RUNTIME_OWNER:
             continue
         rows.append({"id": f"config:{entry.path}", "kind": "config",
-                     "label": entry.path, "detail": entry.owner.kind})
+                     "label": entry.path, "detail": entry.owner.kind,
+                     "target": entry.owner.target})
     return rows
 
 
-def run_fzf(rows: list[str], *, runner=None) -> list[str]:
-    """Feed the rows to fzf and return the chosen ones."""
+def _run_with_input(cmd: list[str], stdin_text: str) -> str:
+    """Run a command and feed it text on stdin."""
+    proc = subprocess.run(cmd, input=stdin_text, capture_output=True, text=True, check=False)
+    return proc.stdout
+
+
+def run_fzf(rows: list[str], *, runner=None) -> list[str] | None:
+    """Feed the rows to fzf and return the chosen ids.
+
+    None means fzf is not installed, so the caller can print the rows
+    instead; an empty list means fzf ran and nothing was chosen.
+    """
     script = os.path.realpath(__file__)
     cmd = [
         "fzf",
@@ -1178,14 +1194,8 @@ def run_fzf(rows: list[str], *, runner=None) -> list[str]:
     try:
         output = run(cmd, "\n".join(rows) + "\n")
     except (FileNotFoundError, OSError):
-        return []
-    return [line for line in output.split("\0") if line]
-
-
-def _run_with_input(cmd: list[str], stdin_text: str) -> str:
-    """Run a command and feed it text on stdin."""
-    proc = subprocess.run(cmd, input=stdin_text, capture_output=True, text=True, check=False)
-    return proc.stdout
+        return None
+    return [line.strip() for line in output.split("\0") if line.strip()]
 
 
 def show_item(item_id: str, *, home=None, repo_dir=None) -> str:
@@ -1202,7 +1212,8 @@ def show_item(item_id: str, *, home=None, repo_dir=None) -> str:
         app_dirs.append(SYSTEM_DESKTOP_DIR)
         for app in collect_desktop_entries(app_dirs, home=base):
             if app.get("name") == name:
-                return f"{name}\ndesktop file: {app.get('desktop_file', '')}\nsource: {app.get('source', '')}"
+                return (f"{name}\ndesktop file: {app.get('desktop_file', '')}"
+                        f"\nsource: {app.get('source', '')}")
         return f"{name}\nnot found"
     path = shutil.which(name)
     if path is None:
@@ -1215,52 +1226,53 @@ def show_item(item_id: str, *, home=None, repo_dir=None) -> str:
 
 def browse(*, home=None, repo_dir=None, runner=None, launcher=None) -> int:
     """The interactive browser over everything the machine owns."""
-    rows = browse_rows(home=home, repo_dir=repo_dir)
+    base = os.path.abspath(home) if home is not None else str(Path.home())
+    rows = browse_rows(home=base, repo_dir=repo_dir)
     if not rows:
         print("nothing to browse")
         return 0
     lines = [f"{row['id']}\t{row['label']}\t{row['detail']}" for row in rows]
     chosen = run_fzf(lines, runner=runner)
+    if chosen is None:
+        print("\n".join(f"{row['label']}  ({row['kind']})" for row in rows))
+        return 0
     if not chosen:
-        if runner is None and shutil.which("fzf") is None:
-            print("\n".join(f"{row['label']}  ({row['kind']})" for row in rows))
-            return 0
         print("nothing was chosen")
         return 0
+    by_id = {row["id"]: row for row in rows}
     run = launcher or (lambda cmd: subprocess.run(cmd, check=False))
     for item_id in chosen:
+        row = by_id.get(item_id, {})
         kind, _, name = item_id.partition(":")
         if kind == "app":
-            run(["gtk-launch", name])
+            run(["gtk-launch", row.get("target") or name])
         elif kind == "config":
             editor = os.environ.get("EDITOR", "xdg-open")
             run([editor, name])
         else:
-            path = shutil.which(name) or os.path.join(base_local(), ".local", "bin", name)
+            path = shutil.which(name) or os.path.join(base, ".local", "bin", name)
             run(["wl-copy", path])
             print(path)
     return 0
 ```
 
-Replace `base_local()` with a local variable computed from `home`:
-
-```python
-    base = os.path.abspath(home) if home is not None else str(Path.home())
-```
-
-Use that `base` in the `else` branch instead of `base_local()`.
-
 Register the subcommand in `main`:
 
 ```python
     p_browse = sub.add_parser("browse", help="search everything the machine owns")
+    p_show = sub.add_parser("show", help="the details of one item")
+    p_show.add_argument("item", help="the id of the item, for example config:/home/zeyad/.config/niri")
 ```
 
-and handle it before `build_inventory()`:
+and handle both before `build_inventory()`:
 
 ```python
     if args.command == "browse":
         return browse()
+
+    if args.command == "show":
+        print(show_item(args.item))
+        return 0
 ```
 
 - [ ] **Step 4: Run the tests to verify they pass**
@@ -1301,6 +1313,9 @@ git commit -m "feat(dot): add the browse launcher over the inventory"
 
 - [ ] **Step 1: Write the failing tests**
 
+Add `import shutil` to the imports at the top of `tests/test_dot.py` — the suite does not
+import it yet and the window fallback test needs it.
+
 ```python
 NIRI_CONFIG = """
 binds {
@@ -1336,7 +1351,8 @@ class KeyTests(unittest.TestCase):
         arabic = dot.describe_action("toggle-overview", lang="ar")
         english = dot.describe_action("toggle-overview", lang="en")
         self.assertNotEqual(arabic, english)
-        self.assertIn("toggle-overview", english.lower().replace(" ", "-"))
+        self.assertIn("toggle", english.lower())
+        self.assertIn("عرض", arabic)
 
     def test_render_key_bindings_lists_every_binding(self):
         text = dot.render_key_bindings(dot.parse_key_bindings(NIRI_CONFIG))
@@ -1350,6 +1366,12 @@ class KeyTests(unittest.TestCase):
             (home / ".config" / "niri" / "config.kdl").write_text(NIRI_CONFIG)
             text = dot.keys_window_text(home=str(home))
             self.assertIn("Mod+T", text)
+
+    def test_open_keys_window_returns_false_without_a_window_tool(self):
+        original = shutil.which
+        shutil.which = lambda name, **kwargs: None
+        self.addCleanup(setattr, shutil, "which", original)
+        self.assertFalse(dot.open_keys_window("hello"))
 ```
 
 - [ ] **Step 2: Run the tests to verify they fail**
@@ -1789,9 +1811,12 @@ Add these module blocks before the closing brace of the file:
 ```
 
 The glyphs are Nerd Font codepoints that exist in the installed
-`JetBrainsMono Nerd Font` (`U+F2DB` for the cpu chip, `U+F0FC` for the memory bars,
-`U+F240`–`U+F243` for the battery levels). If a glyph renders as a box on the
-owner's screen, replace it with a plain label such as `"cpu {usage}%"`.
+`JetBrainsMono Nerd Font`: `U+F2DB` for the cpu chip, `U+F0FC` for the memory bars,
+`U+F240`–`U+F243` for the battery levels. Write them as the escape sequences
+`"\uF2DB"`, `"\uF0FC"`, `"\uF240"`, `"\uF241"`, `"\uF242"`, `"\uF243"` in the config —
+the file is parsed as json and an escape survives copying better than a raw glyph.
+If a glyph still renders as a box on the owner's screen, replace it with a plain
+label such as `"cpu {usage}%"`.
 
 - [ ] **Step 6: Style the new modules**
 
