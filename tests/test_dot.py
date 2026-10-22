@@ -951,3 +951,125 @@ class ReviewRegressionTests(unittest.TestCase):
             dot.main(["list", "--wide"])
         top = buf.getvalue().split("Top CLI:")[1].split("\n")[0]
         self.assertGreater(len(top.split()), 12)
+
+
+class HealthTests(unittest.TestCase):
+    """The health probe is the cheap one: no pacman, no nix, no git."""
+
+    def _home(self, t):
+        home = t.path / "home"
+        (home / ".config").mkdir(parents=True)
+        return home
+
+    def _capture(self, argv):
+        import io
+        from contextlib import redirect_stdout
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            code = dot.main(argv)
+        return code, buf.getvalue()
+
+    def test_health_is_clean_when_nothing_is_broken(self):
+        with TempTree() as t:
+            home = self._home(t)
+            health = dot.collect_health(home=str(home), repo_dir=str(t.path / "dotfiles"))
+            self.assertTrue(health.ok)
+            self.assertEqual(health.style, "ok")
+            self.assertEqual(health.counts, {"broken": 0, "stale": 0, "missing": 0})
+
+    def test_health_counts_a_broken_link(self):
+        with TempTree() as t:
+            home = self._home(t)
+            (home / ".config" / "app").mkdir()
+            (home / ".config" / "app" / "config").symlink_to(home / ".config" / "app" / "missing")
+            health = dot.collect_health(home=str(home), repo_dir=str(t.path / "dotfiles"))
+            self.assertFalse(health.ok)
+            self.assertEqual(health.counts["broken"], 1)
+            self.assertEqual(health.style, "bad")
+
+    def test_health_counts_a_broken_link_three_levels_deep(self):
+        with TempTree() as t:
+            home = self._home(t)
+            deep = home / ".config" / "app" / "sub"
+            deep.mkdir(parents=True)
+            (deep / "file").symlink_to(deep / "missing")
+            health = dot.collect_health(home=str(home), repo_dir=str(t.path / "dotfiles"))
+            self.assertEqual(health.counts["broken"], 1)
+
+    def test_health_reports_a_missing_spawn_binary(self):
+        with TempTree() as t:
+            home = self._home(t)
+            niri = home / ".config" / "niri"
+            niri.mkdir(parents=True)
+            (niri / "config.kdl").write_text('binds {\n    Mod+T { spawn "definitely-not-installed-xyz"; }\n}\n')
+            health = dot.collect_health(home=str(home), repo_dir=str(t.path / "dotfiles"))
+            self.assertEqual(health.counts["missing"], 1)
+            self.assertFalse(health.ok)
+
+    def test_health_ignores_a_missing_niri_config(self):
+        with TempTree() as t:
+            home = self._home(t)
+            health = dot.collect_health(home=str(home), repo_dir=str(t.path / "dotfiles"))
+            self.assertEqual(health.counts["missing"], 0)
+            self.assertTrue(health.ok)
+
+    def test_health_json_has_exactly_three_keys(self):
+        health = dot.Health(ok=True, counts={"broken": 0, "stale": 0, "missing": 0},
+                            findings=[], text="●", tooltip="dot: no problems", style="ok")
+        data = dot.health_json(health)
+        self.assertEqual(sorted(data.keys()), ["class", "text", "tooltip"])
+        self.assertEqual(data["class"], "ok")
+
+    def test_health_json_style_is_bad_when_something_is_broken(self):
+        health = dot.Health(ok=False, counts={"broken": 2, "stale": 0, "missing": 0},
+                            findings=[], text="●", tooltip="dot: 2 broken", style="bad")
+        self.assertEqual(dot.health_json(health)["class"], "bad")
+
+    def test_health_command_exits_zero_when_healthy(self):
+        original = dot.collect_health
+        dot.collect_health = lambda **kwargs: dot.Health(
+            ok=True, counts={"broken": 0, "stale": 0, "missing": 0}, findings=[],
+            text="●", tooltip="dot: no problems", style="ok")
+        self.addCleanup(setattr, dot, "collect_health", original)
+        code, out = self._capture(["health"])
+        self.assertEqual(code, 0)
+        self.assertIn("no problems", out)
+
+    def test_health_command_exits_one_when_unhealthy(self):
+        original = dot.collect_health
+        dot.collect_health = lambda **kwargs: dot.Health(
+            ok=False, counts={"broken": 1, "stale": 0, "missing": 0}, findings=[],
+            text="●", tooltip="dot: 1 broken", style="bad")
+        self.addCleanup(setattr, dot, "collect_health", original)
+        code, out = self._capture(["health"])
+        self.assertEqual(code, 1)
+
+    def test_health_command_json_prints_the_three_keys(self):
+        original = dot.collect_health
+        dot.collect_health = lambda **kwargs: dot.Health(
+            ok=True, counts={"broken": 0, "stale": 0, "missing": 0}, findings=[],
+            text="●", tooltip="dot: no problems", style="ok")
+        self.addCleanup(setattr, dot, "collect_health", original)
+        code, out = self._capture(["health", "--json"])
+        self.assertEqual(code, 0)
+        self.assertEqual(sorted(json.loads(out).keys()), ["class", "text", "tooltip"])
+
+    def test_health_probe_runs_no_command_at_all(self):
+        """The bar calls this every ten seconds: pacman, nix and git are too slow."""
+        recorded = []
+        real_run = subprocess.run
+
+        def spy(cmd, *args, **kwargs):
+            recorded.append(cmd if isinstance(cmd, list) else [cmd])
+            return real_run(cmd, *args, **kwargs)
+
+        subprocess.run = spy
+        self.addCleanup(setattr, subprocess, "run", real_run)
+        with TempTree() as t:
+            home = self._home(t)
+            niri = home / ".config" / "niri"
+            niri.mkdir(parents=True)
+            (niri / "config.kdl").write_text('binds {\n    Mod+T { spawn "definitely-not-installed-xyz"; }\n}\n')
+            health = dot.collect_health(home=str(home), repo_dir=str(t.path / "dotfiles"))
+        self.assertEqual(health.counts["missing"], 1)
+        self.assertEqual(recorded, [])

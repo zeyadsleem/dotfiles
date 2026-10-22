@@ -1177,8 +1177,14 @@ def _package_for_binary(name: str, runner=None) -> str:
     return name
 
 
-def _spawn_findings(config_path: str) -> list[Finding]:
-    """The binaries the compositor spawns that are not installed."""
+def _spawn_findings(config_path: str, *, lookup_package: bool = True) -> list[Finding]:
+    """The binaries the compositor spawns that are not installed.
+
+    `lookup_package` asks pacman which package provides the binary, so the fix
+    names a real package. The health probe switches it off: the bar calls the
+    probe every ten seconds, and pacman costs seconds. The binary name is the
+    package name in nearly every case, so the hint stays usable.
+    """
     try:
         with open(config_path, encoding="utf-8", errors="replace") as handle:
             text = handle.read()
@@ -1197,7 +1203,7 @@ def _spawn_findings(config_path: str) -> list[Finding]:
             fix = f"create or restore {ref.token}"
             command = ""
         else:
-            package = _package_for_binary(ref.token)
+            package = _package_for_binary(ref.token) if lookup_package else ref.token
             detail = f"the compositor spawns `{ref.token}` ({ref.context}) — not installed"
             fix = f"sudo pacman -S {package}"
             command = fix
@@ -1305,6 +1311,89 @@ def _sort_findings(findings: list[Finding]) -> list[Finding]:
     return sorted(findings, key=lambda finding: order.get(finding.severity, len(SEVERITIES)))
 
 
+# ── health ──
+
+
+HEALTH_TEXT = "●"
+HEALTH_SEVERITIES = ("broken", "stale", "missing")
+
+
+def scan_home_configs(base: str, repo: str) -> list[Entry]:
+    """The config entries of this home directory.
+
+    One scan, one rule: `~/.config` is read three levels deep, `~/.local/share`
+    only two, because a broken link in an application's state directory is
+    noise rather than a configuration mistake.
+    """
+    return scan_configs(
+        [os.path.join(base, ".config"), os.path.join(base, ".local", "share")],
+        current_generation=current_generation(base),
+        repo_dir=repo,
+        home=base,
+        shallow_roots={os.path.join(base, ".local", "share")},
+    )
+
+
+@dataclasses.dataclass(frozen=True)
+class Health:
+    """The cheap health of the machine: the links and the spawn targets."""
+
+    ok: bool
+    counts: dict[str, int]
+    findings: list[Finding]
+    text: str
+    tooltip: str
+    style: str
+
+
+def collect_health(*, home: str | None = None, repo_dir: str | None = None) -> Health:
+    """The cheap health probe: the config links and the compositor spawns only.
+
+    The bar calls this on a timer, so it must not run pacman, nix or git: a
+    full `dot status` costs more than a second, this costs about a tenth.
+    """
+    base = os.path.abspath(home) if home is not None else str(Path.home())
+    repo = repo_dir if repo_dir is not None else default_repo_dir()
+    if repo and not os.path.isdir(repo):
+        repo = ""
+    entries = scan_home_configs(base, repo)
+    findings = findings_from_entries(entries)
+    findings.extend(_spawn_findings(os.path.join(base, NIRI_CONFIG_REL), lookup_package=False))
+    counts = {key: 0 for key in HEALTH_SEVERITIES}
+    for finding in findings:
+        if finding.severity in counts:
+            counts[finding.severity] += 1
+    broken = counts["broken"] + counts["stale"] + counts["missing"]
+    if broken:
+        parts = [f"{counts[key]} {key}" for key in HEALTH_SEVERITIES if counts[key]]
+        tooltip = "dot: " + " · ".join(parts)
+        style = "bad"
+    else:
+        tooltip = "dot: no problems"
+        style = "ok"
+    return Health(
+        ok=not broken,
+        counts=counts,
+        findings=findings,
+        text=HEALTH_TEXT,
+        tooltip=tooltip,
+        style=style,
+    )
+
+
+def health_json(health: Health) -> dict:
+    """Exactly the three keys a waybar json custom module reads."""
+    return {"text": health.text, "tooltip": health.tooltip, "class": health.style}
+
+
+def render_health(health: Health) -> str:
+    """The one line a terminal shows."""
+    if health.ok:
+        return f"{health.text} no problems"
+    parts = [f"{health.counts[key]} {key}" for key in HEALTH_SEVERITIES if health.counts[key]]
+    return f"{health.text} {len(parts)} problems"
+
+
 def build_inventory(*, home: str | None = None, repo_dir: str | None = None) -> Inventory:
     """Everything this machine has installed, and everything wrong with it."""
     base = os.path.abspath(home) if home is not None else str(Path.home())
@@ -1321,13 +1410,7 @@ def build_inventory(*, home: str | None = None, repo_dir: str | None = None) -> 
     scripts = collect_scripts(os.path.join(base, ".local", "bin"), repo or None)
     tools = collect_tool_dirs(tool_dir_paths(base))
 
-    entries = scan_configs(
-        [os.path.join(base, ".config"), os.path.join(base, ".local", "share")],
-        current_generation=current_generation(base),
-        repo_dir=repo,
-        home=base,
-        shallow_roots={os.path.join(base, ".local", "share")},
-    )
+    entries = scan_home_configs(base, repo)
 
     findings = findings_from_entries(entries)
     findings.extend(_spawn_findings(os.path.join(base, NIRI_CONFIG_REL)))
@@ -1455,7 +1538,21 @@ def main(argv: list[str] | None = None) -> int:
     p_status = sub.add_parser("status", help="show what is broken or drifted")
     p_status.add_argument("--json", action="store_true", help="print the machine readable document")
 
+    p_health = sub.add_parser("health", help="a fast health check for the bar")
+    p_health.add_argument("--json", action="store_true", help="print the waybar document")
+
     args = parser.parse_args(argv)
+
+    if args.command == "health":
+        # The probe answers before the inventory is built: the bar calls it
+        # every ten seconds and must not pay for pacman, nix and git.
+        health = collect_health()
+        if args.json:
+            print(json.dumps(health_json(health)))
+        else:
+            print(render_health(health))
+        return 0 if health.ok else 1
+
     inventory = build_inventory()
 
     if args.command == "list":
