@@ -43,5 +43,6 @@
     yt-dlp
     antigravity
     mypy
+    traceroute
   ];
 }
