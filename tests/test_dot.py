@@ -4,6 +4,7 @@ import importlib.util
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1429,3 +1430,60 @@ class BrowseTests(unittest.TestCase):
             home = self._home(t)
             text = dot.show_item("cli:sh", home=str(home), repo_dir=str(t.path / "dotfiles"))
             self.assertIn("sh", text)
+
+
+NIRI_CONFIG = """
+binds {
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+T { spawn "kitty"; }
+    Mod+O { toggle-overview; }
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "swayosd-client" "--output-volume" "raise"; }
+}
+"""
+
+
+class KeyTests(unittest.TestCase):
+    def test_parses_the_bindings_of_a_niri_config(self):
+        bindings = dot.parse_key_bindings(NIRI_CONFIG)
+        self.assertEqual([b.keys for b in bindings],
+                         ["Mod+Shift+Slash", "Mod+T", "Mod+O", "XF86AudioRaiseVolume"])
+
+    def test_keeps_the_action_of_a_binding(self):
+        bindings = dot.parse_key_bindings(NIRI_CONFIG)
+        self.assertEqual(bindings[1].action, 'spawn "kitty"')
+
+    def test_skips_a_binding_that_does_not_close_on_its_line(self):
+        broken = "binds {\n    Mod+T { spawn \"kitty\"\n}\n"
+        self.assertEqual(dot.parse_key_bindings(broken), [])
+
+    def test_describes_a_spawn_binding_in_arabic(self):
+        self.assertIn("kitty", dot.describe_action('spawn "kitty"', lang="ar"))
+
+    def test_describes_a_spawn_binding_in_english(self):
+        self.assertIn("kitty", dot.describe_action('spawn "kitty"', lang="en"))
+
+    def test_describes_a_niri_action(self):
+        arabic = dot.describe_action("toggle-overview", lang="ar")
+        english = dot.describe_action("toggle-overview", lang="en")
+        self.assertNotEqual(arabic, english)
+        self.assertIn("toggle", english.lower())
+        self.assertIn("عرض", arabic)
+
+    def test_render_key_bindings_lists_every_binding(self):
+        text = dot.render_key_bindings(dot.parse_key_bindings(NIRI_CONFIG))
+        for keys in ("Mod+Shift+Slash", "Mod+T", "Mod+O"):
+            self.assertIn(keys, text)
+
+    def test_keys_falls_back_to_text_without_zenity(self):
+        with TempTree() as t:
+            home = t.path / "home"
+            (home / ".config" / "niri").mkdir(parents=True)
+            (home / ".config" / "niri" / "config.kdl").write_text(NIRI_CONFIG)
+            text = dot.keys_window_text(home=str(home))
+            self.assertIn("Mod+T", text)
+
+    def test_open_keys_window_returns_false_without_a_window_tool(self):
+        original = shutil.which
+        shutil.which = lambda name, **kwargs: None
+        self.addCleanup(setattr, shutil, "which", original)
+        self.assertFalse(dot.open_keys_window("hello"))

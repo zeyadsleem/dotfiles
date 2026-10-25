@@ -1859,6 +1859,145 @@ def browse(*, home=None, repo_dir=None, runner=None, launcher=None) -> int:
     return 0
 
 
+# ── keys ──
+
+BIND_RE = re.compile(
+    r"^\s*(?P<keys>[A-Za-z0-9_+.\-]+)"
+    r"(?P<flags>(?:\s+[a-z][a-z-]*(?:=[^\s]+)?)*)"
+    r"\s*\{\s*(?P<action>.*?);?\s*\}\s*$"
+)
+
+ACTION_DESCRIPTIONS = {
+    "toggle-overview": ("عرض كل النوافذ", "Toggle the overview"),
+    "show-hotkey-overlay": ("طبقة الاختصارات", "Show the hotkey overlay"),
+    "focus-window-left": ("التركيز على النافذة يساراً", "Focus the window to the left"),
+    "focus-window-right": ("التركيز على النافذة يميناً", "Focus the window to the right"),
+    "focus-window-up": ("التركيز على النافذة أعلى", "Focus the window above"),
+    "focus-window-down": ("التركيز على النافذة أسفل", "Focus the window below"),
+    "focus-column-left": ("التركيز على العمود يساراً", "Focus the column to the left"),
+    "focus-column-right": ("التركيز على العمود يميناً", "Focus the column to the right"),
+    "focus-monitor-left": ("التركيز على الشاشة يساراً", "Focus the monitor to the left"),
+    "focus-monitor-right": ("التركيز على الشاشة يميناً", "Focus the monitor to the right"),
+    "focus-monitor-up": ("التركيز على الشاشة أعلى", "Focus the monitor above"),
+    "focus-monitor-down": ("التركيز على الشاشة أسفل", "Focus the monitor below"),
+    "focus-workspace-up": ("التركيز على مساحة العمل أعلى", "Focus the workspace above"),
+    "focus-workspace-down": ("التركيز على مساحة العمل أسفل", "Focus the workspace below"),
+    "move-window-left": ("تحريك النافذة يساراً", "Move the window to the left"),
+    "move-window-right": ("تحريك النافذة يميناً", "Move the window to the right"),
+    "move-window-up": ("تحريك النافذة أعلى", "Move the window above"),
+    "move-window-down": ("تحريك النافذة أسفل", "Move the window below"),
+    "move-column-left": ("تحريك العمود يساراً", "Move the column to the left"),
+    "move-column-right": ("تحريك العمود يميناً", "Move the column to the right"),
+    "move-column-up": ("تحريك العمود أعلى", "Move the column above"),
+    "move-column-down": ("تحريك العمود أسفل", "Move the column below"),
+    "move-workspace-up": ("تحريك مساحة العمل أعلى", "Move the workspace up"),
+    "move-workspace-down": ("تحريك مساحة العمل أسفل", "Move the workspace down"),
+    "toggle-window-floating": ("تبديل النافذة إلى عائمة", "Toggle the window floating"),
+    "toggle-keyboard-shortcuts-inhibit": ("تجميد اختصارات لوحة المفاتيح", "Toggle the keyboard shortcut inhibit"),
+    "switch-focus-between-floating-and-tiling": ("التبديل بين العائمة والمربّعة", "Switch between floating and tiling"),
+    "switch-preset-window-height": ("تبديل ارتفاع النافذة", "Cycle the preset window height"),
+    "switch-preset-column-width": ("تبديل عرض العمود", "Cycle the preset column width"),
+    "switch-preset-column-width-back": ("تبديل عرض العمود بالعكس", "Cycle the preset column width backwards"),
+    "toggle-column-tabbed-display": ("تبديل عرض العمود كتبويب", "Toggle the tabbed column display"),
+    "close-window": ("إغلاق النافذة", "Close the window"),
+    "quit": ("الخروج من niri", "Quit niri"),
+    "screenshot": ("لقطة شاشة", "Take a screenshot"),
+}
+
+
+@dataclasses.dataclass(frozen=True)
+class KeyBinding:
+    """One key combination and what it does."""
+
+    keys: str
+    action: str
+    description: str
+
+
+def describe_action(action: str, *, lang: str = "ar") -> str:
+    """A human description of a niri action, in Arabic or English."""
+    text = action.strip()
+    described = ACTION_DESCRIPTIONS.get(text)
+    if described is not None:
+        return described[0] if lang == "ar" else described[1]
+    spawn = re.match(r'^spawn(?:-sh)?\s+"([^"]+)"', text)
+    if spawn is not None:
+        command = spawn.group(1)
+        return f"تشغيل {command}" if lang == "ar" else f"Run {command}"
+    return text
+
+
+def parse_key_bindings(text: str) -> list[KeyBinding]:
+    """The binds of a niri config, in file order.
+
+    Every bind of this config is on one line. A bind whose braces do not
+    close on the same line is skipped rather than guessed at.
+    """
+    bindings: list[KeyBinding] = []
+    inside = False
+    depth = 0
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not inside:
+            if stripped == "binds {":
+                inside = True
+            continue
+        if stripped == "}":
+            break
+        match = BIND_RE.match(line)
+        if match is None:
+            continue
+        action = match.group("action").strip()
+        bindings.append(KeyBinding(
+            keys=match.group("keys"),
+            action=action,
+            description=describe_action(action, lang="ar"),
+        ))
+    return bindings
+
+
+def render_key_bindings(bindings: list[KeyBinding], *, lang: str = "ar") -> str:
+    """The cheat sheet table."""
+    width = max((len(binding.keys) for binding in bindings), default=4)
+    lines = []
+    for binding in bindings:
+        description = describe_action(binding.action, lang=lang)
+        lines.append(f"  {binding.keys:<{width}}   {description}")
+    return "\n".join(lines)
+
+
+def key_bindings(*, home: str | None = None) -> list[KeyBinding]:
+    """The live niri bindings."""
+    base = home if home is not None else str(Path.home())
+    path = os.path.join(base, NIRI_CONFIG_REL)
+    try:
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            text = handle.read()
+    except OSError:
+        return []
+    return parse_key_bindings(text)
+
+
+def keys_window_text(*, home: str | None = None, lang: str = "ar") -> str:
+    """The cheat sheet, ready for a window."""
+    bindings = key_bindings(home=home)
+    header = "اختصارات niri" if lang == "ar" else "niri shortcuts"
+    return f"{header}\n\n" + render_key_bindings(bindings, lang=lang)
+
+
+def open_keys_window(text: str) -> bool:
+    """Show the cheat sheet in a window; returns whether a window was opened."""
+    if shutil.which("zenity"):
+        subprocess.run(["zenity", "--text-info", "--title=dot keys",
+                        "--width=760", "--height=640"], input=text, text=True, check=False)
+        return True
+    if shutil.which("yad"):
+        subprocess.run(["yad", "--text", "--title=dot keys", "--width=760", "--height=640"],
+                       input=text, text=True, check=False)
+        return True
+    return False
+
+
 def build_inventory(*, home: str | None = None, repo_dir: str | None = None) -> Inventory:
     """Everything this machine has installed, and everything wrong with it."""
     base = os.path.abspath(home) if home is not None else str(Path.home())
@@ -2023,7 +2162,21 @@ def main(argv: list[str] | None = None) -> int:
     p_show = sub.add_parser("show", help="the details of one item")
     p_show.add_argument("item", help="the id of the item, for example config:/home/zeyad/.config/niri")
 
+    p_keys = sub.add_parser("keys", help="the niri shortcut cheat sheet")
+    p_keys.add_argument("--lang", default="ar", choices=["ar", "en"], help="the language of the table")
+    p_keys.add_argument("--gui", action="store_true", help="open it in a window")
+
     args = parser.parse_args(argv)
+
+    if args.command == "keys":
+        bindings = key_bindings()
+        if args.gui:
+            text = keys_window_text(lang=args.lang)
+            if not open_keys_window(text):
+                print(text)
+            return 0
+        print(render_key_bindings(bindings, lang=args.lang))
+        return 0
 
     if args.command == "browse":
         return browse()

@@ -76,6 +76,7 @@ cursor {
 
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
+    Super+Shift+Slash { spawn "/home/zeyad/.local/bin/dot" "keys" "--gui"; }
 
     Mod+T { spawn "kitty"; }
     Mod+D { spawn "fuzzel"; }
