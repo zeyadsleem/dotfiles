@@ -1391,8 +1391,8 @@ def render_health(health: Health) -> str:
     """The one line a terminal shows."""
     if health.ok:
         return f"{health.text} no problems"
-    parts = [f"{health.counts[key]} {key}" for key in HEALTH_SEVERITIES if health.counts[key]]
-    return f"{health.text} {len(parts)} problems"
+    total = sum(health.counts[key] for key in HEALTH_SEVERITIES)
+    return f"{health.text} {total} problems"
 
 
 # ── package editing ──
@@ -1423,6 +1423,10 @@ def _package_list_bounds(text: str) -> tuple[int, int] | None:
             continue
         if "[" not in line:
             continue
+        if "]" in line[line.index("[") + 1:]:
+            # A one-line list has no interior to insert into, and the search
+            # below would anchor on the next list's closing bracket.
+            return None
         for end in range(index + 1, len(lines)):
             if lines[end].strip().startswith("]"):
                 return index, end
@@ -1467,14 +1471,21 @@ def package_block(text: str) -> str:
     return "\n".join(text.splitlines()[start + 1: end])
 
 
+def _declares(block: str, name: str) -> bool:
+    """True when the list already mentions this name, as an entry or an expression."""
+    return re.search(rf"(?<![\w.'-]){re.escape(name)}(?![\w.'-])", block) is not None
+
+
 def add_packages(text: str, names: list[str]) -> tuple[str, list[str]]:
     """Add the names that are not declared yet; returns the new text and what was added."""
     bounds = _package_list_bounds(text)
     if bounds is None:
         raise PackageEditError(f"{DECLARATIONS_FILE} has no home.packages list")
     entries = package_entries(text)
+    block = package_block(text)
     declared = {entry.name for entry in entries}
-    wanted = [name for name in names if name not in declared]
+    wanted = [name for name in dict.fromkeys(names)
+              if name not in declared and not _declares(block, name)]
     if not wanted:
         return text, []
     lines = text.splitlines()
@@ -1498,7 +1509,7 @@ def remove_packages(text: str, names: list[str]) -> tuple[str, list[str]]:
     by_name = {entry.name: entry for entry in entries}
     block = package_block(text)
     removed: list[str] = []
-    for name in names:
+    for name in dict.fromkeys(names):
         if name in by_name:
             removed.append(name)
         elif name in block:
@@ -1601,8 +1612,33 @@ def resolve_package_name(name: str, package_bins: dict[str, list[str]]) -> str |
     return None
 
 
+def _profile_state(base: str) -> tuple[set[str], dict[str, list[str]]]:
+    """The binaries the profile carries and the nix package map that names them."""
+    bins = set(collect_profile_bins(os.path.join(base, PROFILE_BIN_REL)))
+    return bins, package_binary_map()
+
+
+def _is_installed(name: str, bins: set[str], package_bins: dict[str, list[str]]) -> bool:
+    """True when the profile carries this package under any of its binaries."""
+    candidates = set(package_bins.get(name) or [name])
+    if any(candidate in bins for candidate in candidates):
+        return True
+    return any(_same_package(name, binary) for binary in bins)
+
+
+def _package_drift(declared: set[str], bins: set[str],
+                   package_bins: dict[str, list[str]]) -> list[Finding]:
+    return nix_drift(declared, bins, package_bins, collect_profile_entries())
+
+
+def _drift_lines(findings: list[Finding]) -> list[str]:
+    if not findings:
+        return []
+    return ["", "drift:"] + [f"  {finding.detail}" for finding in findings]
+
+
 def pkg_list_output(*, home: str | None = None, repo_dir: str | None = None) -> str:
-    """The declared packages and whether the profile has them."""
+    """The declared packages, whether the profile has them, and the drift."""
     base = home if home is not None else str(Path.home())
     repo = repo_dir if repo_dir is not None else default_repo_dir()
     path = os.path.join(repo, DECLARATIONS_FILE)
@@ -1612,14 +1648,28 @@ def pkg_list_output(*, home: str | None = None, repo_dir: str | None = None) -> 
     except OSError:
         return f"{DECLARATIONS_FILE} cannot be read: {repo}"
     declared = parse_declared_packages(text)
-    profile_dir = os.path.join(base, PROFILE_BIN_REL)
-    entries = collect_profile_entries()
-    installed = {entry.get("name", "") for entry in entries}
+    bins, package_bins = _profile_state(base)
     lines = [f"Declared packages ({len(declared)}):"]
     for name in sorted(declared):
-        mark = "installed" if name in installed else "declared"
+        mark = "installed" if _is_installed(name, bins, package_bins) else "declared"
         lines.append(f"  {name}  ({mark})")
+    lines.extend(_drift_lines(_package_drift(declared, bins, package_bins)))
     return "\n".join(lines)
+
+
+def _write_text_atomic(path: str, text: str) -> None:
+    """Replace the file in one step, so a failure never leaves it truncated."""
+    temporary = f"{path}.dot-new"
+    try:
+        with open(temporary, "w", encoding="utf-8") as handle:
+            handle.write(text)
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            try:
+                os.unlink(temporary)
+            except OSError:
+                pass
 
 
 def apply_package_change(
@@ -1633,15 +1683,21 @@ def apply_package_change(
     """Write the file, run the switch, and restore the file when the switch fails."""
     path = os.path.join(repo_dir, DECLARATIONS_FILE)
     try:
-        with open(path, "w", encoding="utf-8") as handle:
-            handle.write(new_text)
+        _write_text_atomic(path, new_text)
     except OSError as error:
         return False, f"cannot write {path}: {error}"
-    ok, output = run_home_manager_switch(repo_dir, config, runner=runner)
+    try:
+        ok, output = run_home_manager_switch(repo_dir, config, runner=runner)
+    except BaseException:
+        # Ctrl-C during a long build must not leave the declaration edited.
+        try:
+            _write_text_atomic(path, old_text)
+        except OSError:
+            pass
+        raise
     if not ok:
         try:
-            with open(path, "w", encoding="utf-8") as handle:
-                handle.write(old_text)
+            _write_text_atomic(path, old_text)
         except OSError as error:
             return False, f"the switch failed and the file could not be restored: {error}\n{output}"
         return False, f"the switch failed, the file was restored\n{output}"
@@ -1680,26 +1736,40 @@ def pkg_main(args) -> int:
         print(f"running home-manager switch for {repo}#{config}")
         ok, output = run_home_manager_switch(repo, config)
         print(output)
-        return 0 if ok else 1
-    names = []
-    for name in args.names:
-        resolved = nix_attribute_name(name, repo)
-        if resolved is None:
-            mapped = resolve_package_name(name, package_binary_map())
-            if mapped is None:
-                print(f"{name} is not a nixpkgs package", file=sys.stderr)
-                return 1
-            resolved = nix_attribute_name(mapped, repo)
-            if resolved is None:
-                print(f"{name} is not a nixpkgs package", file=sys.stderr)
-                return 1
-            name = mapped
-        names.append(name)
+        if not ok:
+            return 1
+        declared = parse_declared_packages(before)
+        bins, package_bins = _profile_state(str(Path.home()))
+        for line in _drift_lines(_package_drift(declared, bins, package_bins)):
+            print(line)
+        return 0
     try:
-        if args.pkg_command == "add":
-            after, changed = add_packages(before, names)
+        if args.pkg_command == "rm":
+            # Removal needs no nixpkgs lookup: the file says what is declared,
+            # and an expression entry is refused by the editor itself.
+            after, changed = remove_packages(before, args.names)
         else:
-            after, changed = remove_packages(before, names)
+            declared = parse_declared_packages(before)
+            block = package_block(before)
+            names = []
+            for name in args.names:
+                if name in declared or _declares(block, name):
+                    # Already declared: nothing to add, and nothing to validate.
+                    names.append(name)
+                    continue
+                resolved = nix_attribute_name(name, repo)
+                if resolved is None:
+                    mapped = resolve_package_name(name, package_binary_map())
+                    if mapped is None:
+                        print(f"{name} is not a nixpkgs package", file=sys.stderr)
+                        return 1
+                    resolved = nix_attribute_name(mapped, repo)
+                    if resolved is None:
+                        print(f"{name} is not a nixpkgs package", file=sys.stderr)
+                        return 1
+                    name = mapped
+                names.append(name)
+            after, changed = add_packages(before, names)
     except PackageEditError as error:
         print(str(error), file=sys.stderr)
         return 1
@@ -1730,8 +1800,9 @@ BROWSE_KINDS = ("app", "cli", "script", "config")
 def browse_rows(*, home: str | None = None, repo_dir: str | None = None) -> list[dict]:
     """The items the browser offers: apps, cli tools, scripts and config files.
 
-    It skips the expensive pacman queries: a browser that takes a second to
-    open is a browser nobody opens.
+    The pacman query is the only expensive step and stays inside D8's budget:
+    one `pacman -Qq` states what the system has, and the profile and tool
+    directories add what pacman does not own.
     """
     base = os.path.abspath(home) if home is not None else str(Path.home())
     repo = repo_dir if repo_dir is not None else default_repo_dir()
@@ -1748,12 +1819,18 @@ def browse_rows(*, home: str | None = None, repo_dir: str | None = None) -> list
             "detail": app.get("source", ""),
             "target": os.path.basename(desktop_file)[:-len(".desktop")] if desktop_file else name,
         })
-    names = collect_profile_bins(os.path.join(base, PROFILE_BIN_REL))
+    cli: dict[str, str] = {}
+    for name in _run(["pacman", "-Qq"]).splitlines():
+        if name.strip():
+            cli[name.strip()] = "pacman"
     for tool, items in collect_tool_dirs(tool_dir_paths(base)).items():
-        names.extend(items)
-    for name in sorted(set(names)):
+        for name in items:
+            cli.setdefault(name, tool)
+    for name in collect_profile_bins(os.path.join(base, PROFILE_BIN_REL)):
+        cli[name] = "nix"
+    for name in sorted(cli):
         rows.append({"id": f"cli:{name}", "kind": "cli", "label": name,
-                     "detail": "cli", "target": name})
+                     "detail": cli[name], "target": name})
     scripts = collect_scripts(os.path.join(base, ".local", "bin"), repo or None)
     for group, script_names in scripts.items():
         for name in script_names:
@@ -1798,7 +1875,8 @@ def run_fzf(rows: list[str], *, runner=None) -> list[str] | None:
         output = run(cmd, "\n".join(rows) + "\n")
     except (FileNotFoundError, OSError):
         return None
-    return [line.strip() for line in output.split("\0") if line.strip()]
+    # fzf prints the whole line; the id is its first tab-separated field.
+    return [record.split("\t", 1)[0] for record in output.split("\0") if record.strip()]
 
 
 def show_item(item_id: str, *, home=None, repo_dir=None) -> str:
@@ -1847,15 +1925,18 @@ def browse(*, home=None, repo_dir=None, runner=None, launcher=None) -> int:
     for item_id in chosen:
         row = by_id.get(item_id, {})
         kind, _, name = item_id.partition(":")
-        if kind == "app":
-            run(["gtk-launch", row.get("target") or name])
-        elif kind == "config":
-            editor = os.environ.get("EDITOR", "xdg-open")
-            run([editor, name])
-        else:
-            path = shutil.which(name) or os.path.join(base, ".local", "bin", name)
-            run(["wl-copy", path])
-            print(path)
+        try:
+            if kind == "app":
+                run(["gtk-launch", row.get("target") or name])
+            elif kind == "config":
+                editor = os.environ.get("EDITOR", "xdg-open")
+                run([editor, name])
+            else:
+                path = shutil.which(name) or os.path.join(base, ".local", "bin", name)
+                run(["wl-copy", path])
+                print(path)
+        except FileNotFoundError as error:
+            print(f"{error.filename or 'the helper'} is not installed", file=sys.stderr)
     return 0
 
 

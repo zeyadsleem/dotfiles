@@ -1563,3 +1563,178 @@ class BarTests(unittest.TestCase):
         text = (REPO / "nix" / "modules" / "dotfiles.nix").read_text()
         self.assertIn(".config/waybar/scripts/dot-health.sh", text)
         self.assertIn(".config/waybar/scripts/hijri-clock.sh", text)
+
+
+class FinalReviewTests(unittest.TestCase):
+    """The findings of the whole-branch review, each pinned to its reproduction."""
+
+    def _repo(self, t, text=PACKAGES_NIX):
+        repo = t.path / "dotfiles"
+        (repo / "nix" / "modules").mkdir(parents=True)
+        (repo / "nix" / "modules" / "packages.nix").write_text(text)
+        return str(repo)
+
+    def _args(self, **overrides):
+        base = dict(pkg_command="list", names=[], config="zeyad", yes=True, dry_run=False)
+        base.update(overrides)
+        return SimpleNamespace(**base)
+
+    def _capture(self, argv, repo=None):
+        buf = io.StringIO()
+        original_repo = dot.default_repo_dir
+        if repo is not None:
+            dot.default_repo_dir = lambda: repo
+        self.addCleanup(setattr, dot, "default_repo_dir", original_repo)
+        with contextlib.redirect_stdout(buf):
+            code = dot.main(argv)
+        return code, buf.getvalue()
+
+    def test_browse_uses_the_id_field_of_the_fzf_line(self):
+        rows = [{"id": "app:Demo", "kind": "app", "label": "Demo", "detail": "system",
+                 "target": "demo"}]
+        original = dot.browse_rows
+        dot.browse_rows = lambda **kwargs: rows
+        self.addCleanup(setattr, dot, "browse_rows", original)
+        launched = []
+        code = dot.browse(
+            runner=lambda cmd, text: "app:Demo\tDemo\tsystem\0",
+            launcher=launched.append)
+        self.assertEqual(code, 0)
+        self.assertEqual(launched, [["gtk-launch", "demo"]])
+
+    def test_browse_survives_a_missing_launcher(self):
+        rows = [{"id": "cli:rg", "kind": "cli", "label": "rg", "detail": "cli", "target": "rg"}]
+        original = dot.browse_rows
+        dot.browse_rows = lambda **kwargs: rows
+        self.addCleanup(setattr, dot, "browse_rows", original)
+
+        def missing(cmd):
+            raise FileNotFoundError(cmd[0])
+
+        code = dot.browse(runner=lambda cmd, text: "cli:rg\tcli\tcli\0", launcher=missing)
+        self.assertEqual(code, 0)
+
+    def test_remove_packages_with_a_repeated_name_removes_one_line(self):
+        text, removed = dot.remove_packages(PACKAGES_NIX, ["ripgrep", "ripgrep"])
+        self.assertEqual(removed, ["ripgrep"])
+        self.assertIn("    libnotify\n", text)
+        self.assertNotIn("    ripgrep\n", text)
+
+    def test_add_packages_with_a_repeated_name_adds_one_line(self):
+        text, added = dot.add_packages(PACKAGES_NIX, ["fd", "fd"])
+        self.assertEqual(added, ["fd"])
+        self.assertEqual(text.count("\n    fd\n"), 1)
+
+    def test_a_one_line_package_list_is_refused(self):
+        text = "home.packages = with pkgs; [ git ];\nother = [\n  x\n];\n"
+        with self.assertRaises(dot.PackageEditError):
+            dot.add_packages(text, ["fd"])
+
+    def test_health_script_reports_the_json_even_when_dot_exits_one(self):
+        with TempTree() as t:
+            home = t.path / "home"
+            (home / ".local" / "bin").mkdir(parents=True)
+            stub = home / ".local" / "bin" / "dot"
+            stub.write_text(
+                '#!/bin/sh\necho \'{"text":"●","tooltip":"dot: 1 broken","class":"bad"}\'\nexit 1\n')
+            stub.chmod(0o755)
+            script = t.path / "dot-health.sh"
+            script.write_text(REPO.joinpath(
+                ".config", "waybar", "scripts", "dot-health.sh").read_text())
+            env = dict(os.environ, HOME=str(home))
+            result = subprocess.run(["sh", str(script)], capture_output=True, text=True, env=env)
+            self.assertEqual(json.loads(result.stdout)["tooltip"], "dot: 1 broken")
+
+    def test_pkg_list_marks_an_installed_package(self):
+        original_bins = dot.collect_profile_bins
+        original_map = dot.package_binary_map
+        original_entries = dot.collect_profile_entries
+        dot.collect_profile_bins = lambda *a, **k: ["rg", "bat"]
+        dot.package_binary_map = lambda *a, **k: {"ripgrep": ["rg"], "bat": ["bat"]}
+        dot.collect_profile_entries = lambda *a, **k: []
+        self.addCleanup(setattr, dot, "collect_profile_bins", original_bins)
+        self.addCleanup(setattr, dot, "package_binary_map", original_map)
+        self.addCleanup(setattr, dot, "collect_profile_entries", original_entries)
+        with TempTree() as t:
+            repo = self._repo(t)
+            text = dot.pkg_list_output(home=str(t.path / "home"), repo_dir=repo)
+        self.assertIn("ripgrep  (installed)", text)
+        self.assertIn("git  (declared)", text)
+
+    def test_pkg_list_prints_the_drift(self):
+        original_bins = dot.collect_profile_bins
+        original_map = dot.package_binary_map
+        original_entries = dot.collect_profile_entries
+        dot.collect_profile_bins = lambda *a, **k: ["rg"]
+        dot.package_binary_map = lambda *a, **k: {"ripgrep": ["rg"]}
+        dot.collect_profile_entries = lambda *a, **k: []
+        self.addCleanup(setattr, dot, "collect_profile_bins", original_bins)
+        self.addCleanup(setattr, dot, "package_binary_map", original_map)
+        self.addCleanup(setattr, dot, "collect_profile_entries", original_entries)
+        with TempTree() as t:
+            repo = self._repo(t)
+            text = dot.pkg_list_output(home=str(t.path / "home"), repo_dir=repo)
+        self.assertIn("declared in nix/modules/packages.nix but not installed", text)
+
+    def test_pkg_rm_does_not_need_a_nixpkgs_lookup(self):
+        with TempTree() as t:
+            repo = self._repo(t)
+            code, out = self._capture(["pkg", "rm", "ripgrep", "--dry-run", "--config", "zeyad"],
+                                      repo=repo)
+        self.assertEqual(code, 0)
+        self.assertIn("-    ripgrep", out)
+
+    def test_pkg_rm_refuses_an_expression_entry(self):
+        with TempTree() as t:
+            repo = self._repo(t)
+            code, out = self._capture(["pkg", "rm", "workmux", "--dry-run", "--config", "zeyad"],
+                                      repo=repo)
+        self.assertEqual(code, 1)
+
+    def test_apply_package_change_restores_the_file_when_the_switch_is_interrupted(self):
+        with TempTree() as t:
+            repo = self._repo(t)
+            path = Path(repo) / "nix" / "modules" / "packages.nix"
+            new_text = PACKAGES_NIX.replace("    git\n", "    git\n    fd\n")
+
+            def interrupted(cmd, **kwargs):
+                raise KeyboardInterrupt
+
+            with self.assertRaises(KeyboardInterrupt):
+                dot.apply_package_change(repo, new_text, PACKAGES_NIX, "zeyad", runner=interrupted)
+            self.assertEqual(path.read_text(), PACKAGES_NIX)
+
+    def test_pkg_sync_prints_the_drift_after_the_switch(self):
+        original_switch = dot.run_home_manager_switch
+        original_drift = dot.nix_drift
+        dot.run_home_manager_switch = lambda repo_dir, config, runner=None: (True, "switch ok")
+        dot.nix_drift = lambda *a, **k: [dot.Finding(
+            id="nix-not-installed", severity="drift", path=dot.DECLARATIONS_FILE,
+            detail="`git` declared in nix/modules/packages.nix but not installed",
+            fix="dot pkg sync", command="")]
+        self.addCleanup(setattr, dot, "run_home_manager_switch", original_switch)
+        self.addCleanup(setattr, dot, "nix_drift", original_drift)
+        with TempTree() as t:
+            repo = self._repo(t)
+            code, out = self._capture(["pkg", "sync", "--config", "zeyad"], repo=repo)
+        self.assertEqual(code, 0)
+        self.assertIn("but not installed", out)
+
+    def test_render_health_counts_every_finding(self):
+        health = dot.Health(ok=False, counts={"broken": 2, "stale": 0, "missing": 1},
+                            findings=[], text="●", tooltip="dot: 2 broken · 1 missing",
+                            style="bad")
+        self.assertIn("3 problems", dot.render_health(health))
+
+    def test_add_packages_skips_an_expression_declaration(self):
+        text, added = dot.add_packages(PACKAGES_NIX, ["workmux"])
+        self.assertEqual(added, [])
+        self.assertEqual(text, PACKAGES_NIX)
+
+    def test_pkg_add_does_not_duplicate_an_expression_declaration(self):
+        with TempTree() as t:
+            repo = self._repo(t)
+            code, out = self._capture(["pkg", "add", "workmux", "--dry-run", "--config", "zeyad"],
+                                      repo=repo)
+        self.assertEqual(code, 0)
+        self.assertIn("nothing to change", out)
