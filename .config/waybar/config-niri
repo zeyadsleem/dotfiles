@@ -5,8 +5,8 @@
   "spacing": 8,
 
   "modules-left": ["custom/launcher", "niri/workspaces", "niri/window"],
-  "modules-center": ["clock"],
-  "modules-right": ["niri/language", "network", "pulseaudio", "backlight", "tray", "custom/power"],
+  "modules-center": ["clock", "custom/hijri"],
+  "modules-right": ["niri/language", "network", "pulseaudio", "backlight", "custom/dot-health", "cpu", "memory", "battery", "tray", "custom/power"],
 
   "custom/launcher": {
     "format": "",
@@ -75,5 +75,35 @@
     "format": "⏻",
     "tooltip": false,
     "on-click": "sh $HOME/.local/bin/power-menu-niri.sh"
+  },
+
+  "custom/dot-health": {
+    "interval": 10,
+    "return-type": "json",
+    "exec": "$HOME/.config/waybar/scripts/dot-health.sh",
+    "tooltip": true
+  },
+
+  "custom/hijri": {
+    "interval": 60,
+    "exec": "$HOME/.config/waybar/scripts/hijri-clock.sh",
+    "tooltip": false
+  },
+
+  "cpu": {
+    "interval": 5,
+    "format": "\uF2DB {usage}%",
+    "tooltip": true
+  },
+
+  "memory": {
+    "interval": 10,
+    "format": "\uF0FC {percentage}%",
+    "tooltip": true
+  },
+
+  "battery": {
+    "format": "{icon} {percentage}%",
+    "format-icons": ["\uF240", "\uF241", "\uF242", "\uF243"]
   }
 }

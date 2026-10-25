@@ -1487,3 +1487,79 @@ class KeyTests(unittest.TestCase):
         shutil.which = lambda name, **kwargs: None
         self.addCleanup(setattr, shutil, "which", original)
         self.assertFalse(dot.open_keys_window("hello"))
+
+
+class BarTests(unittest.TestCase):
+    """The bar must never show an empty widget, even when a helper fails."""
+
+    def _script(self, t, name, body):
+        path = t.path / name
+        path.write_text(body)
+        path.chmod(0o755)
+        return path
+
+    def _load_hijri(self):
+        path = REPO / ".local" / "bin" / "hijri-date.py"
+        spec = importlib.util.spec_from_loader(
+            "hijri_date", importlib.machinery.SourceFileLoader("hijri_date", str(path)))
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_health_script_is_valid_shell(self):
+        path = Path(REPO / ".config" / "waybar" / "scripts" / "dot-health.sh")
+        self.assertTrue(path.exists())
+        result = subprocess.run(["sh", "-n", str(path)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_hijri_script_is_valid_shell(self):
+        path = Path(REPO / ".config" / "waybar" / "scripts" / "hijri-clock.sh")
+        self.assertTrue(path.exists())
+        result = subprocess.run(["sh", "-n", str(path)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_health_script_prints_valid_json_even_when_dot_fails(self):
+        with TempTree() as t:
+            home = t.path / "home"
+            (home / ".local" / "bin").mkdir(parents=True)
+            broken = home / ".local" / "bin" / "dot"
+            broken.write_text("#!/bin/sh\nexit 1\n")
+            broken.chmod(0o755)
+            script = self._script(t, "dot-health.sh", REPO.joinpath(
+                ".config", "waybar", "scripts", "dot-health.sh").read_text())
+            env = dict(os.environ, HOME=str(home))
+            result = subprocess.run(["sh", str(script)], capture_output=True, text=True, env=env)
+            data = json.loads(result.stdout)
+            self.assertIn("text", data)
+            self.assertIn("tooltip", data)
+            self.assertIn("class", data)
+
+    def test_hijri_script_falls_back_to_the_gregorian_date(self):
+        with TempTree() as t:
+            home = t.path / "home"
+            (home / ".local" / "bin").mkdir(parents=True)
+            broken = home / ".local" / "bin" / "hijri-date.py"
+            broken.write_text("#!/bin/sh\nexit 1\n")
+            broken.chmod(0o755)
+            script = self._script(t, "hijri-clock.sh", REPO.joinpath(
+                ".config", "waybar", "scripts", "hijri-clock.sh").read_text())
+            env = dict(os.environ, HOME=str(home))
+            result = subprocess.run(["sh", str(script)], capture_output=True, text=True, env=env)
+            self.assertRegex(result.stdout.strip(), r"\d{4}-\d{2}-\d{2}")
+
+    def test_hijri_date_script_formats_arabic(self):
+        module = self._load_hijri()
+        self.assertEqual(module.format_hijri(11, "جمادى الأولى", 1448, lang="ar"),
+                         "١١ جمادى الأولى ١٤٤٨ هـ")
+        self.assertEqual(module.format_hijri(11, "Jumada al-Ula", 1448, lang="en"),
+                         "11 Jumada al-Ula 1448 AH")
+
+    def test_waybar_config_declares_the_new_modules(self):
+        config = (REPO / ".config" / "waybar" / "config-niri").read_text()
+        for module in ("custom/dot-health", "custom/hijri", "cpu", "memory", "battery"):
+            self.assertIn(f'"{module}"', config)
+
+    def test_home_manager_links_the_bar_scripts(self):
+        text = (REPO / "nix" / "modules" / "dotfiles.nix").read_text()
+        self.assertIn(".config/waybar/scripts/dot-health.sh", text)
+        self.assertIn(".config/waybar/scripts/hijri-clock.sh", text)

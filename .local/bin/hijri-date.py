@@ -3,27 +3,33 @@
 # dependencies = ["hijri-converter"]
 # ///
 
-from hijri_converter import Gregorian
-from datetime import date
-import subprocess
+"""The Hijri date, in Arabic by default."""
 
-def shape_text(text):
-    """
-    Since Kitty handles RTL but tmux status bar might need a hint, 
-    we reverse the text manually so that when it's rendered, it appears correctly.
-    """
-    return text[::-1]
+ARABIC_DIGITS = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
 
-def to_arabic_nums(text):
-    western = "0123456789"
-    eastern = "٠١٢٣٤٥٦٧٨٩"
-    table = str.maketrans(western, eastern)
-    return text.translate(table)
 
-hijri = Gregorian.today().to_hijri()
+def format_hijri(day: int, month_name: str, year: int, *, lang: str = "ar") -> str:
+    """The Hijri date as one line, in Arabic or English."""
+    if lang == "ar":
+        text = f"{day} {month_name} {year} هـ"
+        return text.translate(ARABIC_DIGITS)
+    return f"{day} {month_name} {year} AH"
 
-# Construct the full string in English
-full_date = f"{hijri.day} {hijri.month_name('en')} {hijri.year} AH"
 
-# Shape text is now a passthrough since we are using English
-print(full_date)
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    from hijri_converter import Gregorian
+
+    parser = argparse.ArgumentParser(description="the Hijri date")
+    parser.add_argument("--english", action="store_true", help="print the English form")
+    args = parser.parse_args(argv)
+
+    hijri = Gregorian.today().to_hijri()
+    lang = "en" if args.english else "ar"
+    print(format_hijri(hijri.day, hijri.month_name(lang), hijri.year, lang=lang))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

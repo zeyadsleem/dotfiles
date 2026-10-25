@@ -29,6 +29,12 @@
     ".config/waybar/style.css" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/waybar/style.css";
     };
+    ".config/waybar/scripts/dot-health.sh" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/waybar/scripts/dot-health.sh";
+    };
+    ".config/waybar/scripts/hijri-clock.sh" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/waybar/scripts/hijri-clock.sh";
+    };
     ".config/swaync/config.json" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/swaync/config.json";
     };

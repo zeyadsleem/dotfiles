@@ -106,3 +106,26 @@ tooltip {
 tooltip label {
   color: #cdd6f4;
 }
+
+#custom-dot-health {
+  color: #a6e3a1;
+  font-size: 14px;
+  padding: 0 8px;
+}
+
+#custom-dot-health.bad {
+  color: #f7768e;
+}
+
+#custom-hijri {
+  color: #f9e2af;
+  font-size: 12px;
+  padding: 0 8px;
+}
+
+#cpu,
+#memory {
+  color: #94e2d5;
+  font-size: 12px;
+  padding: 0 8px;
+}
