@@ -35,8 +35,33 @@ the Nix profile, the tool shims, your scripts and your config files.
 
 `dot status` exits `1` when it finds problems, so it can be used in a check or a hook.
 
-The tool is read-only. It never installs, removes or runs `sudo`; every finding comes with a
+Apart from `dot pkg`, the tool is read-only. It never runs `sudo`; every finding comes with a
 fix hint for you to run yourself.
+
+### The Phase 2 commands
+
+| Command | What it does |
+|---|---|
+| `dot health` | the fast health check for the bar: config links and niri spawn targets, in under a tenth of a second |
+| `dot health --json` | the waybar document: exactly `text`, `tooltip` and `class` |
+| `dot pkg list` | the packages declared in `nix/modules/packages.nix`, marked installed or not |
+| `dot pkg add <name>` | add a package to the list and apply it with `home-manager switch` |
+| `dot pkg rm <name>` | remove a package from the list and apply it |
+| `dot pkg sync` | apply the list as it stands, the fix for a drifted profile |
+| `dot browse` | the fzf launcher over the apps, the CLI tools, the scripts and the configs |
+| `dot keys` | the niri cheat sheet, parsed from the live config, Arabic by default |
+| `dot show <id>` | the details of one item, the preview the browser uses |
+
+`dot pkg` is the only command that changes anything: it edits one file,
+`nix/modules/packages.nix`, shows you the diff, asks before writing, and restores the file if
+the switch fails. It never uses `sudo` and never runs a mutating pacman command — when a
+system package is needed it prints the command instead.
+
+`dot browse` uses `fzf` when it is installed and prints the rows when it is not; `dot keys`
+uses `zenity` or `yad` for `--gui` and prints the table when neither is installed.
+
+Both `dot status` and `dot health` exit `1` when something is wrong, `0` when everything is
+clean.
 
 ## How it's organized
 

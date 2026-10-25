@@ -1,6 +1,7 @@
 # dot CLI — Phase 2: the Omarchy-like layer
 
-**Status:** Approved by the owner 2026-10-22 (scope, `dot pkg` behaviour, and the bar contents were all chosen explicitly by the owner).
+**Status:** Implemented on 2026-10-22 — see
+[`../plans/2026-10-22-dot-cli-phase2.md`](../plans/2026-10-22-dot-cli-phase2.md).
 
 **Supersedes nothing.** This document extends
 [`2026-10-20-dot-cli-system-inventory-design.md`](./2026-10-20-dot-cli-system-inventory-design.md)
