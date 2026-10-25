@@ -1394,6 +1394,123 @@ def render_health(health: Health) -> str:
     return f"{health.text} {len(parts)} problems"
 
 
+# ── package editing ──
+
+PACKAGE_NAME_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.'-]*$")
+PACKAGE_LIST_RE = re.compile(r"home\.packages\s*=\s*with\s+pkgs\s*;")
+DEFAULT_PACKAGE_INDENT = "    "
+
+
+@dataclasses.dataclass(frozen=True)
+class PackageEntry:
+    """One bare package name inside the home.packages list."""
+
+    name: str
+    line: int
+    indent: str
+
+
+class PackageEditError(Exception):
+    """The package list cannot be edited the way the caller asked."""
+
+
+def _package_list_bounds(text: str) -> tuple[int, int] | None:
+    """The line numbers of the home.packages list, opening bracket included."""
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if not PACKAGE_LIST_RE.search(line):
+            continue
+        if "[" not in line:
+            continue
+        for end in range(index + 1, len(lines)):
+            if lines[end].strip().startswith("]"):
+                return index, end
+    return None
+
+
+def package_entries(text: str) -> list[PackageEntry]:
+    """The bare package names of the home.packages list, in file order.
+
+    An entry that is an expression (a derivation written over several lines)
+    is not a name this tool can add or remove, so it is not an entry.
+    """
+    bounds = _package_list_bounds(text)
+    if bounds is None:
+        return []
+    start, end = bounds
+    lines = text.splitlines()
+    entries: list[PackageEntry] = []
+    depth = 0
+    for number in range(start + 1, end):
+        raw = lines[number]
+        stripped = raw.strip()
+        depth += raw.count("(") - raw.count(")")
+        if depth != 0 or not stripped or stripped.startswith("#"):
+            continue
+        if not PACKAGE_NAME_RE.match(stripped):
+            continue
+        entries.append(PackageEntry(
+            name=stripped,
+            line=number + 1,
+            indent=raw[: len(raw) - len(raw.lstrip())],
+        ))
+    return entries
+
+
+def package_block(text: str) -> str:
+    """The text inside the home.packages list."""
+    bounds = _package_list_bounds(text)
+    if bounds is None:
+        return ""
+    start, end = bounds
+    return "\n".join(text.splitlines()[start + 1: end])
+
+
+def add_packages(text: str, names: list[str]) -> tuple[str, list[str]]:
+    """Add the names that are not declared yet; returns the new text and what was added."""
+    bounds = _package_list_bounds(text)
+    if bounds is None:
+        raise PackageEditError(f"{DECLARATIONS_FILE} has no home.packages list")
+    entries = package_entries(text)
+    declared = {entry.name for entry in entries}
+    wanted = [name for name in names if name not in declared]
+    if not wanted:
+        return text, []
+    lines = text.splitlines()
+    indent = entries[-1].indent if entries else DEFAULT_PACKAGE_INDENT
+    insert_at = entries[-1].line if entries else bounds[0] + 1
+    for offset, name in enumerate(wanted):
+        lines.insert(insert_at + offset, f"{indent}{name}")
+    return "\n".join(lines) + ("\n" if text.endswith("\n") else ""), wanted
+
+
+def remove_packages(text: str, names: list[str]) -> tuple[str, list[str]]:
+    """Remove the named packages; returns the new text and what was removed.
+
+    A name that is present but is not a bare entry cannot be removed without
+    the caller editing the file by hand, so it is refused.
+    """
+    bounds = _package_list_bounds(text)
+    if bounds is None:
+        raise PackageEditError(f"{DECLARATIONS_FILE} has no home.packages list")
+    entries = package_entries(text)
+    by_name = {entry.name: entry for entry in entries}
+    block = package_block(text)
+    removed: list[str] = []
+    for name in names:
+        if name in by_name:
+            removed.append(name)
+        elif name in block:
+            raise PackageEditError(
+                f"{name} is not a plain entry — it is an expression; edit the file by hand")
+    if not removed:
+        return text, []
+    lines = text.splitlines()
+    for entry in sorted((by_name[name] for name in removed), key=lambda e: -e.line):
+        del lines[entry.line - 1]
+    return "\n".join(lines) + ("\n" if text.endswith("\n") else ""), removed
+
+
 def build_inventory(*, home: str | None = None, repo_dir: str | None = None) -> Inventory:
     """Everything this machine has installed, and everything wrong with it."""
     base = os.path.abspath(home) if home is not None else str(Path.home())

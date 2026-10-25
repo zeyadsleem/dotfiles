@@ -1073,3 +1073,72 @@ class HealthTests(unittest.TestCase):
             health = dot.collect_health(home=str(home), repo_dir=str(t.path / "dotfiles"))
         self.assertEqual(health.counts["missing"], 1)
         self.assertEqual(recorded, [])
+
+
+PACKAGES_NIX = """{ pkgs, ... }:
+{
+  home.packages = with pkgs; [
+    git
+    neovim
+    # a comment inside the list
+    ripgrep
+    (stdenvNoCC.mkDerivation {
+      pname = "workmux";
+      installPhase = ''
+        true
+      '';
+    })
+    libnotify
+  ];
+}
+"""
+
+
+class PackageEditorTests(unittest.TestCase):
+    def test_package_entries_reads_the_declared_names(self):
+        entries = dot.package_entries(PACKAGES_NIX)
+        self.assertEqual([e.name for e in entries], ["git", "neovim", "ripgrep", "libnotify"])
+
+    def test_package_entries_skips_a_derivation_block(self):
+        entries = dot.package_entries(PACKAGES_NIX)
+        self.assertNotIn("workmux", [e.name for e in entries])
+
+    def test_package_entries_skips_comments(self):
+        entries = dot.package_entries(PACKAGES_NIX)
+        self.assertNotIn("# a comment inside the list", [e.name for e in entries])
+
+    def test_add_packages_inserts_one_line_inside_the_list(self):
+        text, added = dot.add_packages(PACKAGES_NIX, ["fd"])
+        self.assertEqual(added, ["fd"])
+        self.assertIn("\n    fd\n", text)
+        self.assertEqual([e.name for e in dot.package_entries(text)],
+                         ["git", "neovim", "ripgrep", "libnotify", "fd"])
+
+    def test_add_packages_skips_a_name_that_is_already_declared(self):
+        text, added = dot.add_packages(PACKAGES_NIX, ["git"])
+        self.assertEqual(added, [])
+        self.assertEqual(text, PACKAGES_NIX)
+
+    def test_add_packages_without_a_list_raises(self):
+        with self.assertRaises(dot.PackageEditError):
+            dot.add_packages("{ pkgs, ... }: { }", ["fd"])
+
+    def test_remove_packages_removes_the_whole_line(self):
+        text, removed = dot.remove_packages(PACKAGES_NIX, ["ripgrep"])
+        self.assertEqual(removed, ["ripgrep"])
+        self.assertNotIn("    ripgrep\n", text)
+        self.assertIn("    git\n", text)
+
+    def test_remove_packages_refuses_an_entry_that_is_an_expression(self):
+        with self.assertRaises(dot.PackageEditError):
+            dot.remove_packages(PACKAGES_NIX, ["workmux"])
+
+    def test_remove_packages_ignores_a_name_that_is_not_declared(self):
+        text, removed = dot.remove_packages(PACKAGES_NIX, ["nothing"])
+        self.assertEqual(removed, [])
+        self.assertEqual(text, PACKAGES_NIX)
+
+    def test_add_and_remove_round_trip_leaves_the_file_unchanged(self):
+        text, _ = dot.add_packages(PACKAGES_NIX, ["fd"])
+        text, _ = dot.remove_packages(text, ["fd"])
+        self.assertEqual(text, PACKAGES_NIX)
