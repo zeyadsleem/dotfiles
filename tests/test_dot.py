@@ -1320,3 +1320,112 @@ class PkgTests(unittest.TestCase):
             self.assertNotEqual(program, "sudo")
             if program == "pacman":
                 self.assertNotIn(cmd[1], ("-S", "-R", "-U", "-Sy", "-Rns"))
+
+
+class BrowseTests(unittest.TestCase):
+    """The browser knows what the machine owns, and degrades when fzf is missing."""
+
+    def _home(self, t):
+        home = t.path / "home"
+        (home / ".config").mkdir(parents=True)
+        (home / ".local" / "bin").mkdir(parents=True)
+        (home / ".local" / "share" / "applications").mkdir(parents=True)
+        return home
+
+    def test_browse_rows_cover_apps_cli_scripts_and_configs(self):
+        with TempTree() as t:
+            home = self._home(t)
+            (home / ".local" / "share" / "applications" / "demo.desktop").write_text(
+                "[Desktop Entry]\nName=Demo\n")
+            (home / ".local" / "bin" / "myscript").write_text("#!/bin/sh\n")
+            (home / ".config" / "demo").mkdir()
+            rows = dot.browse_rows(home=str(home), repo_dir=str(t.path / "dotfiles"))
+            kinds = {row["kind"] for row in rows}
+            self.assertIn("app", kinds)
+            self.assertIn("script", kinds)
+            self.assertIn("config", kinds)
+
+    def test_browse_prints_the_rows_when_fzf_is_missing(self):
+        with TempTree() as t:
+            home = self._home(t)
+            (home / ".config" / "demo").mkdir()
+
+            def fake_runner(cmd, stdin_text=None, **kwargs):
+                raise FileNotFoundError("fzf")
+
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = dot.browse(home=str(home), repo_dir=str(t.path / "dotfiles"),
+                                  runner=fake_runner)
+            self.assertEqual(code, 0)
+            self.assertIn("config", buf.getvalue())
+
+    def test_browse_launches_the_selected_app(self):
+        launched = []
+
+        def fake_runner(cmd, stdin_text=None, **kwargs):
+            return "app:Demo\0"
+
+        def fake_launcher(cmd):
+            launched.append(cmd)
+
+        with TempTree() as t:
+            home = self._home(t)
+            (home / ".local" / "share" / "applications" / "demo.desktop").write_text(
+                "[Desktop Entry]\nName=Demo\n")
+            code = dot.browse(home=str(home), repo_dir=str(t.path / "dotfiles"),
+                              runner=fake_runner, launcher=fake_launcher)
+            self.assertEqual(code, 0)
+            self.assertTrue(launched)
+            self.assertEqual(launched[0][0], "gtk-launch")
+            self.assertEqual(launched[0][1], "demo")
+
+    def test_browse_opens_the_selected_config(self):
+        launched = []
+
+        def fake_runner(cmd, stdin_text=None, **kwargs):
+            return "config:/tmp/x\0"
+
+        def fake_launcher(cmd):
+            launched.append(cmd)
+
+        with TempTree() as t:
+            home = self._home(t)
+            code = dot.browse(home=str(home), repo_dir=str(t.path / "dotfiles"),
+                              runner=fake_runner, launcher=fake_launcher)
+            self.assertEqual(code, 0)
+            self.assertTrue(launched)
+
+    def test_browse_copies_the_path_of_a_selected_tool(self):
+        launched = []
+
+        def fake_runner(cmd, stdin_text=None, **kwargs):
+            return "cli:rg\0"
+
+        def fake_launcher(cmd):
+            launched.append(cmd)
+
+        with TempTree() as t:
+            home = self._home(t)
+            code = dot.browse(home=str(home), repo_dir=str(t.path / "dotfiles"),
+                              runner=fake_runner, launcher=fake_launcher)
+            self.assertEqual(code, 0)
+            self.assertTrue(launched)
+            self.assertEqual(launched[0][0], "wl-copy")
+
+    def test_show_item_reports_the_owner_of_a_config(self):
+        with TempTree() as t:
+            home = self._home(t)
+            repo = t.path / "dotfiles"
+            (repo / ".config").mkdir(parents=True)
+            (repo / ".config" / "niri").write_text("x")
+            link = home / ".config" / "niri"
+            link.symlink_to(repo / ".config" / "niri")
+            text = dot.show_item(f"config:{link}", home=str(home), repo_dir=str(repo))
+            self.assertIn("dotfiles", text)
+
+    def test_show_item_resolves_a_binary(self):
+        with TempTree() as t:
+            home = self._home(t)
+            text = dot.show_item("cli:sh", home=str(home), repo_dir=str(t.path / "dotfiles"))
+            self.assertIn("sh", text)

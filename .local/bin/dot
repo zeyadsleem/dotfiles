@@ -1722,6 +1722,143 @@ def pkg_main(args) -> int:
     return 0
 
 
+# ── browse ──
+
+BROWSE_KINDS = ("app", "cli", "script", "config")
+
+
+def browse_rows(*, home: str | None = None, repo_dir: str | None = None) -> list[dict]:
+    """The items the browser offers: apps, cli tools, scripts and config files.
+
+    It skips the expensive pacman queries: a browser that takes a second to
+    open is a browser nobody opens.
+    """
+    base = os.path.abspath(home) if home is not None else str(Path.home())
+    repo = repo_dir if repo_dir is not None else default_repo_dir()
+    rows: list[dict] = []
+    app_dirs = [os.path.join(base, relative) for relative in DESKTOP_DIRS]
+    app_dirs.append(SYSTEM_DESKTOP_DIR)
+    for app in collect_desktop_entries(app_dirs, home=base):
+        name = app.get("name", "")
+        desktop_file = app.get("desktop_file", "")
+        rows.append({
+            "id": f"app:{name}",
+            "kind": "app",
+            "label": name,
+            "detail": app.get("source", ""),
+            "target": os.path.basename(desktop_file)[:-len(".desktop")] if desktop_file else name,
+        })
+    names = collect_profile_bins(os.path.join(base, PROFILE_BIN_REL))
+    for tool, items in collect_tool_dirs(tool_dir_paths(base)).items():
+        names.extend(items)
+    for name in sorted(set(names)):
+        rows.append({"id": f"cli:{name}", "kind": "cli", "label": name,
+                     "detail": "cli", "target": name})
+    scripts = collect_scripts(os.path.join(base, ".local", "bin"), repo or None)
+    for group, script_names in scripts.items():
+        for name in script_names:
+            rows.append({"id": f"script:{name}", "kind": "script", "label": name,
+                         "detail": group, "target": name})
+    for entry in scan_home_configs(base, repo):
+        # `~/.local/share` is application state: a browser over configuration
+        # must not list it. Everything under `~/.config` is browsable, plain
+        # files included, because a config the user has not linked yet is
+        # still a config.
+        if entry.path.startswith(os.path.join(base, ".local", "share") + os.sep):
+            continue
+        rows.append({"id": f"config:{entry.path}", "kind": "config",
+                     "label": entry.path, "detail": entry.owner.kind,
+                     "target": entry.owner.target})
+    return rows
+
+
+def _run_with_input(cmd: list[str], stdin_text: str) -> str:
+    """Run a command and feed it text on stdin."""
+    proc = subprocess.run(cmd, input=stdin_text, capture_output=True, text=True, check=False)
+    return proc.stdout
+
+
+def run_fzf(rows: list[str], *, runner=None) -> list[str] | None:
+    """Feed the rows to fzf and return the chosen ids.
+
+    None means fzf is not installed, so the caller can print the rows
+    instead; an empty list means fzf ran and nothing was chosen.
+    """
+    script = os.path.realpath(__file__)
+    cmd = [
+        "fzf",
+        "--delimiter=\t",
+        "--with-nth=2..",
+        "--multi",
+        "--print0",
+        f"--preview={script} show {{1}}",
+    ]
+    run = runner or _run_with_input
+    try:
+        output = run(cmd, "\n".join(rows) + "\n")
+    except (FileNotFoundError, OSError):
+        return None
+    return [line.strip() for line in output.split("\0") if line.strip()]
+
+
+def show_item(item_id: str, *, home=None, repo_dir=None) -> str:
+    """The details of one item, for the browser preview."""
+    base = os.path.abspath(home) if home is not None else str(Path.home())
+    repo = repo_dir if repo_dir is not None else default_repo_dir()
+    kind, _, name = item_id.partition(":")
+    if kind == "config":
+        owner = classify(name, current_generation=current_generation(base),
+                         repo_dir=repo, home=base)
+        return f"{name}\nowner: {owner.kind}\ntarget: {owner.target}"
+    if kind == "app":
+        app_dirs = [os.path.join(base, relative) for relative in DESKTOP_DIRS]
+        app_dirs.append(SYSTEM_DESKTOP_DIR)
+        for app in collect_desktop_entries(app_dirs, home=base):
+            if app.get("name") == name:
+                return (f"{name}\ndesktop file: {app.get('desktop_file', '')}"
+                        f"\nsource: {app.get('source', '')}")
+        return f"{name}\nnot found"
+    path = shutil.which(name)
+    if path is None:
+        candidate = os.path.join(base, ".local", "bin", name)
+        path = candidate if os.path.exists(candidate) else None
+    if path is None:
+        return f"{name}\nnot found on PATH"
+    return f"{name}\npath: {path}"
+
+
+def browse(*, home=None, repo_dir=None, runner=None, launcher=None) -> int:
+    """The interactive browser over everything the machine owns."""
+    base = os.path.abspath(home) if home is not None else str(Path.home())
+    rows = browse_rows(home=base, repo_dir=repo_dir)
+    if not rows:
+        print("nothing to browse")
+        return 0
+    lines = [f"{row['id']}\t{row['label']}\t{row['detail']}" for row in rows]
+    chosen = run_fzf(lines, runner=runner)
+    if chosen is None:
+        print("\n".join(f"{row['label']}  ({row['kind']})" for row in rows))
+        return 0
+    if not chosen:
+        print("nothing was chosen")
+        return 0
+    by_id = {row["id"]: row for row in rows}
+    run = launcher or (lambda cmd: subprocess.run(cmd, check=False))
+    for item_id in chosen:
+        row = by_id.get(item_id, {})
+        kind, _, name = item_id.partition(":")
+        if kind == "app":
+            run(["gtk-launch", row.get("target") or name])
+        elif kind == "config":
+            editor = os.environ.get("EDITOR", "xdg-open")
+            run([editor, name])
+        else:
+            path = shutil.which(name) or os.path.join(base, ".local", "bin", name)
+            run(["wl-copy", path])
+            print(path)
+    return 0
+
+
 def build_inventory(*, home: str | None = None, repo_dir: str | None = None) -> Inventory:
     """Everything this machine has installed, and everything wrong with it."""
     base = os.path.abspath(home) if home is not None else str(Path.home())
@@ -1882,7 +2019,18 @@ def main(argv: list[str] | None = None) -> int:
     parser_sync.add_argument("--yes", action="store_true", help="do not ask")
     parser_sync.add_argument("--config", default="", help="the Home Manager configuration name")
 
+    p_browse = sub.add_parser("browse", help="search everything the machine owns")
+    p_show = sub.add_parser("show", help="the details of one item")
+    p_show.add_argument("item", help="the id of the item, for example config:/home/zeyad/.config/niri")
+
     args = parser.parse_args(argv)
+
+    if args.command == "browse":
+        return browse()
+
+    if args.command == "show":
+        print(show_item(args.item))
+        return 0
 
     if args.command == "pkg":
         # `dot pkg` edits one file and runs one switch; it must not pay for
