@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import datetime
+import difflib
 import json
 import os
 import re
@@ -1511,6 +1512,216 @@ def remove_packages(text: str, names: list[str]) -> tuple[str, list[str]]:
     return "\n".join(lines) + ("\n" if text.endswith("\n") else ""), removed
 
 
+# ── dot pkg ──
+
+SWITCH_TIMEOUT = 900
+NIX_EVAL_TIMEOUT = 120
+
+
+def _nix_expr(repo_dir: str, expression: str) -> str:
+    """A nix expression that reads the flake of this repository."""
+    return f'(builtins.getFlake "{repo_dir}").{expression}'
+
+
+def nix_attribute_name(name: str, repo_dir: str, runner=None) -> str | None:
+    """The nixpkgs version of an attribute, or None when nixpkgs has no such attribute.
+
+    The attribute is looked up in the flake's own nixpkgs, so a name that
+    resolves here is a name the configuration can build.
+    """
+    expression = _nix_expr(
+        repo_dir,
+        f"inputs.nixpkgs.legacyPackages.${{builtins.currentSystem}}.{name}.name",
+    )
+    output = _run(["nix", "eval", "--impure", "--raw", "--expr", expression],
+                  runner, timeout=NIX_EVAL_TIMEOUT).strip()
+    return output or None
+
+
+def home_manager_configurations(repo_dir: str, runner=None) -> list[str]:
+    """The homeConfigurations the flake exposes."""
+    expression = _nix_expr(repo_dir, "outputs.homeConfigurations")
+    output = _run(["nix", "eval", "--impure", "--json", "--expr",
+                   f"builtins.attrNames {expression}"],
+                  runner, timeout=NIX_EVAL_TIMEOUT).strip()
+    if not output:
+        return []
+    try:
+        names = json.loads(output)
+    except json.JSONDecodeError:
+        return []
+    return [str(name) for name in names] if isinstance(names, list) else []
+
+
+def run_home_manager_switch(repo_dir: str, config: str, runner=None) -> tuple[bool, str]:
+    """Run `home-manager switch`; returns whether it worked and what it said."""
+    cmd = ["home-manager", "switch", "--flake", f"{repo_dir}#{config}"]
+    run = runner or subprocess.run
+    try:
+        proc = run(cmd, capture_output=True, text=True, check=False, timeout=SWITCH_TIMEOUT)
+    except (FileNotFoundError, OSError, subprocess.TimeoutExpired) as error:
+        return False, str(error)
+    output = (proc.stdout or "") + (proc.stderr or "")
+    return proc.returncode == 0, output
+
+
+def package_diff(before: str, after: str, path: str) -> str:
+    """A unified diff of the change, for the confirmation prompt."""
+    diff = difflib.unified_diff(
+        before.splitlines(keepends=True),
+        after.splitlines(keepends=True),
+        fromfile=f"a/{path}",
+        tofile=f"b/{path}",
+    )
+    return "".join(diff)
+
+
+def confirm(question: str, *, assume_yes: bool = False, stream=None) -> bool:
+    """Ask the question; without a terminal the answer is no."""
+    if assume_yes:
+        return True
+    source = stream if stream is not None else sys.stdin
+    try:
+        interactive = source.isatty()
+    except (AttributeError, ValueError):
+        interactive = False
+    if not interactive:
+        print(f"{question} [y/N] (no terminal: refusing)")
+        return False
+    print(f"{question} [y/N] ", end="", flush=True)
+    answer = source.readline().strip().lower()
+    return answer in ("y", "yes")
+
+
+def resolve_package_name(name: str, package_bins: dict[str, list[str]]) -> str | None:
+    """The package that provides a binary, when the profile knows one."""
+    for package, binaries in package_bins.items():
+        if name in binaries:
+            return package
+    return None
+
+
+def pkg_list_output(*, home: str | None = None, repo_dir: str | None = None) -> str:
+    """The declared packages and whether the profile has them."""
+    base = home if home is not None else str(Path.home())
+    repo = repo_dir if repo_dir is not None else default_repo_dir()
+    path = os.path.join(repo, DECLARATIONS_FILE)
+    try:
+        with open(path, encoding="utf-8") as handle:
+            text = handle.read()
+    except OSError:
+        return f"{DECLARATIONS_FILE} cannot be read: {repo}"
+    declared = parse_declared_packages(text)
+    profile_dir = os.path.join(base, PROFILE_BIN_REL)
+    entries = collect_profile_entries()
+    installed = {entry.get("name", "") for entry in entries}
+    lines = [f"Declared packages ({len(declared)}):"]
+    for name in sorted(declared):
+        mark = "installed" if name in installed else "declared"
+        lines.append(f"  {name}  ({mark})")
+    return "\n".join(lines)
+
+
+def apply_package_change(
+    repo_dir: str,
+    new_text: str,
+    old_text: str,
+    config: str,
+    *,
+    runner=None,
+) -> tuple[bool, str]:
+    """Write the file, run the switch, and restore the file when the switch fails."""
+    path = os.path.join(repo_dir, DECLARATIONS_FILE)
+    try:
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(new_text)
+    except OSError as error:
+        return False, f"cannot write {path}: {error}"
+    ok, output = run_home_manager_switch(repo_dir, config, runner=runner)
+    if not ok:
+        try:
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write(old_text)
+        except OSError as error:
+            return False, f"the switch failed and the file could not be restored: {error}\n{output}"
+        return False, f"the switch failed, the file was restored\n{output}"
+    return True, output
+
+
+def pkg_main(args) -> int:
+    """The `dot pkg` command: the only part of `dot` that changes anything."""
+    repo = default_repo_dir()
+    if not repo:
+        print("the dotfiles repository cannot be found", file=sys.stderr)
+        return 1
+    path = os.path.join(repo, DECLARATIONS_FILE)
+    if args.pkg_command == "list":
+        print(pkg_list_output(repo_dir=repo))
+        return 0
+    config = args.config or ""
+    if not config:
+        configs = home_manager_configurations(repo)
+        if len(configs) == 1:
+            config = configs[0]
+        elif not configs:
+            print("the flake exposes no home configuration", file=sys.stderr)
+            return 1
+        else:
+            print(f"the flake exposes {', '.join(configs)} — choose one with --config",
+                  file=sys.stderr)
+            return 1
+    try:
+        with open(path, encoding="utf-8") as handle:
+            before = handle.read()
+    except OSError as error:
+        print(f"cannot read {path}: {error}", file=sys.stderr)
+        return 1
+    if args.pkg_command == "sync":
+        print(f"running home-manager switch for {repo}#{config}")
+        ok, output = run_home_manager_switch(repo, config)
+        print(output)
+        return 0 if ok else 1
+    names = []
+    for name in args.names:
+        resolved = nix_attribute_name(name, repo)
+        if resolved is None:
+            mapped = resolve_package_name(name, package_binary_map())
+            if mapped is None:
+                print(f"{name} is not a nixpkgs package", file=sys.stderr)
+                return 1
+            resolved = nix_attribute_name(mapped, repo)
+            if resolved is None:
+                print(f"{name} is not a nixpkgs package", file=sys.stderr)
+                return 1
+            name = mapped
+        names.append(name)
+    try:
+        if args.pkg_command == "add":
+            after, changed = add_packages(before, names)
+        else:
+            after, changed = remove_packages(before, names)
+    except PackageEditError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+    if not changed:
+        print("nothing to change")
+        return 0
+    diff = package_diff(before, after, DECLARATIONS_FILE)
+    print(diff)
+    if args.dry_run:
+        return 0
+    if not confirm("Apply this change?", assume_yes=args.yes):
+        print("nothing was changed")
+        return 1
+    ok, output = apply_package_change(repo, after, before, config)
+    print(output)
+    if not ok:
+        print("the change was not applied", file=sys.stderr)
+        return 1
+    print("the profile was updated")
+    return 0
+
+
 def build_inventory(*, home: str | None = None, repo_dir: str | None = None) -> Inventory:
     """Everything this machine has installed, and everything wrong with it."""
     base = os.path.abspath(home) if home is not None else str(Path.home())
@@ -1658,7 +1869,25 @@ def main(argv: list[str] | None = None) -> int:
     p_health = sub.add_parser("health", help="a fast health check for the bar")
     p_health.add_argument("--json", action="store_true", help="print the waybar document")
 
+    p_pkg = sub.add_parser("pkg", help="manage the nix packages of the profile")
+    pkg_sub = p_pkg.add_subparsers(dest="pkg_command", required=True)
+    pkg_sub.add_parser("list", help="show the declared packages")
+    for action, help_text in (("add", "add packages"), ("rm", "remove packages")):
+        parser_action = pkg_sub.add_parser(action, help=help_text)
+        parser_action.add_argument("names", nargs="+", help="the package names")
+        parser_action.add_argument("--yes", action="store_true", help="do not ask")
+        parser_action.add_argument("--dry-run", action="store_true", help="print the change and stop")
+        parser_action.add_argument("--config", default="", help="the Home Manager configuration name")
+    parser_sync = pkg_sub.add_parser("sync", help="apply the repository as it stands")
+    parser_sync.add_argument("--yes", action="store_true", help="do not ask")
+    parser_sync.add_argument("--config", default="", help="the Home Manager configuration name")
+
     args = parser.parse_args(argv)
+
+    if args.command == "pkg":
+        # `dot pkg` edits one file and runs one switch; it must not pay for
+        # the inventory or the health scan first.
+        return pkg_main(args)
 
     if args.command == "health":
         # The probe answers before the inventory is built: the bar calls it

@@ -1142,3 +1142,181 @@ class PackageEditorTests(unittest.TestCase):
         text, _ = dot.add_packages(PACKAGES_NIX, ["fd"])
         text, _ = dot.remove_packages(text, ["fd"])
         self.assertEqual(text, PACKAGES_NIX)
+
+
+class PkgTests(unittest.TestCase):
+    """dot pkg is the only mutating command; it never uses sudo."""
+
+    def _repo(self, t, text=PACKAGES_NIX):
+        repo = t.path / "dotfiles"
+        (repo / "nix" / "modules").mkdir(parents=True)
+        (repo / "nix" / "modules" / "packages.nix").write_text(text)
+        return str(repo)
+
+    def _stub_config(self, name="zeyad"):
+        original = dot.home_manager_configurations
+        dot.home_manager_configurations = lambda repo_dir, runner=None: [name]
+        self.addCleanup(setattr, dot, "home_manager_configurations", original)
+
+    def _capture(self, argv, repo=None, assume_yes=False):
+        buf = io.StringIO()
+        original_repo = dot.default_repo_dir
+        original_confirm = dot.confirm
+        if repo is not None:
+            dot.default_repo_dir = lambda: repo
+        dot.confirm = lambda question, **kwargs: assume_yes or kwargs.get("assume_yes", False)
+        self.addCleanup(setattr, dot, "default_repo_dir", original_repo)
+        self.addCleanup(setattr, dot, "confirm", original_confirm)
+        with contextlib.redirect_stdout(buf):
+            code = dot.main(argv)
+        return code, buf.getvalue()
+
+    def test_nix_attribute_name_accepts_a_known_attribute(self):
+        def fake_runner(cmd, **kwargs):
+            self.assertIn("legacyPackages", cmd[-1])
+            return subprocess.CompletedProcess(cmd, 0, "git-2.55.0\n", "")
+        self.assertEqual(dot.nix_attribute_name("git", "/repo", runner=fake_runner), "git-2.55.0")
+
+    def test_nix_attribute_name_rejects_an_unknown_attribute(self):
+        def fake_runner(cmd, **kwargs):
+            return subprocess.CompletedProcess(cmd, 1, "", "error: attribute 'zzz' missing")
+        self.assertIsNone(dot.nix_attribute_name("zzz", "/repo", runner=fake_runner))
+
+    def test_home_manager_configurations_reads_the_flake(self):
+        def fake_runner(cmd, **kwargs):
+            return subprocess.CompletedProcess(cmd, 0, '["zeyad"]\n', "")
+        self.assertEqual(dot.home_manager_configurations("/repo", runner=fake_runner), ["zeyad"])
+
+    def test_run_home_manager_switch_reports_failure(self):
+        def fake_runner(cmd, **kwargs):
+            self.assertEqual(cmd[:2], ["home-manager", "switch"])
+            return subprocess.CompletedProcess(cmd, 1, "", "error: build failed")
+        ok, output = dot.run_home_manager_switch("/repo", "zeyad", runner=fake_runner)
+        self.assertFalse(ok)
+        self.assertIn("build failed", output)
+
+    def test_package_diff_shows_the_added_line(self):
+        after, _ = dot.add_packages(PACKAGES_NIX, ["fd"])
+        diff = dot.package_diff(PACKAGES_NIX, after, "nix/modules/packages.nix")
+        self.assertIn("+    fd", diff)
+
+    def test_confirm_without_a_terminal_is_no(self):
+        self.assertFalse(dot.confirm("Apply?", stream=io.StringIO("\n")))
+
+    def test_confirm_with_assume_yes_is_yes(self):
+        self.assertTrue(dot.confirm("Apply?", assume_yes=True, stream=io.StringIO("")))
+
+    def test_apply_package_change_restores_the_file_when_the_switch_fails(self):
+        with TempTree() as t:
+            repo = self._repo(t)
+            path = os.path.join(repo, "nix", "modules", "packages.nix")
+            before = open(path).read()
+            after, _ = dot.add_packages(before, ["fd"])
+
+            def fake_runner(cmd, **kwargs):
+                return subprocess.CompletedProcess(cmd, 1, "", "error: build failed")
+
+            ok, _ = dot.apply_package_change(repo, after, before, "zeyad", runner=fake_runner)
+            self.assertFalse(ok)
+            self.assertEqual(open(path).read(), before)
+
+    def test_pkg_add_maps_a_binary_name_to_its_package(self):
+        with TempTree() as t:
+            # ripgrep must not be declared yet, or the test would pass without
+            # ever exercising the binary→package mapping.
+            repo = self._repo(t, PACKAGES_NIX.replace("    ripgrep\n", ""))
+            self._stub_config()
+            path = os.path.join(repo, "nix", "modules", "packages.nix")
+
+            def fake_attr(name, repo_dir, runner=None):
+                return "ripgrep-14.1.0" if name == "ripgrep" else None
+
+            original = dot.nix_attribute_name
+            dot.nix_attribute_name = fake_attr
+            self.addCleanup(setattr, dot, "nix_attribute_name", original)
+
+            original_map = dot.package_binary_map
+            dot.package_binary_map = lambda *args, **kwargs: {"ripgrep": ["rg"]}
+            self.addCleanup(setattr, dot, "package_binary_map", original_map)
+
+            original_switch = dot.run_home_manager_switch
+            dot.run_home_manager_switch = lambda repo_dir, config, runner=None: (True, "ok")
+            self.addCleanup(setattr, dot, "run_home_manager_switch", original_switch)
+
+            code, out = self._capture(["pkg", "add", "rg", "--yes"], repo=repo)
+            self.assertEqual(code, 0)
+            text = open(path).read()
+            self.assertIn("    ripgrep\n", text)
+            self.assertNotIn("    rg\n", text)
+
+    def test_pkg_add_refuses_without_a_confirmation(self):
+        with TempTree() as t:
+            repo = self._repo(t)
+            self._stub_config()
+            path = os.path.join(repo, "nix", "modules", "packages.nix")
+            before = open(path).read()
+
+            def fake_attr(name, repo_dir, runner=None):
+                return "fd-9.0.0"
+
+            original = dot.nix_attribute_name
+            dot.nix_attribute_name = fake_attr
+            self.addCleanup(setattr, dot, "nix_attribute_name", original)
+
+            code, out = self._capture(["pkg", "add", "fd"], repo=repo, assume_yes=False)
+            self.assertEqual(code, 1)
+            self.assertEqual(open(path).read(), before)
+
+    def test_pkg_add_writes_the_file_and_runs_the_switch(self):
+        with TempTree() as t:
+            repo = self._repo(t)
+            self._stub_config()
+            path = os.path.join(repo, "nix", "modules", "packages.nix")
+            switched = []
+
+            def fake_attr(name, repo_dir, runner=None):
+                return "fd-9.0.0"
+
+            def fake_switch(repo_dir, config, runner=None):
+                switched.append((repo_dir, config))
+                return True, "ok"
+
+            original = dot.nix_attribute_name
+            dot.nix_attribute_name = fake_attr
+            self.addCleanup(setattr, dot, "nix_attribute_name", original)
+            original_switch = dot.run_home_manager_switch
+            dot.run_home_manager_switch = fake_switch
+            self.addCleanup(setattr, dot, "run_home_manager_switch", original_switch)
+
+            code, out = self._capture(["pkg", "add", "fd", "--yes"], repo=repo)
+            self.assertEqual(code, 0)
+            self.assertIn("fd", open(path).read())
+            self.assertEqual(switched, [(repo, "zeyad")])
+
+    def test_pkg_never_runs_sudo_or_a_mutating_pacman(self):
+        recorded = []
+        real_run = subprocess.run
+
+        def spy(cmd, *args, **kwargs):
+            recorded.append(cmd if isinstance(cmd, list) else [cmd])
+            if cmd and cmd[0] == "home-manager":
+                return subprocess.CompletedProcess(cmd, 0, "ok\n", "")
+            return real_run(cmd, *args, **kwargs)
+
+        subprocess.run = spy
+        self.addCleanup(setattr, subprocess, "run", real_run)
+        with TempTree() as t:
+            repo = self._repo(t)
+            self._stub_config()
+            original_repo = dot.default_repo_dir
+            dot.default_repo_dir = lambda: repo
+            self.addCleanup(setattr, dot, "default_repo_dir", original_repo)
+            with contextlib.redirect_stdout(io.StringIO()):
+                code = dot.main(["pkg", "sync", "--yes"])
+        self.assertEqual(code, 0)
+        self.assertTrue(recorded, "dot pkg ran no command at all, so nothing was checked")
+        for cmd in recorded:
+            program = os.path.basename(cmd[0])
+            self.assertNotEqual(program, "sudo")
+            if program == "pacman":
+                self.assertNotIn(cmd[1], ("-S", "-R", "-U", "-Sy", "-Rns"))
