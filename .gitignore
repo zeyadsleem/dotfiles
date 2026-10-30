@@ -20,3 +20,6 @@ __pycache__/
 .config/gtklock/style.css
 .config/themes/current
 .config/themes/current_zsh_env.zsh
+
+# niri capture scratch files
+.config/niri/config.kdl.t3-capture-backup-*

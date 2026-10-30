@@ -41,7 +41,6 @@
     unzip
     ffmpeg
     yt-dlp
-    antigravity
     mypy
     traceroute
   ];

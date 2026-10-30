@@ -1,6 +1,4 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": [
-    "https://github.com/firecrawl/opencode-firecrawl"
-  ]
+  "plugins": ["@firecrawl/opencode@1.4.0"]
 }

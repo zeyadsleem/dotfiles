@@ -23,6 +23,7 @@ x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 x-scheme-handler/flywheel-local=Local.desktop
 x-scheme-handler/codex=chatgpt.desktop
 x-scheme-handler/antigravity=antigravity.desktop
+x-scheme-handler/t3code=com.t3tools.T3Code.desktop
 
 [Added Associations]
 x-scheme-handler/mailto=userapp-Evolution-0Q0AF3.desktop;
