@@ -174,6 +174,25 @@ merges locally and cleans up; run it only when you intend to merge.
 Project-specific setup commands and ignored files belong in the project's
 `.workmux.yaml`; the global configuration only launches OpenCode and a shell.
 
+### cht.sh popup (`Ctrl-a i`)
+
+`~/.local/bin/tmux-cht.sh` runs inside an 85% popup: it fuses the language and
+command topic lists into one fzf picker, percent-encodes the query as cht.sh path
+segments, tries both URL shapes (`/topic/query` then `topic~query`), caches
+answers for a week under `~/.cache/tmux-cht`, and falls back to
+`opencode run -m opencode/big-pickle` when cht.sh has nothing. It also runs
+outside tmux: `tmux-cht.sh git rebase`. A topic must answer `cht.sh/<topic>/list`
+without a 404, otherwise it only ever reaches the AI fallback.
+
+### Shell AI helpers
+
+- `gpt <question>` — `opencode run` on the free `opencode/big-pickle` model.
+  `-c` continues the last session, `-m provider/model` overrides the model.
+- `img <prompt>` — free image generation through the pollinations.ai endpoint
+  `tgpt` uses, no API key; saves to `~/Pictures/ai` and opens the result. The
+  free tier allows about one image per 45 s. OpenCode exposes no image model at
+  all (checked with `models type: image`), so this is not routed through it.
+
 ### Home Manager pitfalls
 
 - **No `executable = true` on out-of-store script links.** Home Manager builds

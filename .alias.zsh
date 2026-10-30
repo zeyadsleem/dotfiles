@@ -141,6 +141,129 @@ alias pnu="pnpm update"
 # alias docker='podman'
 # alias docker-compose='podman-compose'
 
+# AI - one-shot questions on OpenCode's free Big Pickle model
+# Usage: gpt <question...>          new session
+#        gpt -c <follow up>         continue the last session
+#        gpt -m provider/model ...  override the model
+function gpt() {
+    if (( $# == 0 )); then
+        print -u2 "usage: gpt [-c] [-m provider/model] <question...>"
+        return 1
+    fi
+
+    local arg has_model=0
+    for arg in "$@"; do
+        [[ $arg == -m || $arg == --model || $arg == --model=* ]] && has_model=1
+    done
+
+    if (( has_model )); then
+        opencode run "$@"
+    else
+        opencode run -m opencode/big-pickle "$@"
+    fi
+}
+
+# AI image generation - free pollinations.ai backend (the one tgpt uses), no API key
+# Usage: img <prompt...>          saves to ~/Pictures/ai and opens it
+#        img -s 512x512 <prompt>  size
+#        img -o out.jpg <prompt>  output path
+#        img -n <prompt>          save without opening
+function img() {
+    local size="1024x1024" out="" no_open=0 force=0 width height prompt=""
+    local dir="$HOME/Pictures/ai"
+    local cache="${XDG_CACHE_HOME:-$HOME/.cache}/img"
+
+    while (( $# )); do
+        case $1 in
+            -s) [[ -n ${2:-} && $2 =~ ^[0-9]+x[0-9]+$ ]] || { print -u2 "img: -s takes WxH, got '${2:-}'"; return 1 }; size="$2"; shift 2 ;;
+            -o) [[ -n ${2:-} ]] || { print -u2 "img: -o needs a file path"; return 1 }; out="$2"; shift 2 ;;
+            -n) no_open=1; shift ;;
+            -f|--force) force=1; shift ;;
+            -h|--help) print -u2 "usage: img [-s WxH] [-o file] [-n] [-f] <prompt...>"; return 0 ;;
+            --) shift; break ;;
+            -*) print -u2 "img: unknown option '$1'"; return 1 ;;
+            *) break ;;
+        esac
+    done
+
+    prompt="$*"
+    if [[ -z ${prompt//[[:space:]]/} ]]; then
+        print -u2 "usage: img [-s WxH] [-o file] [-n] [-f] <prompt...>"
+        return 1
+    fi
+
+    width="${size%x*}"
+    height="${size#*x}"
+
+    if [[ -z $out ]]; then
+        mkdir -p "$dir" || return 1
+        out="$dir/$(date +%Y%m%d-%H%M%S).jpg"
+    fi
+
+    local encoded
+    encoded="$(printf '%s' "$prompt" | jq -sRr '@uri')" || {
+        print -u2 "img: jq is required to encode the prompt"
+        return 1
+    }
+
+    mkdir -p "$cache" || return 1
+    local key cached
+    key="$(printf '%s|%s' "$prompt" "$size" | sha1sum | cut -d' ' -f1)"
+    cached="$cache/$key.jpg"
+
+    if (( ! force )) && [[ -s $cached && $(file -b --mime-type "$cached" 2>/dev/null) == image/* ]]; then
+        cp -f "$cached" "$out" || return 1
+        print -u2 "img: cached -> $out"
+        print "$out"
+        (( no_open )) || gio open "$out" >/dev/null 2>&1
+        return 0
+    fi
+
+    local url="https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&nologo=true"
+    local -a auth=()
+    [[ -n ${POLLINATIONS_TOKEN:-} ]] && auth=(-H "Authorization: Bearer $POLLINATIONS_TOKEN")
+
+    print -u2 "generating ${width}x${height} -> $out"
+
+    local attempt=1 max_attempts=3 ok=0 message pause tmp
+    tmp="$(mktemp "${TMPDIR:-/tmp}/img.XXXXXX")" || return 1
+
+    while (( attempt <= max_attempts )); do
+        curl -sS -L --max-time 180 "${auth[@]}" -o "$tmp" "$url" 2>/dev/null
+        if [[ -s $tmp ]] && [[ $(file -b --mime-type "$tmp" 2>/dev/null) == image/* ]]; then
+            ok=1
+            break
+        fi
+
+        message="$(jq -r '.error.message // empty' "$tmp" 2>/dev/null)"
+        : >"$tmp"
+        print -u2 "img: ${message:-no image returned} (attempt $attempt/$max_attempts)"
+
+        if (( attempt < max_attempts )); then
+            pause="$(printf '%s' "$message" | grep -oiE 'after [0-9]+ ?s' | grep -oE '[0-9]+' | head -1)"
+            pause="${pause:-8}"
+            (( pause > 70 )) && pause=70
+            print -u2 "img: waiting ${pause}s"
+            sleep "$pause"
+        fi
+        (( attempt++ ))
+    done
+
+    if (( ! ok )); then
+        rm -f "$tmp"
+        print -u2 "img: gave up after $max_attempts attempts."
+        print -u2 "img: the free tier allows 1 image per 45s per IP and the shared API is often busy."
+        print -u2 "img: try again in a minute, or set POLLINATIONS_TOKEN to lift the limit."
+        return 1
+    fi
+
+    mv -f "$tmp" "$out" || { rm -f "$tmp"; print -u2 "img: cannot write $out"; return 1; }
+    cp -f "$out" "$cached" 2>/dev/null
+
+    print "$out"
+    (( no_open )) || gio open "$out" >/dev/null 2>&1
+}
+
 # SYSTEM UTILITIES
 alias open='gio open'
 alias c='clear'
