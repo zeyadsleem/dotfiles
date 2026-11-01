@@ -50,6 +50,7 @@ fix hint for you to run yourself.
 | `dot pkg sync` | apply the list as it stands, the fix for a drifted profile |
 | `dot browse` | the fzf launcher over the apps, the CLI tools, the scripts and the configs |
 | `dot keys` | the niri cheat sheet, parsed from the live config, Arabic by default |
+| `dot menu` | the front door: apps, themes, keybindings and power, one fuzzel window per level |
 | `dot show <id>` | the details of one item, the preview the browser uses |
 
 `dot pkg` is the only command that changes anything: it edits one file,
@@ -174,15 +175,27 @@ merges locally and cleans up; run it only when you intend to merge.
 Project-specific setup commands and ignored files belong in the project's
 `.workmux.yaml`; the global configuration only launches OpenCode and a shell.
 
-### cht.sh popup (`Ctrl-a i`)
+### cht.sh window (`Ctrl-a i`)
 
-`~/.local/bin/tmux-cht.sh` runs inside an 85% popup: it fuses the language and
-command topic lists into one fzf picker, percent-encodes the query as cht.sh path
-segments, tries both URL shapes (`/topic/query` then `topic~query`), caches
-answers for a week under `~/.cache/tmux-cht`, and falls back to
-`opencode run -m opencode/big-pickle` when cht.sh has nothing. It also runs
-outside tmux: `tmux-cht.sh git rebase`. A topic must answer `cht.sh/<topic>/list`
-without a 404, otherwise it only ever reaches the AI fallback.
+`~/.local/bin/tmux-cht.sh --window` opens in a throwaway tmux window: it fuses the
+language and command topic lists into one fzf picker, percent-encodes the query as
+cht.sh path segments, tries both URL shapes (`/topic/query` then `topic~query`),
+caches answers for a week under `~/.cache/tmux-cht`, and falls back to
+`opencode run -m opencode/big-pickle` when cht.sh has nothing. Arrows and
+PgUp/PgDn scroll the answer, `q` closes the window. It also runs outside tmux:
+`tmux-cht.sh git rebase`.
+
+The topic lists carry two kinds of entries. `curl -s "cht.sh/<topic>" | head -1`
+printing `# <topic>` means a real sheet exists; a 404 on
+`cht.sh/<topic>/<query>` only means that one question is missing, not the topic.
+Topics without a sheet (`hono`, `tanstack-*`, `react`, `nextjs`, `redux`,
+`zustand`, `prisma`, `zod`, …) are still listed on purpose — they are answered by
+the AI fallback, which is slower but never empty.
+
+Answers are painted by `bat` (never cht.sh's own ANSI, which bat would double-wrap):
+the topic decides the syntax — `python` highlights as Python, command topics as
+bash — with `BAT_THEME`, or Catppuccin Macchiato when the shell has no theme set.
+The `---`/`tags:` banner is dropped, and long answers page through `less`.
 
 ### Shell AI helpers
 

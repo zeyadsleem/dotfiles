@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# cht.sh reference popup for tmux (prefix + i).
+# cht.sh reference for tmux (prefix + i).
 #
-#   tmux-cht.sh                  pick a topic, then ask a query (inside the popup)
-#   tmux-cht.sh <topic> <query>  skip the picker and go straight to the answer
+#   tmux-cht.sh                   pick a topic, then ask a query
+#   tmux-cht.sh <topic> <query>   skip the picker and go straight to the answer
+#   tmux-cht.sh --window ...      show the answer in a throwaway window: q closes it
 #
 # Answers are cached for a week, cht.sh is queried with both URL shapes
 # (/topic/query and topic~query) and anything still missing falls back to
@@ -15,8 +16,21 @@ CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/tmux-cht"
 CACHE_TTL=$(( 7 * 24 * 60 * 60 ))
 AI_MODEL="opencode/big-pickle"
 ENV_FILE="$HOME/.config/themes/current/zsh/env.zsh"
+WINDOW_MODE=0
 
-die() { printf '%s\n' "$*" >&2; exit 1; }
+die() {
+    printf '%s\n' "$*" >&2
+    pause_close
+    exit 1
+}
+
+# In window mode the window dies with the script, so hold it open long enough to
+# read the answer (or the error) and let one key dismiss it.
+pause_close() {
+    (( WINDOW_MODE )) || return 0
+    printf '\n[ press any key to close ]' >&2
+    read -rsn1 -t 120 </dev/tty 2>/dev/null || true
+}
 
 need() {
     local cmd
@@ -73,6 +87,80 @@ urlencode_query() {
 
 strip_ansi() { sed 's/\x1b\[[0-9;]*[a-zA-Z]//g'; }
 
+# cht.sh opens with a "--- / tags: [...] / ---" banner that is noise in a popup.
+strip_banner() {
+    awk '
+        NR == 1 && /^-{2,}[[:space:]]*$/ { banner = 1; next }
+        banner && /^tags:/             { next }
+        banner && /^-{2,}[[:space:]]*$/ { banner = 0; next }
+        banner                          { next }
+        { print }
+    '
+}
+
+# Give bat a language it knows so the answer gets real syntax colour instead of
+# cht.sh's own ANSI, which bat would otherwise wrap in a second set of escapes.
+bat_language() {
+    local kind="$1" topic="$2"
+    if [[ $kind == cmd ]]; then
+        printf 'bash'
+        return
+    fi
+    case $topic in
+        bash|sh|zsh|tmux|shell)               printf 'bash' ;;
+        golang)                               printf 'go' ;;
+        nodejs|bun|deno|javascript|react|vue|svelte|angular|nextjs|electron)
+                                              printf 'javascript' ;;
+        typescript)                           printf 'typescript' ;;
+        python|django|flask|fastapi)          printf 'python' ;;
+        ruby|rails)                           printf 'ruby' ;;
+        c)                                    printf 'c' ;;
+        cpp|qt|gtk|godot|unity|game-development) printf 'cpp' ;;
+        csharp)                               printf 'cs' ;;
+        java)                                 printf 'java' ;;
+        kotlin|flutter|dart)                  printf 'kotlin' ;;
+        swift)                                printf 'swift' ;;
+        scala|gradle|maven)                   printf 'scala' ;;
+        php|laravel)                          printf 'php' ;;
+        rust)                                 printf 'rust' ;;
+        zig)                                  printf 'zig' ;;
+        go)                                   printf 'go' ;;
+        lua|neovim|vim|vimscript|emacs|lisp)   printf 'lua' ;;
+        perl)                                 printf 'perl' ;;
+        elixir)                               printf 'elixir' ;;
+        haskell)                              printf 'haskell' ;;
+        clojure)                              printf 'clojure' ;;
+        ocaml)                                printf 'ocaml' ;;
+        erlang)                               printf 'erlang' ;;
+        julia)                                printf 'julia' ;;
+        r)                                    printf 'r' ;;
+        sql|postgres|mongodb|redis)           printf 'sql' ;;
+        yaml|ansible|kubernetes|kubernetes-helm|helm) printf 'yaml' ;;
+        json)                                 printf 'json' ;;
+        toml)                                 printf 'toml' ;;
+        xml|html)                             printf 'html' ;;
+        css|tailwind)                         printf 'css' ;;
+        graphql)                              printf 'graphql' ;;
+        nix)                                  printf 'nix' ;;
+        terraform)                            printf 'hcl' ;;
+        makefile)                             printf 'makefile' ;;
+        cmake)                                printf 'cmake' ;;
+        nginx)                                printf 'nginx' ;;
+        docker|docker-compose)                printf 'dockerfile' ;;
+        *)                                    printf 'bash' ;;
+    esac
+}
+
+# Follow the shell's theme when it has one, else the Catppuccin palette the rest
+# of the dotfiles use, else bat's own default.
+bat_theme() {
+    if [[ -n ${BAT_THEME:-} ]]; then
+        printf '%s' "$BAT_THEME"
+    elif command -v bat >/dev/null 2>&1 && bat --list-themes 2>/dev/null | grep -qx 'Catppuccin Macchiato'; then
+        printf 'Catppuccin Macchiato'
+    fi
+}
+
 # Drop markdown fences, ANSI noise and leading blank lines from model output.
 tidy() {
     strip_ansi | grep -vE '^[[:space:]]*```' | cat -s | sed '/./,$!d'
@@ -105,7 +193,7 @@ fetch_cht() {
     for url in "${candidates[@]}"; do
         body="$(curl -s --max-time 12 "$url")" || continue
         if ! is_miss "$body"; then
-            printf '%s' "$body"
+            printf '%s' "$body" | strip_ansi
             return 0
         fi
     done
@@ -148,16 +236,37 @@ Question: $query"
     fi
 }
 
+# Paint the answer through bat: plain style, no line numbers, the theme the
+# rest of the shell uses, and the pager left on so long answers stay readable.
 render() {
-    local file="$1"
+    local kind="$1" topic="$2" file="$3" text lang theme
+    local -a args=(--style=plain --color=always --tabs=4 --paging=always)
+
+    text="$(strip_ansi < "$file" | strip_banner)"
+
     if [[ -t 1 ]] && command -v bat >/dev/null 2>&1; then
-        bat --style=plain --paging=always "$file"
+        lang="$(bat_language "$kind" "$topic")"
+        theme="$(bat_theme)"
+        args+=(--language="$lang")
+        [[ -n $theme ]] && args+=(--theme="$theme")
+        printf '%s\n' "$text" | bat "${args[@]}"
+    elif [[ -t 1 ]] && command -v less >/dev/null 2>&1; then
+        printf '%s\n' "$text" | less -R
     else
-        cat "$file"
+        printf '%s\n' "$text"
     fi
 }
 
 main() {
+    while (( $# )); do
+        case $1 in
+            -w|--window) WINDOW_MODE=1; shift ;;
+            --) shift; break ;;
+            -*) die "tmux-cht: unknown option '$1'" ;;
+            *) break ;;
+        esac
+    done
+
     need curl fzf
     mkdir -p "$CACHE_DIR" || die "tmux-cht: cannot create $CACHE_DIR"
     load_theme
@@ -187,19 +296,19 @@ main() {
     cache="$(cache_path "$kind:$name:$query")"
 
     if cache_fresh "$cache"; then
-        render "$cache"
+        render "$kind" "$name" "$cache"
         return 0
     fi
 
     if body="$(fetch_cht "$kind" "$name" "$query")" && [[ -n ${body//[[:space:]]/} ]]; then
         printf '%s\n' "$body" > "$cache"
-        render "$cache"
+        render "$kind" "$name" "$cache"
         return 0
     fi
 
     if body="$(ask_ai "$name" "$query")" && [[ -n ${body//[[:space:]]/} ]]; then
         printf '%s\n' "$body" > "$cache"
-        render "$cache"
+        render "$kind" "$name" "$cache"
         return 0
     fi
 

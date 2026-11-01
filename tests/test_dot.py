@@ -1565,6 +1565,99 @@ class BarTests(unittest.TestCase):
         self.assertIn(".config/waybar/scripts/hijri-clock.sh", text)
 
 
+class MenuTests(unittest.TestCase):
+    """The front door: every row exists, runs, and asks before it hurts."""
+
+    def _themes(self, t):
+        themes = t.path / "themes"
+        for name in ("alpha", "beta"):
+            (themes / name).mkdir(parents=True)
+            (themes / name / "theme.conf").write_text(f"name={name}\n")
+        (themes / "current").symlink_to(themes / "beta")
+        return themes
+
+    def _picker(self, picks):
+        """A launcher that answers from a script of labels and then cancels."""
+        questions = []
+
+        def launcher(rows, prompt):
+            questions.append(prompt)
+            if not picks:
+                return None
+            want = picks.pop(0)
+            for row in rows:
+                if want in row:
+                    return row
+            raise AssertionError(f"{want!r} is not one of {rows}")
+
+        launcher.questions = questions
+        return launcher
+
+    def test_the_tree_has_the_four_sections(self):
+        rows = dot.menu_rows("", which=lambda name: "/bin/true", home="/nonexistent")
+        self.assertEqual([row.id for row in rows], ["apps", "appearance", "learn", "system"])
+
+    def test_a_missing_program_hides_its_row(self):
+        self.assertEqual(
+            dot.menu_rows("system", which=lambda name: None, home="/nonexistent"), [])
+        root = dot.menu_rows("", which=lambda name: None, home="/nonexistent")
+        self.assertEqual([row.id for row in root], ["learn"])
+
+    def test_themes_are_listed_with_the_live_one_checked(self):
+        with TempTree() as t:
+            themes = self._themes(t)
+            rows = dot.menu_rows("appearance.theme", which=lambda name: "/bin/true",
+                                 themes_dir=str(themes))
+            self.assertEqual([row.label for row in rows], ["alpha", "beta"])
+            self.assertEqual([row.checked for row in rows], [False, True])
+            self.assertEqual(rows[0].action, "set-theme alpha")
+
+    def test_a_destructive_row_asks_before_it_runs(self):
+        with TempTree() as t:
+            themes = self._themes(t)
+            executed = []
+            dot.run_menu(launcher=self._picker(["النظام", "إطفاء", "إلغاء"]),
+                         run=executed.append, which=lambda name: "/bin/true",
+                         themes_dir=str(themes))
+            self.assertEqual(executed, [])
+
+    def test_a_confirmed_row_runs_its_command(self):
+        with TempTree() as t:
+            themes = self._themes(t)
+            executed = []
+            dot.run_menu(launcher=self._picker(["النظام", "إطفاء", "أيوه"]),
+                         run=executed.append, which=lambda name: "/bin/true",
+                         themes_dir=str(themes))
+            self.assertEqual(executed, [["systemctl", "poweroff"]])
+
+    def test_back_returns_to_the_root(self):
+        with TempTree() as t:
+            picker = self._picker(["المظهر", "رجوع"])
+            dot.run_menu(launcher=picker, run=lambda argv: None,
+                         which=lambda name: "/bin/true", themes_dir=str(t.path / "themes"))
+            self.assertEqual(picker.questions, ["dot", "المظهر", "dot"])
+
+    def test_the_dot_action_runs_this_script(self):
+        self.assertEqual(dot.menu_action_argv("dot keys --gui")[0], str(DOT_PATH.resolve()))
+
+    def test_without_fuzzel_the_tree_is_printed(self):
+        out = io.StringIO()
+        with TempTree() as t, mock.patch.object(
+                dot.shutil, "which",
+                side_effect=lambda name: None if name == "fuzzel" else "/bin/true"), \
+                contextlib.redirect_stdout(out):
+            dot.run_menu(home=str(t.path), themes_dir=str(t.path / "themes"))
+        self.assertIn("system.shutdown", out.getvalue())
+
+    def test_print_writes_the_whole_tree(self):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(dot.main(["menu", "--print"]), 0)
+        text = out.getvalue()
+        for item_id in ("apps", "appearance.theme", "learn.keys", "system.shutdown"):
+            self.assertIn(item_id, text)
+
+
 class FinalReviewTests(unittest.TestCase):
     """The findings of the whole-branch review, each pinned to its reproduction."""
 

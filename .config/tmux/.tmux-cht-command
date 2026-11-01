@@ -1,7 +1,6 @@
 # Command topics for tmux-cht.sh (ctrl+a i).
-# One topic per line, no duplicates. Validate a new entry with:
-#   curl -s "cht.sh/<topic>/list" | grep -qi "404 NOT FOUND" || echo ok
-# Lines starting with # and blank lines are ignored by the script.
+# One topic per line. Blank lines and lines starting with # are ignored.
+# Existence check: curl -s "cht.sh/<topic>" | head -1  ->  "# <topic>" means the sheet exists
 find
 fd
 man

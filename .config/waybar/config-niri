@@ -5,7 +5,7 @@
   "spacing": 8,
 
   "modules-left": ["custom/launcher", "niri/workspaces", "niri/window"],
-  "modules-center": ["clock", "custom/hijri"],
+  "modules-center": ["clock"],
   "modules-right": ["niri/language", "network", "pulseaudio", "backlight", "custom/dot-health", "cpu", "memory", "battery", "tray", "custom/power"],
 
   "custom/launcher": {
@@ -81,6 +81,7 @@
     "interval": 10,
     "return-type": "json",
     "exec": "$HOME/.config/waybar/scripts/dot-health.sh",
+    "on-click": "$HOME/.local/bin/dot menu",
     "tooltip": true
   },
 

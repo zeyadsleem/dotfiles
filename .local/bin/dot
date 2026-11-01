@@ -10,6 +10,7 @@ import difflib
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -2079,6 +2080,218 @@ def open_keys_window(text: str) -> bool:
     return False
 
 
+# ---------------------------------------------------------------------------
+# The menu — the one front door the bar and the keyboard open
+# ---------------------------------------------------------------------------
+
+MENU_BACK = "رجوع"
+
+
+@dataclasses.dataclass(frozen=True)
+class MenuItem:
+    """One row of the menu. The dotted id decides which submenu holds it."""
+
+    id: str
+    label: str
+    icon: str
+    action: str = ""
+    needs: tuple[str, ...] = ()
+    confirm: str = ""
+    checked: bool = False
+
+
+# The tree mirrors the shape of a desktop menu, not of the scripts: `dot keys`
+# lives under Learn because that is where a person looks for it, even though
+# it is a dot subcommand like the rest.
+MENU_ITEMS: tuple[MenuItem, ...] = (
+    MenuItem("apps", "التطبيقات", "󰀻", action="nwg-drawer", needs=("nwg-drawer",)),
+    MenuItem("appearance", "المظهر", "󰏘"),
+    MenuItem("appearance.theme", "الثيمات", "󰸌", needs=("set-theme",)),
+    MenuItem("appearance.bar", "إظهار/إخفاء البار", "󰍜",
+             action="toggle-waybar.sh", needs=("toggle-waybar.sh",)),
+    MenuItem("learn", "التعلّم", "󰧑"),
+    MenuItem("learn.keys", "اختصارات niri", "", action="dot keys --gui"),
+    MenuItem("system", "النظام", ""),
+    MenuItem("system.lock", "قفل الشاشة", "",
+             action="lock-if-not-running.sh", needs=("lock-if-not-running.sh",)),
+    MenuItem("system.suspend", "تعليق", "󰒲", action="systemctl suspend", needs=("systemctl",)),
+    MenuItem("system.logout", "تسجيل خروج", "󰍃",
+             action="niri msg action quit --skip-confirmation", needs=("niri",),
+             confirm="هيقفل كل النوافذ المفتوحة"),
+    MenuItem("system.reboot", "إعادة تشغيل", "󰜉",
+             action="systemctl reboot", needs=("systemctl",),
+             confirm="الجهاز هيعيد التشغيل"),
+    MenuItem("system.shutdown", "إطفاء", "󰐥",
+             action="systemctl poweroff", needs=("systemctl",),
+             confirm="الجهاز هيطفي"),
+)
+
+
+def _menu_parent(item_id: str) -> str:
+    return item_id.rsplit(".", 1)[0] if "." in item_id else ""
+
+
+def theme_menu_items(themes_dir: str) -> list[MenuItem]:
+    """One row per installed theme; the live one carries the check mark.
+
+    The list is read from disk on every open, so a theme added tomorrow needs
+    no code change here.
+    """
+    try:
+        names = sorted(os.listdir(themes_dir))
+    except OSError:
+        return []
+    current = os.path.basename(os.path.realpath(os.path.join(themes_dir, "current")))
+    items = []
+    for name in names:
+        if name == "current":
+            # The live-theme alias, not a theme of its own.
+            continue
+        if os.path.isfile(os.path.join(themes_dir, name, "theme.conf")):
+            items.append(MenuItem(
+                id=f"appearance.theme.{name}",
+                label=name,
+                icon="󰸌",
+                action=f"set-theme {name}",
+                needs=("set-theme",),
+                checked=name == current,
+            ))
+    return items
+
+
+def menu_children(route: str, *, items=None, themes_dir: str = "") -> list[MenuItem]:
+    """The rows declared directly under a route, in declaration order."""
+    table = list(MENU_ITEMS if items is None else items)
+    if themes_dir:
+        table.extend(theme_menu_items(themes_dir))
+    return [item for item in table if _menu_parent(item.id) == route]
+
+
+def _menu_available(item: MenuItem, *, which=None, home: str = "") -> bool:
+    """A row that would fail must not be listed: no command, no entry."""
+    look = which or shutil.which
+    for name in item.needs:
+        if look(name):
+            continue
+        if home and os.path.exists(os.path.join(home, ".local", "bin", name)):
+            continue
+        return False
+    return True
+
+
+def menu_rows(route: str, *, items=None, which=None, home: str = "",
+              themes_dir: str = "") -> list[MenuItem]:
+    """The rows under a route that this machine can actually run."""
+    rows = []
+    for item in menu_children(route, items=items, themes_dir=themes_dir):
+        if not _menu_available(item, which=which, home=home):
+            continue
+        if menu_children(item.id, items=items, themes_dir=themes_dir):
+            # A submenu whose rows are all missing would open onto an empty
+            # window, so it is not offered at all.
+            if not menu_rows(item.id, items=items, which=which, home=home,
+                             themes_dir=themes_dir):
+                continue
+        rows.append(item)
+    return rows
+
+
+def render_menu_rows(rows: list[MenuItem]) -> list[str]:
+    return [f"{item.icon}  {item.label}" + ("  ✓" if item.checked else "") for item in rows]
+
+
+def fuzzel_launcher(rows: list[str], prompt: str) -> str | None:
+    """One fuzzel window; None means nothing was chosen or fuzzel is missing."""
+    if not rows:
+        return None
+    cmd = ["fuzzel", "--dmenu", f"--prompt={prompt}  ",
+           "--width=44", f"--lines={min(len(rows), 12)}"]
+    try:
+        proc = subprocess.run(cmd, input="\n".join(rows) + "\n",
+                              capture_output=True, text=True, check=False)
+    except (FileNotFoundError, OSError):
+        return None
+    return proc.stdout.strip() or None
+
+
+def menu_action_argv(action: str) -> list[str]:
+    argv = shlex.split(action)
+    if argv and argv[0] == "dot":
+        # waybar's on-click runs in a bare shell: never trust PATH for us.
+        argv[0] = os.path.realpath(__file__)
+    return argv
+
+
+def _menu_prompt(route: str, items) -> str:
+    if not route:
+        return "dot"
+    for item in items:
+        if item.id == route:
+            return item.label
+    return "dot"
+
+
+def _menu_confirmed(item: MenuItem, choose) -> bool:
+    rows = ["✕  إلغاء", f"✓  أيوه، {item.label}"]
+    return choose(rows, f"{item.confirm}?") == rows[1]
+
+
+def run_menu(*, home: str = "", themes_dir: str = "", items=None, which=None,
+             launcher=None, run=None) -> int:
+    """Walk the tree with fuzzel, one window per level, and run what is chosen."""
+    base = home or str(Path.home())
+    themes = themes_dir or os.path.join(base, ".config", "themes")
+    choose = launcher or fuzzel_launcher
+    execute = run or (lambda argv: subprocess.run(argv, check=False))
+    table = list(MENU_ITEMS if items is None else items)
+    if launcher is None and not shutil.which("fuzzel"):
+        # Same rule as `dot keys`: without a window, print the list.
+        print(render_menu_tree(items=table, which=which, home=base, themes_dir=themes))
+        return 0
+    stack = [""]
+    while stack:
+        route = stack[-1]
+        rows = menu_rows(route, items=table, which=which, home=base, themes_dir=themes)
+        display = render_menu_rows(rows)
+        back = f"←  {MENU_BACK}" if route else ""
+        if back:
+            display.append(back)
+        chosen = choose(display, _menu_prompt(route, table))
+        if chosen is None:
+            return 0
+        if back and chosen == back:
+            stack.pop()
+            continue
+        item = next((row for row, shown in zip(rows, display) if shown == chosen), None)
+        if item is None:
+            return 0
+        if menu_children(item.id, items=table, themes_dir=themes):
+            stack.append(item.id)
+            continue
+        if item.confirm and not _menu_confirmed(item, choose):
+            continue
+        execute(menu_action_argv(item.action))
+    return 0
+
+
+def render_menu_tree(*, items=None, which=None, home: str = "",
+                     themes_dir: str = "") -> str:
+    """The whole tree as text, the shape the tests pin and `--print` shows."""
+    base = home or str(Path.home())
+    themes = themes_dir or os.path.join(base, ".config", "themes")
+    lines: list[str] = []
+
+    def walk(route: str, depth: int) -> None:
+        for item in menu_rows(route, items=items, which=which, home=base, themes_dir=themes):
+            detail = item.action or "submenu"
+            lines.append(f"{'  ' * depth}{item.id}\t{item.label}\t{detail}"
+                         + ("\t✓" if item.checked else ""))
+            walk(item.id, depth + 1)
+
+    walk("", 0)
+    return "\n".join(lines)
+
+
 def build_inventory(*, home: str | None = None, repo_dir: str | None = None) -> Inventory:
     """Everything this machine has installed, and everything wrong with it."""
     base = os.path.abspath(home) if home is not None else str(Path.home())
@@ -2247,6 +2460,10 @@ def main(argv: list[str] | None = None) -> int:
     p_keys.add_argument("--lang", default="ar", choices=["ar", "en"], help="the language of the table")
     p_keys.add_argument("--gui", action="store_true", help="open it in a window")
 
+    p_menu = sub.add_parser("menu", help="the front door: apps, themes, keys and power")
+    p_menu.add_argument("--print", dest="print_tree", action="store_true",
+                        help="print the menu tree and stop")
+
     args = parser.parse_args(argv)
 
     if args.command == "keys":
@@ -2257,6 +2474,13 @@ def main(argv: list[str] | None = None) -> int:
                 print(text)
             return 0
         print(render_key_bindings(bindings, lang=args.lang))
+        return 0
+
+    if args.command == "menu":
+        if args.print_tree:
+            print(render_menu_tree())
+        else:
+            run_menu()
         return 0
 
     if args.command == "browse":

@@ -1,7 +1,17 @@
 # Language / stack topics for tmux-cht.sh (ctrl+a i).
-# One topic per line, no duplicates. Validate a new entry with:
-#   curl -s "cht.sh/<topic>/list" | grep -qi "404 NOT FOUND" || echo ok
-# Lines starting with # and blank lines are ignored by the script.
+# One topic per line. Blank lines and lines starting with # are ignored.
+#
+# Two kinds of entries live here:
+#   1. topics cht.sh has a real cheat sheet for  -> instant, cached for a week
+#   2. topics cht.sh does not cover yet          -> answered by the free-model
+#      fallback in the script, so roughly 10s instead of 0.2s
+#
+# Quick existence check for a new entry:
+#   curl -s "cht.sh/<topic>" | head -1     # prints "# <topic>" when the sheet exists
+# (a 404 on "cht.sh/<topic>/<query>" means only that one question is missing,
+#  not that the topic is absent - the script retries the other URL shape)
+
+# --- languages ---------------------------------------------------------------
 bash
 zsh
 golang
@@ -10,6 +20,8 @@ bun
 deno
 javascript
 typescript
+ts
+js
 python
 ruby
 perl
@@ -43,30 +55,70 @@ vimscript
 neovim
 css
 html
-tailwind
+regex
+
+# --- frontend / full stack ---------------------------------------------------
 react
+react-hooks
+react-query
+react-router
+next
+nextjs
+nextjs-app-router
 vue
 svelte
+sveltekit
+nuxt
 angular
-nextjs
+solidjs
+astro
+qwik
+remix
+tailwind
+tailwindcss
+vite
+webpack
+react-native
+expo
+electron
+flutter
+qt
+gtk
+
+# --- backend / data ----------------------------------------------------------
+hono
+honojs
+tanstack
+tanstack-query
+tanstack-table
+tanstack-router
+tanstack-start
+tanstack-form
+trpc
+graphql
+zod
+prisma
+drizzle
+typeorm
+sequelize
+nestjs
+express
+fastify
 django
 flask
 fastapi
 rails
 laravel
-flutter
-electron
-qt
-gtk
-godot
-unity
-game-development
-regex
-graphql
-json
-yaml
-toml
-xml
+supabase
+firebase
+redis
+postgres
+mongodb
+
+# --- tooling / ops -----------------------------------------------------------
+jest
+vitest
+playwright
 makefile
 cmake
 gradle
@@ -77,10 +129,22 @@ ansible
 kubernetes
 kubernetes-helm
 helm
+docker
+docker-compose
 aws
 gcloud
 nginx
 sql
-postgres
-mongodb
-redis
+json
+yaml
+toml
+xml
+
+# --- games / misc ------------------------------------------------------------
+godot
+unity
+game-development
+redux
+zustand
+jotai
+shadcn
