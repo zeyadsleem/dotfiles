@@ -1,20 +1,53 @@
 #!/bin/bash
-# Set the desktop wallpaper and remember it for the next login.
+# Set the desktop wallpaper and keep it on screen.
 # Usage: set-wallpaper [image-path]  (no args = restore last set wallpaper)
+#
+# One owner for swaybg: a small supervisor loop re-reads the remembered image
+# every time swaybg exits, so a crash or a theme switch cannot leave the
+# desktop bare until the next login. A lock guarantees a single supervisor.
 set -euo pipefail
 
 cache="$HOME/.cache/current-wallpaper"
+log="$HOME/.cache/wallpaper.log"
+lock="$HOME/.cache/wallpaper.lock"
 default_img="/home/zeyad/Pictures/9e9qdvgwcdih1.jpeg"
+
+supervise() {
+    local current status
+    while :; do
+        current="$(cat "$cache" 2>/dev/null || true)"
+        [[ -n "$current" && -f "$current" ]] || current="$default_img"
+        status=0
+        # errexit would end the supervisor on the first exit; capture instead.
+        /usr/bin/swaybg -i "$current" -m fill >>"$log" 2>&1 || status=$?
+        printf '%s swaybg exited (%s) while showing %s, restarting\n' \
+            "$(date -Is)" "$status" "$current" >>"$log"
+        sleep 1
+    done
+}
+
+mkdir -p "$HOME/.cache"
+exec 9>"$lock"
+
+if [[ "${1:-}" == "--supervise" ]]; then
+    flock -n 9 || exit 0   # another supervisor already owns the screen
+    supervise
+    exit 0
+fi
 
 img="${1:-}"
 if [[ -n "$img" ]]; then
     [[ -f "$img" ]] || { echo "image not found: $img" >&2; exit 1; }
-    mkdir -p "$HOME/.cache"
     printf '%s\n' "$img" > "$cache"
-else
-    img="$(cat "$cache" 2>/dev/null || true)"
 fi
 
-img="${img:-$default_img}"
-pkill -x swaybg 2>/dev/null || true
-setsid /usr/bin/swaybg -i "$img" -m fill >/dev/null 2>&1 & disown
+if flock -n 9; then
+    # No supervisor yet: hand the lock over and start one.
+    flock -u 9
+    setsid "$0" --supervise >/dev/null 2>&1 &
+    disown
+else
+    # A supervisor is running: swapping the remembered image is enough,
+    # killing swaybg makes it come back with the new one.
+    pkill -x swaybg 2>/dev/null || true
+fi

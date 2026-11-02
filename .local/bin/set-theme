@@ -99,9 +99,8 @@ apply_wallpaper() {
     
     if [ -n "$WP" ]; then
         log_info "Applying wallpaper: $(basename "$WP")"
-        pkill swaybg 2>/dev/null || true
-        swaybg -i "$WP" -m fill &
-        echo "$WP" > "$HOME/.cache/current_wallpaper"
+        # set-wallpaper owns swaybg; it swaps the image and keeps it alive.
+        "$HOME/.local/bin/set-wallpaper" "$WP"
         log_success "Wallpaper applied"
     else
         log_warn "No wallpaper found for theme"
@@ -245,7 +244,12 @@ main() {
         pkill -USR2 waybar 2>/dev/null || true
         log_success "Waybar reloaded"
     fi
-    
+
+    # Reload the resident app drawer: it keeps the old stylesheet until restarted
+    if [ -x "$HOME/.local/bin/app-menu" ]; then
+        "$HOME/.local/bin/app-menu" --reload || log_warn "Failed to reload nwg-drawer"
+    fi
+
     # Reload Kitty
     if pgrep kitty >/dev/null 2>&1; then
         pkill -USR1 kitty 2>/dev/null || true

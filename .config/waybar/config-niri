@@ -11,7 +11,7 @@
   "custom/launcher": {
     "format": "",
     "tooltip": false,
-    "on-click": "nwg-drawer"
+    "on-click": "$HOME/.local/bin/app-menu"
   },
 
   "niri/workspaces": {

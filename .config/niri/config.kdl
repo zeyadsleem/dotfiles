@@ -216,7 +216,7 @@ binds {
 
     Mod+Shift+P { spawn "thunar"; }
     Mod+Return { spawn "kitty"; }
-    Mod+Shift+D { spawn "nwg-drawer" "-term" "kitty"; }
+    Mod+Shift+D { spawn "/home/zeyad/.local/bin/app-menu"; }
 
     Mod+Grave { spawn "niri" "msg" "action" "load-config-file"; }
 
@@ -232,6 +232,7 @@ binds {
     Mod+Shift+N { spawn "swaync-client" "-t" "-sw"; }
 
     Mod+Space { spawn-sh "~/.local/bin/switch-layout.sh"; }
+    Mod+Shift+Space { spawn-sh "~/.local/bin/dot menu"; }
 
     Mod+Ctrl+Grave { spawn-sh "~/.local/bin/toggle-waybar.sh"; }
     Mod+Shift+Grave { spawn-sh "~/.local/bin/toggle-waybar.sh"; }
@@ -241,6 +242,11 @@ binds {
 window-rule {
     match app-id=r#"^kitty$"#
     open-maximized true
+}
+window-rule {
+    match app-id=r#"^dev\.zeyad\.Wallpaper$"#
+    open-floating true
+    default-floating-position x=140 y=100 relative-to="top-left"
 }
 window-rule {
     match app-id=r#"firefox$"# title="^Picture-in-Picture$"
@@ -322,14 +328,14 @@ window-rule {
 }
 
 spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
-spawn-at-startup "bash" "/home/zeyad/.local/bin/set-wallpaper"
+spawn-at-startup "bash" "/home/zeyad/.local/bin/set-wallpaper" "--supervise"
 spawn-at-startup "kanshi"
 spawn-at-startup "swaync"
 spawn-at-startup "swayosd-server"
 spawn-at-startup "wl-paste" "--type" "text" "--watch" "cliphist" "store"
 spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
 spawn-at-startup "nm-applet" "--indicator"
-spawn-at-startup "nwg-drawer" "-r" "-term" "kitty" "-c" "6" "-is" "48" "-mb" "15" "-ml" "18" "-mr" "18" "-mt" "15"
+spawn-at-startup "/home/zeyad/.local/bin/app-menu"
 spawn-at-startup "waybar" "-c" "/home/zeyad/.config/waybar/config-niri"
 
 spawn-sh-at-startup "gnome-keyring-daemon --start --components=secrets,ssh"
