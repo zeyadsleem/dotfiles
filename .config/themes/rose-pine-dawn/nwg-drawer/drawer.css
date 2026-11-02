@@ -1,0 +1,42 @@
+window {
+    background-color: rgba(250, 244, 242, 0.95);
+    color: #575279;
+    border-radius: 5px;
+    border: 1px solid #d7827e;
+}
+
+entry {
+    box-shadow: 0 0 4px 2px #f2e9e1;
+    background-color: rgba(255, 250, 243, 0.8);
+    color: #575279;
+    border: 1px solid #d7827e;
+    border-radius: 6px;
+}
+
+button,
+image {
+    background: none;
+    border: none;
+    margin: 2px;
+    color: #575279;
+}
+
+button:hover {
+    background-color: rgba(215, 130, 126, 0.2);
+    box-shadow: 0 0 4px 2px #f2e9e1;
+}
+
+#category-button {
+    margin: 0;
+    color: #d7827e;
+}
+
+#pinned-box {
+    padding-bottom: 0px;
+    border-bottom: 0px solid #d7827e;
+}
+
+#files-box {
+    padding: 0px;
+    border: 0px solid #d7827e;
+}

@@ -1,1 +1,1 @@
-/home/zeyad/dotfiles/.config/themes/orchis-dark/zsh/env.zsh
+/home/zeyad/dotfiles/.config/themes/tokyo-night/zsh/env.zsh

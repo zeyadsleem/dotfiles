@@ -1,0 +1,215 @@
+# Yazi Gruvbox Dark Theme
+
+# : Manager {{{
+
+[mgr]
+cwd = { fg = "#fe8019" }
+
+# Hovered
+hovered = { bg = "#fe8019", fg = "#282828", bold = true }
+preview_hovered = { underline = true }
+
+# Find
+find_keyword = { fg = "#fe8019", bold = true, italic = true, underline = true }
+find_position = { fg = "#ebdbb2", bg = "reset", bold = true, italic = true }
+
+# Symlink
+symlink_target = { fg = "#8ec07c", italic = true }
+
+# Marker
+marker_copied = { fg = "#b8bb26", bg = "#b8bb26" }
+marker_cut = { fg = "#fb4934", bg = "#fb4934" }
+marker_marked = { fg = "#fabd2f", bg = "#fabd2f" }
+marker_selected = { fg = "#fe8019", bg = "#fe8019" }
+
+# Count
+count_copied = { fg = "#282828", bg = "#b8bb26" }
+count_cut = { fg = "#282828", bg = "#fb4934" }
+count_selected = { fg = "#282828", bg = "#fe8019" }
+
+# Border
+border_symbol = "│"
+border_style = { fg = "#504945" }
+
+# Highlighting
+syntect_theme = ""
+
+# : }}}
+
+
+# : Tabs {{{
+
+[tabs]
+active = { fg = "#282828", bg = "#fe8019", bold = true }
+inactive = { fg = "#928374", bg = "#282828" }
+
+# Separator
+sep_inner = { open = "", close = "" }
+sep_outer = { open = "", close = "" }
+
+# : }}}
+
+
+# : Mode {{{
+
+[mode]
+normal_main = { fg = "#282828", bg = "#fe8019", bold = true }
+normal_alt = { fg = "#fe8019", bg = "#282828", bold = true }
+
+# Select mode
+select_main = { fg = "#282828", bg = "#b8bb26", bold = true }
+select_alt = { fg = "#b8bb26", bg = "#282828", bold = true }
+
+# Unset mode
+unset_main = { fg = "#282828", bg = "#fb4934", bold = true }
+unset_alt = { fg = "#fb4934", bg = "#282828", bold = true }
+
+# : }}}
+
+
+# : Status bar {{{
+
+[status]
+overall = { bg = "#282828", fg = "#ebdbb2" }
+sep_left = { open = "", close = "" }
+sep_right = { open = "", close = "" }
+
+# Permissions
+perm_sep = { fg = "#504945" }
+perm_type = { fg = "#fe8019" }
+perm_read = { fg = "#fabd2f" }
+perm_write = { fg = "#fb4934" }
+perm_exec = { fg = "#b8bb26" }
+
+# Progress
+progress_label = { fg = "#ebdbb2", bold = true }
+progress_normal = { fg = "#fe8019", bg = "#3c3836" }
+progress_error = { fg = "#fb4934", bg = "#3c3836" }
+
+# : }}}
+
+
+# : Which {{{
+
+[which]
+cols = 3
+mask = { bg = "#282828" }
+cand = { fg = "#fe8019" }
+rest = { fg = "#928374" }
+desc = { fg = "#8ec07c" }
+separator = "  "
+separator_style = { fg = "#504945" }
+
+# : }}}
+
+
+# : Confirmation {{{
+
+[confirm]
+border = { fg = "#fe8019" }
+title = { fg = "#fe8019", bold = true }
+body = { fg = "#ebdbb2" }
+list = { fg = "#ebdbb2" }
+btn_yes = { fg = "#282828", bg = "#fe8019", bold = true }
+btn_no = { fg = "#ebdbb2", bg = "#504945", bold = true }
+btn_labels = ["  [y]es  ", "  (n)o  "]
+
+# : }}}
+
+
+# : Spotter {{{
+
+[spot]
+border = { fg = "#fe8019" }
+title = { fg = "#fe8019", bold = true }
+
+# Table
+tbl_col = { fg = "#fe8019" }
+tbl_cell = { fg = "#ebdbb2", bg = "#3c3836", bold = true }
+
+# : }}}
+
+
+# : Notification {{{
+
+[notify]
+title_info = { fg = "#b8bb26" }
+title_warn = { fg = "#fabd2f" }
+title_error = { fg = "#fb4934" }
+
+
+# : }}}
+
+
+# : Picker {{{
+
+[pick]
+border = { fg = "#fe8019" }
+active = { fg = "#fe8019", bold = true }
+inactive = { fg = "#928374" }
+
+# : }}}
+
+
+# : Input {{{
+
+[input]
+border = { fg = "#fe8019" }
+title = { bold = true }
+value = { fg = "#ebdbb2" }
+selected = { reversed = true }
+
+# : }}}
+
+
+# : Completion {{{
+
+[cmp]
+border = { fg = "#fe8019" }
+active = { bg = "#fe8019", fg = "#282828", bold = true }
+inactive = { fg = "#928374" }
+
+
+# : }}}
+
+
+# : Task manager {{{
+
+[tasks]
+border = { fg = "#fe8019" }
+title = { bold = true }
+hovered = { fg = "#fe8019", bold = true, reversed = true }
+
+# : }}}
+
+
+# : Help menu {{{
+
+[help]
+on = { fg = "#fe8019" }
+run = { fg = "#8ec07c" }
+desc = { fg = "#ebdbb2" }
+hovered = { reversed = true, bold = true }
+footer = { fg = "#ebdbb2", bg = "#282828" }
+
+# : }}}
+
+
+# : File-specific styles {{{
+
+[filetype]
+rules = [
+  # Images
+  { mime = "image/*", fg = "#d3869b" },
+
+  # Media
+  { mime = "{audio,video}/*", fg = "#fabd2f" },
+
+  # Archives
+  { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#fb4934" },
+
+  # Documents
+  { mime = "application/{pdf,doc,rtf}", fg = "#ebdbb2" },
+]
+
+# : }}}

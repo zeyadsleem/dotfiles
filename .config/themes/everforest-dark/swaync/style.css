@@ -1,0 +1,316 @@
+/* SwayNC Notification Style - Everforest Dark Theme */
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Noto Sans Arabic", sans-serif;
+    font-weight: 500;
+    direction: rtl;
+}
+
+/* ==================== Control Center ==================== */
+.control-center {
+    background: #2d353b;
+    border: 2px solid #a7c080;
+    border-radius: 16px;
+    padding: 12px;
+    margin: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.control-center-list {
+    background: transparent;
+}
+
+.control-center-list-placeholder {
+    opacity: 0.6;
+}
+
+/* Title Widget */
+.widget-title {
+    color: #d3c6aa;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 8px;
+    padding: 8px 12px;
+}
+
+.widget-title > button {
+    background: #e67e80;
+    color: #2d353b;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all 200ms ease;
+}
+
+.widget-title > button:hover {
+    background: #e98f91;
+}
+
+/* DND Widget */
+.widget-dnd {
+    background: rgba(167, 192, 128, 0.15);
+    border-radius: 12px;
+    margin: 8px;
+    padding: 8px 12px;
+}
+
+.widget-dnd > switch {
+    background: #859289;
+    border-radius: 12px;
+}
+
+.widget-dnd > switch:checked {
+    background: #a7c080;
+}
+
+.widget-dnd > switch slider {
+    background: #d3c6aa;
+    border-radius: 10px;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+/* MPRIS Widget */
+.widget-mpris {
+    background: rgba(167, 192, 128, 0.15);
+    border-radius: 12px;
+    margin: 2px 8px;
+    padding: 2px;
+}
+
+.widget-mpris-player {
+    padding: 2px;
+}
+
+.widget-mpris-title {
+    font-weight: bold;
+    font-size: 13px;
+    color: #d3c6aa;
+}
+
+.widget-mpris-subtitle {
+    font-size: 11px;
+    color: #a7c080;
+}
+
+/* MPRIS Scale/Slider */
+.widget-mpris scale {
+    margin: 0 4px;
+}
+
+.widget-mpris scale trough {
+    min-height: 2px;
+}
+
+.widget-mpris scale slider {
+    min-width: 8px;
+    min-height: 8px;
+}
+
+/* Album Art in MPRIS */
+.widget-mpris image {
+    margin: 2px;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+/* MPRIS Buttons */
+.widget-mpris-player > box > button {
+    padding: 0;
+    margin: 0 2px;
+    min-width: 20px;
+    min-height: 20px;
+}
+
+/* ==================== Notifications ==================== */
+.notification-row {
+    outline: none;
+    margin: 0;
+}
+
+.notification-row:focus,
+.notification-row:hover {
+    background: transparent;
+}
+
+.notification {
+    background: #2d353b;
+    border: 2px solid #a7c080;
+    border-radius: 14px;
+    padding: 0;
+    margin: 4px 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    transition: all 200ms ease;
+}
+
+.notification:hover {
+    background: #303941;
+}
+
+/* Critical Notifications */
+.notification.critical {
+    border-color: #e67e80;
+    background: #504348;
+}
+
+.notification.critical:hover {
+    background: #5d484d;
+}
+
+/* Low Priority */
+.notification.low {
+    border-color: #859289;
+    opacity: 0.9;
+}
+
+/* Notification Content */
+.notification-content {
+    padding: 8px 16px;
+    text-align: right;
+}
+
+/* App Icon */
+.notification-icon {
+    margin-left: 12px;
+    border-radius: 8px;
+}
+
+/* Image in notification */
+.image {
+    border-radius: 10px;
+    margin: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Title */
+.notification-title {
+    color: #d3c6aa;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+/* Body */
+.notification-body {
+    color: #d3c6aa;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+/* App Name */
+.app-name {
+    color: #a7c080;
+    font-size: 11px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+/* Timestamp */
+.time {
+    color: #859289;
+    font-size: 10px;
+}
+
+/* Close Button */
+.close-button {
+    background: rgba(230, 126, 128, 0.2);
+    color: #e67e80;
+    border: none;
+    border-radius: 8px;
+    padding: 0;
+    margin: 15px;
+    min-width: 20px;
+    min-height: 20px;
+    transition: all 200ms ease;
+}
+
+.close-button:hover {
+    background: #e67e80;
+    color: #2d353b;
+}
+
+/* ==================== Action Buttons ==================== */
+.notification-action {
+    background: rgba(167, 192, 128, 0.2);
+    color: #d3c6aa;
+    border: 1px solid #a7c080;
+    border-radius: 8px;
+    padding: 8px 16px;
+    margin: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all 200ms ease;
+}
+
+.notification-action:hover {
+    background: rgba(167, 192, 128, 0.4);
+}
+
+.notification-action:first-child {
+    background: rgba(167, 192, 128, 0.4);
+    border-color: #a7c080;
+}
+
+.notification-action:first-child:hover {
+    background: #a7c080;
+    color: #2d353b;
+}
+
+/* ==================== Floating Notifications ==================== */
+.floating-notifications {
+    background: transparent;
+}
+
+.floating-notifications .notification {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* ==================== Blank Window ==================== */
+.blank-window {
+    background: transparent;
+}
+
+/* ==================== Scrollbar ==================== */
+scrollbar {
+    background: transparent;
+}
+
+scrollbar slider {
+    background: #a7c080;
+    border-radius: 10px;
+    min-width: 4px;
+}
+
+scrollbar slider:hover {
+    background: #b9cd99;
+}
+
+/* ==================== Summary ==================== */
+.notification-group {
+    margin: 8px;
+}
+
+.notification-group-headers {
+    color: #a7c080;
+    font-weight: bold;
+    font-size: 13px;
+    padding: 8px 12px;
+}
+
+.notification-group-icon {
+    margin-left: 8px;
+}
+
+.notification-group-collapse-button {
+    background: transparent;
+    color: #859289;
+    border: none;
+    padding: 4px;
+    transition: all 200ms ease;
+}
+
+.notification-group-collapse-button:hover {
+    color: #a7c080;
+}
