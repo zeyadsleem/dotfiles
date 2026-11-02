@@ -21,6 +21,7 @@ window#waybar {
 #battery,
 #clock,
 #tray,
+#custom-swaync,
 #custom-power {
   background: rgba(40, 42, 54, 0.84);
   border-radius: 10px;
@@ -95,6 +96,23 @@ window#waybar.empty #window {
 #custom-power {
   color: #f7768e;
   font-size: 15px;
+}
+
+#custom-swaync {
+  color: #8b93b5;
+  font-size: 14px;
+  padding: 0 9px;
+}
+
+#custom-swaync.notification,
+#custom-swaync.inhibited-notification {
+  color: #7aa2f7;
+}
+
+#custom-swaync.dnd-none,
+#custom-swaync.dnd-notification,
+#custom-swaync.inhibited-none {
+  color: #f9e2af;
 }
 
 tooltip {

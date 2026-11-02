@@ -6,7 +6,7 @@
 
   "modules-left": ["custom/launcher", "niri/workspaces", "niri/window"],
   "modules-center": ["clock"],
-  "modules-right": ["niri/language", "network", "pulseaudio", "backlight", "custom/dot-health", "cpu", "memory", "battery", "tray", "custom/power"],
+  "modules-right": ["niri/language", "network", "pulseaudio", "backlight", "custom/dot-health", "cpu", "memory", "battery", "custom/swaync", "tray", "custom/power"],
 
   "custom/launcher": {
     "format": "",
@@ -69,6 +69,23 @@
   "tray": {
     "icon-size": 16,
     "spacing": 8
+  },
+
+  "custom/swaync": {
+    "format": "{icon}",
+    "format-icons": {
+      "notification": "󰂚",
+      "none": "󰂜",
+      "dnd-notification": "󰂛",
+      "dnd-none": "󰂛",
+      "inhibited-notification": "󰂛",
+      "inhibited-none": "󰂛"
+    },
+    "return-type": "json",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "tooltip": false
   },
 
   "custom/power": {
