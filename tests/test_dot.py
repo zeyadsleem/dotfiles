@@ -1593,15 +1593,32 @@ class MenuTests(unittest.TestCase):
         launcher.questions = questions
         return launcher
 
-    def test_the_tree_has_the_four_sections(self):
-        rows = dot.menu_rows("", which=lambda name: "/bin/true", home="/nonexistent")
-        self.assertEqual([row.id for row in rows], ["apps", "appearance", "learn", "system"])
+    def test_the_tree_has_the_five_sections(self):
+        with mock.patch.object(dot, "foreign_package_names", return_value=[]), \
+                mock.patch.object(dot, "declared_package_names", return_value=[]):
+            rows = dot.menu_rows("", which=lambda name: "/bin/true", home="/nonexistent")
+        self.assertEqual([row.id for row in rows],
+                         ["apps", "appearance", "learn", "packages", "system"])
 
     def test_a_missing_program_hides_its_row(self):
         self.assertEqual(
             dot.menu_rows("system", which=lambda name: None, home="/nonexistent"), [])
-        root = dot.menu_rows("", which=lambda name: None, home="/nonexistent")
+        with mock.patch.object(dot, "foreign_package_names", return_value=[]), \
+                mock.patch.object(dot, "declared_package_names", return_value=[]):
+            root = dot.menu_rows("", which=lambda name: None, home="/nonexistent")
         self.assertEqual([row.id for row in root], ["learn"])
+
+    def test_apps_opens_the_one_drawer_script(self):
+        """Bar, keybinding and menu must not drift into two launch commands."""
+        apps = next(item for item in dot.MENU_ITEMS if item.id == "apps")
+        self.assertEqual(apps.action, "app-menu")
+
+    def test_the_power_rows_are_gone(self):
+        ids = {item.id for item in dot.MENU_ITEMS}
+        self.assertEqual(
+            ids & {"system.reboot", "system.shutdown", "system.logout", "system.suspend"},
+            set())
+        self.assertIn("system.lock", ids)
 
     def test_themes_are_listed_with_the_live_one_checked(self):
         with TempTree() as t:
@@ -1612,49 +1629,154 @@ class MenuTests(unittest.TestCase):
             self.assertEqual([row.checked for row in rows], [False, True])
             self.assertEqual(rows[0].action, "set-theme alpha")
 
-    def test_a_destructive_row_asks_before_it_runs(self):
+    def test_wallpapers_come_from_pictures_and_themes(self):
         with TempTree() as t:
+            pictures = t.path / "Pictures"
+            pictures.mkdir()
+            (pictures / "a.png").write_text("")
+            (pictures / "notes.txt").write_text("")
             themes = self._themes(t)
+            (themes / "beta" / "wallpaper.jpg").write_text("")
+            (t.path / ".cache").mkdir()
+            (t.path / ".cache" / "current-wallpaper").write_text(str(pictures / "a.png"))
+            rows = dot.menu_rows("appearance.wallpaper", which=lambda name: "/bin/true",
+                                 home=str(t.path), themes_dir=str(themes))
+            self.assertEqual([row.label for row in rows],
+                             ["Browse with previews", "a.png", "beta · wallpaper"])
+            self.assertEqual([row.checked for row in rows], [False, True, False])
+            self.assertEqual(rows[0].action, "wallpaper-picker")
+            self.assertTrue(rows[1].action.startswith("set-wallpaper "))
+
+    def test_install_from_nix_asks_for_a_name_first(self):
+        with TempTree() as t:
             executed = []
-            dot.run_menu(launcher=self._picker(["النظام", "إطفاء", "إلغاء"]),
-                         run=executed.append, which=lambda name: "/bin/true",
-                         themes_dir=str(themes))
-            self.assertEqual(executed, [])
+            dot.run_menu(launcher=self._picker(["Packages", "Install", "from nixpkgs"]),
+                         ask=lambda prompt: "ripgrep", run=executed.append,
+                         which=lambda name: "/bin/true", home=str(t.path),
+                         themes_dir=str(t.path / "themes"))
+            self.assertEqual(executed, [["kitty", "--hold", str(DOT_PATH.resolve()),
+                                         "pkg", "add", "ripgrep"]])
+
+    def test_search_hits_are_rows_that_install(self):
+        output = ("extra/ripgrep 14.1.0-1 (2.5 MiB 6.0 MiB)\n"
+                  "    A search tool\n")
+        runner = lambda argv, **kwargs: SimpleNamespace(stdout=output)
+        items = dot.search_menu_items("ripgrep", runner=runner)
+        self.assertEqual(len(items), 1)
+        self.assertIn("ripgrep", items[0].label)
+        self.assertEqual(dot.menu_action_argv(items[0].action)[2:],
+                         ["yay", "-S", "--needed", "ripgrep"])
+
+    def test_search_prompts_then_offers_the_hits(self):
+        hits = [dot.MenuItem("packages.search.yay.0", "ripgrep · extra", "󰏗",
+                             action="kitty --hold yay -S --needed ripgrep",
+                             needs=("kitty", "yay"))]
+        with TempTree() as t, mock.patch.object(dot, "search_menu_items", return_value=hits):
+            executed = []
+            dot.run_menu(launcher=self._picker(["Packages", "Search", "repos + AUR", "ripgrep"]),
+                         ask=lambda prompt: "ripgrep", run=executed.append,
+                         which=lambda name: "/bin/true", home=str(t.path),
+                         themes_dir=str(t.path / "themes"))
+            self.assertEqual(executed, [["kitty", "--hold", "yay", "-S", "--needed", "ripgrep"]])
+
+    def test_search_without_hits_says_so(self):
+        with TempTree() as t, \
+                mock.patch.object(dot, "search_menu_items", return_value=[]), \
+                mock.patch.object(dot, "_notify") as notify:
+            dot.run_menu(launcher=self._picker(["Packages", "Search", "repos + AUR", "Back"]),
+                         ask=lambda prompt: "zzzznothing", run=lambda argv: None,
+                         which=lambda name: "/bin/true", home=str(t.path),
+                         themes_dir=str(t.path / "themes"))
+        notify.assert_called_once()
+
+    def test_nix_search_evaluates_the_pinned_nixpkgs_offline(self):
+        calls = []
+
+        def runner(argv, **kwargs):
+            calls.append((argv, kwargs))
+            if "--raw" in argv:
+                return SimpleNamespace(stdout="/nix/store/abc-source\n")
+            return SimpleNamespace(stdout='["ripgrep", "ripgrep-all"]')
+
+        with mock.patch.object(dot, "default_repo_dir", return_value="/repo"):
+            names = dot.nix_search("ripgrep", runner=runner)
+        self.assertEqual(names, ["ripgrep", "ripgrep-all"])
+        self.assertIn("--offline", calls[-1][0])
+        self.assertEqual(calls[-1][1]["env"]["DOT_SEARCH"], "ripgrep")
+
+    def test_a_nix_search_hit_installs_through_dot_pkg(self):
+        with TempTree() as t, \
+                mock.patch.object(dot, "nix_search", return_value=["ripgrep"]):
+            executed = []
+            dot.run_menu(launcher=self._picker(["Packages", "Search", "nixpkgs", "ripgrep"]),
+                         ask=lambda prompt: "ripgrep", run=executed.append,
+                         which=lambda name: "/bin/true", home=str(t.path),
+                         themes_dir=str(t.path / "themes"))
+        self.assertEqual(executed, [["kitty", "--hold", str(DOT_PATH.resolve()),
+                                     "pkg", "add", "ripgrep"]])
+
+    def test_remove_rows_are_the_declared_packages(self):
+        with mock.patch.object(dot, "declared_package_names", return_value=["bat", "jq"]):
+            rows = dot.menu_rows("packages.remove.nix", which=lambda name: "/bin/true",
+                                 home="/nonexistent")
+        self.assertEqual([row.label for row in rows], ["bat", "jq"])
+        self.assertEqual(dot.menu_action_argv(rows[0].action)[2:],
+                         [str(DOT_PATH.resolve()), "pkg", "rm", "bat"])
+
+    def test_kernels_and_drivers_are_never_offered_for_removal(self):
+        names = ["linux", "linux-zen", "nvidia-utils", "firefox", "jq"]
+        self.assertEqual(dot.removable_packages(names), ["firefox", "jq"])
+
+    def test_a_destructive_row_asks_before_it_runs(self):
+        items = (dot.MenuItem("test", "Explode", "✹", action="systemctl poweroff",
+                              confirm="This powers the machine off"),)
+        executed = []
+        dot.run_menu(items=items, launcher=self._picker(["Explode", "Cancel"]),
+                     run=executed.append, which=lambda name: "/bin/true",
+                     home="/nonexistent")
+        self.assertEqual(executed, [])
 
     def test_a_confirmed_row_runs_its_command(self):
-        with TempTree() as t:
-            themes = self._themes(t)
-            executed = []
-            dot.run_menu(launcher=self._picker(["النظام", "إطفاء", "أيوه"]),
-                         run=executed.append, which=lambda name: "/bin/true",
-                         themes_dir=str(themes))
-            self.assertEqual(executed, [["systemctl", "poweroff"]])
+        items = (dot.MenuItem("test", "Explode", "✹", action="systemctl poweroff",
+                              confirm="This powers the machine off"),)
+        executed = []
+        dot.run_menu(items=items, launcher=self._picker(["Explode", "Yes"]),
+                     run=executed.append, which=lambda name: "/bin/true",
+                     home="/nonexistent")
+        self.assertEqual(executed, [["systemctl", "poweroff"]])
 
     def test_back_returns_to_the_root(self):
         with TempTree() as t:
-            picker = self._picker(["المظهر", "رجوع"])
+            picker = self._picker(["Appearance", "Back"])
             dot.run_menu(launcher=picker, run=lambda argv: None,
-                         which=lambda name: "/bin/true", themes_dir=str(t.path / "themes"))
-            self.assertEqual(picker.questions, ["dot", "المظهر", "dot"])
+                         which=lambda name: "/bin/true", home=str(t.path),
+                         themes_dir=str(t.path / "themes"))
+            self.assertEqual(picker.questions, ["dot", "Appearance", "dot"])
 
     def test_the_dot_action_runs_this_script(self):
         self.assertEqual(dot.menu_action_argv("dot keys --gui")[0], str(DOT_PATH.resolve()))
+
+    def test_a_local_script_is_found_without_a_path(self):
+        with mock.patch.object(dot.shutil, "which", return_value=None):
+            argv = dot.menu_action_argv("toggle-waybar.sh")
+        self.assertEqual(argv, [str(Path.home() / ".local" / "bin" / "toggle-waybar.sh")])
 
     def test_without_fuzzel_the_tree_is_printed(self):
         out = io.StringIO()
         with TempTree() as t, mock.patch.object(
                 dot.shutil, "which",
                 side_effect=lambda name: None if name == "fuzzel" else "/bin/true"), \
+                mock.patch.object(dot, "foreign_package_names", return_value=[]), \
                 contextlib.redirect_stdout(out):
             dot.run_menu(home=str(t.path), themes_dir=str(t.path / "themes"))
-        self.assertIn("system.shutdown", out.getvalue())
+        self.assertIn("packages.install.nix", out.getvalue())
 
     def test_print_writes_the_whole_tree(self):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             self.assertEqual(dot.main(["menu", "--print"]), 0)
         text = out.getvalue()
-        for item_id in ("apps", "appearance.theme", "learn.keys", "system.shutdown"):
+        for item_id in ("apps", "appearance.theme", "packages.search.yay", "system.lock"):
             self.assertIn(item_id, text)
 
 

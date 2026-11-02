@@ -17,6 +17,8 @@ owns the dots.
 | Apply changes | `~/dotfiles/install.sh` (or the `nix run` command below) |
 | Undo a broken change | `home-manager switch --rollback` |
 | Change theme | run `~/.local/bin/set-theme <name>` |
+| Change wallpaper | `wallpaper-picker` (a grid of previews); `~/.local/bin/set-wallpaper <image>` for one file. It keeps watching, so the picture comes back if it ever dies |
+| Open the app drawer | the bar icon, `Mod+Shift+D`, or `dot menu` → Apps; `app-menu --reload` re-reads the theme after a switch |
 
 ## The dot CLI
 
@@ -35,8 +37,8 @@ the Nix profile, the tool shims, your scripts and your config files.
 
 `dot status` exits `1` when it finds problems, so it can be used in a check or a hook.
 
-Apart from `dot pkg`, the tool is read-only. It never runs `sudo`; every finding comes with a
-fix hint for you to run yourself.
+Apart from `dot pkg` and the package rows of `dot menu`, the tool is read-only. It never runs
+`sudo`; every finding comes with a fix hint for you to run yourself.
 
 ### The Phase 2 commands
 
@@ -50,13 +52,18 @@ fix hint for you to run yourself.
 | `dot pkg sync` | apply the list as it stands, the fix for a drifted profile |
 | `dot browse` | the fzf launcher over the apps, the CLI tools, the scripts and the configs |
 | `dot keys` | the niri cheat sheet, parsed from the live config, Arabic by default |
-| `dot menu` | the front door: apps, themes, keybindings and power, one fuzzel window per level |
+| `dot menu` | the front door: apps, themes, wallpapers, keybindings and packages, one fuzzel window per level |
 | `dot show <id>` | the details of one item, the preview the browser uses |
 
-`dot pkg` is the only command that changes anything: it edits one file,
+`dot pkg` is the only command that changes anything by itself: it edits one file,
 `nix/modules/packages.nix`, shows you the diff, asks before writing, and restores the file if
 the switch fails. It never uses `sudo` and never runs a mutating pacman command — when a
 system package is needed it prints the command instead.
+
+The menu is where a package job is handed to the terminal: the nix rows run `dot pkg add|rm`
+and the yay rows run `yay -S|Rns` inside kitty, so the diff, the sudo password and the build
+log stay in front of you. `Remove` lists only the declared nix packages and the AUR/foreign
+ones — never the kernel, the boot tools or the drivers.
 
 `dot browse` uses `fzf` when it is installed and prints the rows when it is not; `dot keys`
 uses `zenity` or `yad` for `--gui` and prints the table when neither is installed.
