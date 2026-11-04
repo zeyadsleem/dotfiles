@@ -1,1 +1,1 @@
-/home/zeyad/dotfiles/.config/themes/tokyo-night/nvim/lualine_theme.lua
+/home/zeyad/dotfiles/.config/themes/catppuccin-mocha/nvim/lualine_theme.lua

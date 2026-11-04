@@ -34,7 +34,6 @@
     lazygit
     delta
     jq
-    yq
     htop
     btop
     tree
@@ -43,5 +42,6 @@
     yt-dlp
     mypy
     traceroute
+    yq-go
   ];
 }
