@@ -9,6 +9,7 @@ high_contrast = false
 [shell]
 corner_radius_scale = 1.0
 font_family = "Maple Mono NF"
+avatar_path = "/home/zeyad/.face"
 time_format = "{:%I:%M %p}"
 date_format = "%A, %d %B %Y"
 offline_mode = false
@@ -183,7 +184,7 @@ wifi = true
 bluetooth = false
 power_profile = true
 caffeine = true
-nightlight = true
+nightlight = false
 dnd = true
 lock_keys = false
 keyboard_layout = false
@@ -218,9 +219,6 @@ show_avatar_border = true
 type = "caffeine"
 
 [[control_center.shortcuts]]
-type = "nightlight"
-
-[[control_center.shortcuts]]
 type = "notification"
 
 [[control_center.shortcuts]]
@@ -243,7 +241,7 @@ connect_when_enabled = false
 enable_ddcutil = false
 
 [nightlight]
-enabled = true
+enabled = false
 force = false
 temperature_day = 6500
 temperature_night = 4000
