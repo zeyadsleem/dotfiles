@@ -169,7 +169,7 @@ zstyle ':fzf-tab:*' continuous-trigger '/'
 zstyle ':fzf-tab:*' fzf-flags --height=80% --layout=reverse --border
 
 zstyle ':fzf-tab:complete:cd:*' fzf-preview \
-  'eza -1 --color=always --icons "$realpath" 2>/dev/null || ls -la --color=always "$realpath" 2>/dev/null'
+  'realpath=${realpath/#\~/$HOME}; eza -1 --color=always --icons "$realpath" 2>/dev/null || ls -la --color=always "$realpath" 2>/dev/null'
 
 zstyle ':fzf-tab:complete:z:*' fzf-preview \
   'eza -1 --color=always --icons "$realpath" 2>/dev/null || ls -la --color=always "$realpath" 2>/dev/null'
@@ -320,7 +320,37 @@ else
 fi
 
 # zoxide
-command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+
+  # `cd ara<TAB>` completes from the zoxide database; path-like input keeps normal completion
+  __cd_zoxide_complete() {
+    local prefix=${(Q)words[CURRENT]}
+
+    if [[ -z $prefix || $prefix == [-+.~]* || $prefix == */* ]]; then
+      _cd
+      return
+    fi
+
+    local -a matches display
+    matches=(${(f)"$(zoxide query --list -- "$prefix" 2>/dev/null)"})
+    if (( ! $#matches )); then
+      _cd
+      return
+    fi
+
+    local dir
+    for dir in $matches; do
+      if [[ $dir == $HOME/* ]]; then
+        display+=("~/${(q)${dir#$HOME/}}")
+      else
+        display+=("${(q)dir}")
+      fi
+    done
+    compadd -U -Q -- $display
+  }
+  compdef __cd_zoxide_complete cd
+fi
 
 # Powerlevel10k
 [[ -r ~/powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/powerlevel10k/powerlevel10k.zsh-theme
