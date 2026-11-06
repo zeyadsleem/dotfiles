@@ -37,6 +37,33 @@ Noctalia reads `~/.config/noctalia/config.toml`. Changes made in its GUI or
 through `noctalia msg` are written to `~/.local/state/noctalia/settings.toml`
 and override the repo config — check that file when a change does not stick.
 
+### Login
+
+The greeter is **Noctalia Greeter** running on [greetd](https://docs.noctalia.dev/greeter/),
+not SDDM. greetd launches `noctalia-greeter-session`, which brings up its own
+wlroots compositor and draws the login screen. Niri starts only after
+authentication, so there is no unlocked window at boot.
+
+- `/etc/greetd/config.toml` sets `command = "/usr/bin/noctalia-greeter-session"`
+  and `user = "greeter"`.
+- The unit is pinned to that file with a drop-in
+  (`/etc/systemd/system/greetd.service.d/10-config.conf` →
+  `ExecStart=/usr/bin/greetd -c /etc/greetd/config.toml`). Without it this
+  machine's greetd read the stale `/etc/greetd/greetd.conf` (which launched
+  `sway`), so the greeter exited and the boot ended on a black screen.
+- Exactly one display manager: `sddm.service` disabled, `greetd.service` enabled.
+- Appearance sync lives in Noctalia → Settings → Security → Noctalia Greeter.
+  For prompt-free sync: `sudo noctalia-greeter passwordless-sync enable zeyad`.
+
+If the greeter ever fails to start, switch to a TTY and restore SDDM:
+
+```bash
+sudo systemctl disable --now greetd
+sudo systemctl enable --now sddm
+```
+
+
+
 ## The dot CLI
 
 `dot` is a read-only inventory and health check for this machine. It answers

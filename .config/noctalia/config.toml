@@ -25,6 +25,11 @@ clipboard_keep_from_closed_apps = true
 clipboard_auto_paste = "auto"
 niri_overview_type_to_launch_enabled = false
 
+# Push palette, wallpaper, font, radius and monitor layout to the login greeter
+# whenever the theme changes. Passwordless sync is enabled for this user.
+[shell.greeter_sync]
+auto_sync = true
+
 [shell.screenshot]
 skip_annotate_on_copy_save = false
 close_on_copy = true
