@@ -21,7 +21,8 @@ shows agent state in the bar.
 | Edit a config file | edit the live repo file (e.g. `~/.config/niri/config.kdl`), it applies on next load |
 | Apply changes | `~/dotfiles/install.sh` (or the `nix run` command below) |
 | Undo a broken change | `home-manager switch --rollback` |
-| Open apps | `Mod+Space` (Noctalia launcher) or the bar icon |
+| Open apps | `Mod+D` (Noctalia launcher) or the bar icon |
+| Switch keyboard layout | `Mod+Space` (US ⇄ Arabic) |
 | Control center | `Mod+S` |
 | Noctalia settings | `Mod+Shift+Comma` |
 | Change wallpaper | `wp`, or Noctalia control center → Wallpaper |
