@@ -13,6 +13,7 @@ __pycache__/
 *.pyc
 
 # Runtime-generated artifacts
+.config/Thunar/accels.scm
 .config/nvim/lua/current_theme.lua
 .config/noctalia/palettes/
 .config/kitty/themes/
