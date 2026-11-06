@@ -36,16 +36,15 @@ return {
         opencode.prompt("Fix @diagnostics")
       end, { desc = "OpenCode: Fix Diagnostics" })
 
-      -- The TUI in this split attaches to the same background service as the tmux pane
-      -- (discovered via `~/.local/state/opencode/service.json`). Leave the terminal with
-      -- the usual `<C-h>`/`<C-l>` pane navigation.
+      -- The TUI in this split attaches to the same background service as the OpenCode
+      -- session in Herdr (discovered via `~/.local/state/opencode/service.json`).
       keymap("n", "<leader>oo", function()
         require("snacks.terminal").toggle("opencode", {
           win = { position = "right", width = 0.4, enter = true },
         })
       end, { desc = "OpenCode: Toggle Sidebar" })
 
-      -- OpenCode runs in its own tmux pane, so its activity is invisible from here.
+      -- OpenCode runs in its own Herdr session, so its activity is invisible from here.
       -- These notifications surface the parts worth interrupting for; the statusline
       -- component in `plugins/lualine.lua` shows the continuous state.
       local group = vim.api.nvim_create_augroup("OpencodeNotify", { clear = true })

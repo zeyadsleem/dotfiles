@@ -3,9 +3,14 @@
 Personal dotfiles and Home Manager setup, managed declaratively with
 [Nix](https://nixos.org) flakes on top of an Arch (EndeavourOS) base.
 
-Everything lives in one repo: your shell, editor, terminal, compositor and
-app configs, plus your user scripts. GNU stow is no longer used — Home Manager
-owns the dots.
+Everything lives in one repo: shell, editor, terminal, compositor, desktop
+shell and app configs, plus user scripts. GNU stow is no longer used —
+Home Manager owns the dots.
+
+The desktop is **Niri + Noctalia**: Niri manages windows, Noctalia owns the
+bar, launcher, notifications, OSD, clipboard, wallpaper, lock screen and
+session actions. Terminal agents run under **Herdr**, whose Noctalia plugin
+shows agent state in the bar.
 
 ## Quick reference
 
@@ -16,15 +21,26 @@ owns the dots.
 | Edit a config file | edit the live repo file (e.g. `~/.config/niri/config.kdl`), it applies on next load |
 | Apply changes | `~/dotfiles/install.sh` (or the `nix run` command below) |
 | Undo a broken change | `home-manager switch --rollback` |
-| Change theme | run `~/.local/bin/set-theme <name>` |
-| Change wallpaper | `wallpaper-picker` (a grid of previews); `~/.local/bin/set-wallpaper <image>` for one file. It keeps watching, so the picture comes back if it ever dies |
-| Open the app drawer | the bar icon, `Mod+Shift+D`, or `dot menu` → Apps; `app-menu --reload` re-reads the theme after a switch |
+| Open apps | `Mod+Space` (Noctalia launcher) or the bar icon |
+| Control center | `Mod+S` |
+| Noctalia settings | `Mod+Shift+Comma` |
+| Change wallpaper | `wp`, or Noctalia control center → Wallpaper |
+| Lock the screen | `Super+Alt+L` |
+| Power menu | `Mod+Shift+E` |
+| Notifications | `Mod+Shift+N` (control center, notifications tab) |
+| Clipboard history | `Mod+C` |
+| Window switcher | hold `Alt+Tab` (reverse: `Alt+Shift+Tab`) |
+| Terminal sessions | `herdr`, or `hs` / `hc` for the shell/code sessions |
+
+Noctalia reads `~/.config/noctalia/config.toml`. Changes made in its GUI or
+through `noctalia msg` are written to `~/.local/state/noctalia/settings.toml`
+and override the repo config — check that file when a change does not stick.
 
 ## The dot CLI
 
-`dot` is a read-only inventory and health check for this machine. It answers the two questions
-that used to need guessing: *what is installed* and *who owns it* — one command across pacman,
-the Nix profile, the tool shims, your scripts and your config files.
+`dot` is a read-only inventory and health check for this machine. It answers
+*what is installed* and *who owns it* across pacman, the Nix profile, tool
+shims, scripts and config files.
 
 | Command | What it tells you |
 |---|---|
@@ -35,41 +51,22 @@ the Nix profile, the tool shims, your scripts and your config files.
 | `dot status` | broken links, stale copies, missing binaries, drift |
 | `dot status --json` | machine-readable findings |
 
-`dot status` exits `1` when it finds problems, so it can be used in a check or a hook.
-
-Apart from `dot pkg` and the package rows of `dot menu`, the tool is read-only. It never runs
-`sudo`; every finding comes with a fix hint for you to run yourself.
-
-### The Phase 2 commands
+`dot status` exits `1` when it finds problems.
 
 | Command | What it does |
 |---|---|
-| `dot health` | the fast health check for the bar: config links and niri spawn targets, in under a tenth of a second |
-| `dot health --json` | the waybar document: exactly `text`, `tooltip` and `class` |
-| `dot pkg list` | the packages declared in `nix/modules/packages.nix`, marked installed or not |
-| `dot pkg add <name>` | add a package to the list and apply it with `home-manager switch` |
-| `dot pkg rm <name>` | remove a package from the list and apply it |
-| `dot pkg sync` | apply the list as it stands, the fix for a drifted profile |
-| `dot browse` | the fzf launcher over the apps, the CLI tools, the scripts and the configs |
-| `dot keys` | the niri cheat sheet, parsed from the live config, Arabic by default |
-| `dot menu` | the front door: apps, themes, wallpapers, keybindings and packages, one fuzzel window per level |
-| `dot show <id>` | the details of one item, the preview the browser uses |
+| `dot health` | fast health check for scripts and niri spawn targets |
+| `dot pkg list` | packages declared in `nix/modules/packages.nix` |
+| `dot pkg add <name>` | add a package and apply it |
+| `dot pkg rm <name>` | remove a package and apply it |
+| `dot pkg sync` | apply the list as it stands |
+| `dot browse` | fzf launcher over apps, CLI tools, scripts and configs |
+| `dot keys` | Niri cheat sheet, parsed from the live config (Arabic by default) |
+| `dot show <id>` | details of one item |
 
-`dot pkg` is the only command that changes anything by itself: it edits one file,
-`nix/modules/packages.nix`, shows you the diff, asks before writing, and restores the file if
-the switch fails. It never uses `sudo` and never runs a mutating pacman command — when a
-system package is needed it prints the command instead.
-
-The menu is where a package job is handed to the terminal: the nix rows run `dot pkg add|rm`
-and the yay rows run `yay -S|Rns` inside kitty, so the diff, the sudo password and the build
-log stay in front of you. `Remove` lists only the declared nix packages and the AUR/foreign
-ones — never the kernel, the boot tools or the drivers.
-
-`dot browse` uses `fzf` when it is installed and prints the rows when it is not; `dot keys`
-uses `zenity` or `yad` for `--gui` and prints the table when neither is installed.
-
-Both `dot status` and `dot health` exit `1` when something is wrong, `0` when everything is
-clean.
+`dot pkg` is the only mutating command: it edits `nix/modules/packages.nix`,
+shows the diff, asks before writing, and restores the file if the switch fails.
+It never uses `sudo`.
 
 ## How it's organized
 
@@ -80,159 +77,125 @@ clean.
 ├── .envrc               # `use flake` for direnv
 ├── nix/
 │   ├── home.nix         # imports the modules below
-│   └── modules/         # 7 modules, one concern each:
+│   └── modules/         # one concern each:
 │       ├── packages.nix # home.packages — the CLI tool set
-│       ├── git.nix      # programs.git — git global config
-│       ├── tmux.nix     # links ~/.tmux.conf
+│       ├── git.nix      # programs.git
 │       ├── zsh.nix      # links ~/.zshrc, ~/.p10k.zsh, ~/.alias.zsh
 │       ├── kitty.nix    # links kitty.conf
 │       ├── yazi.nix     # links ~/.config/yazi
-│       └── dotfiles.nix # Level 2 configs (niri, waybar, swaync, …)
+│       └── dotfiles.nix # Level 2 configs (niri, noctalia, kanshi, apps)
 ├── .config/             # the actual configs (source of truth)
 └── .local/bin/          # user scripts
 ```
 
 ## Activating / applying changes
 
-From anywhere that can reach the repo:
-
 ```bash
 cd ~/dotfiles
 nix run home-manager/master -- switch --flake '.#zeyad'
 ```
 
-or just:
+or:
 
 ```bash
 ~/dotfiles/install.sh
 ```
 
-`install.sh` checks Nix is present, then runs the same switch. Each switch
-creates a **generation** you can roll back to.
+Each switch creates a **generation** you can roll back to.
 
 ## Three-layer model
 
-Configs are split by how risky it is to fully move them to Nix:
-
 1. **Level 1 — fully Nix**: CLI tools in `home.packages` (`git`, `neovim`,
-   `ripgrep`, `fd`, `zoxide`, `eza`, `bat`, `tmux`, `lazygit`, `delta`, `jq`,
-   `yq`, `htop`, `btop`, `tree`, `unzip`, `starship`) plus the git config via
-   `programs.git`.
-2. **Level 2 — config only**: the *configs* for niri, waybar, swaync, kanshi,
-   swayosd, gtklock, gtk-3.0 and the rest are managed by Home Manager, but the
-   **binaries stay from pacman** (safer for fast-moving/GPU-tied software like
-   the niri compositor).
-3. **Level 3 — untouched**: the kernel/GPU drivers/systemd stay system-managed,
-   and zsh/fzf/p10k/zinit stay on pacman because `~/.zshrc` hardcodes
-   `/usr/share/...` paths that a Nix-provided binary would break. Your
-   `~/.local/bin` scripts and theme switcher are symlinked but otherwise
-   untouched.
+   `ripgrep`, `fd`, `zoxide`, `eza`, `bat`, `lazygit`, `delta`, `jq`, `yq`,
+   `htop`, `btop`, `tree`, `unzip`) plus the git config via `programs.git`.
+2. **Level 2 — config only**: the *configs* for Niri, Noctalia, kanshi,
+   gtk-3.0 and the apps are managed by Home Manager, but the **binaries stay
+   from pacman** (safer for fast-moving/GPU-tied software like the compositor).
+3. **Level 3 — untouched**: kernel/GPU drivers/systemd stay system-managed;
+   zsh/fzf/p10k/zinit stay on pacman because `~/.zshrc` sources
+   `/usr/share/...` paths that a Nix-provided binary would break.
 
 ## How the dots get to ~
 
-Home Manager writes a small directory of links under `/nix/store/*-home-manager-files`.
-Those links point **out-of-store** at the live repo (`$HOME/dotfiles`) via
-`mkOutOfStoreSymlink`. That's deliberate: several configs — `set-theme` targets
-like `~/.config/themes/current`, `waybar/colors.css`, `yazi/theme.toml` — are
-**rewritten at runtime**, so they must not be frozen read-only into the store.
+Home Manager writes a small directory of links under
+`/nix/store/*-home-manager-files`. Those links point **out-of-store** at the
+live repo (`$HOME/dotfiles`) via `mkOutOfStoreSymlink`. That is deliberate:
+Noctalia writes generated theme files at runtime (GTK CSS, Kitty palette,
+palettes under `~/.config/noctalia/`), so the targets must not be frozen
+read-only into the store.
 
 The flake computes that path rather than using `./.`:
 
 ```nix
-_module.args.dotfilesDir = config.home.homeDirectory + "/dotfiles";
+_module_args.dotfilesDir = config.home.homeDirectory + "/dotfiles";
 ```
 
 Using `./.` would copy the repo into the store during evaluation and all those
-symlinks would end up pointing at a read-only snapshot, breaking theme switching.
+symlinks would point at a read-only snapshot.
 
-> If you tried to run this on a machine without Nix as the provider for a
-> that-tool, remember: most dev tools (Node, Python, Rust, pnpm, nvm, mise…)
-> live happily outside Nix. Home Manager owns the *tooling and config*, not
-> every runtime.
+## Herdr
 
-## Notes / pitfalls already hit
-
-### OpenCode + Workmux
-
-Home Manager installs Workmux 0.1.269 and `notify-send`, links the global
-Workmux configuration, and loads the Workmux status OpenCode plugin automatically:
-
-- The upstream, hash-pinned Workmux status plugin tracks working/waiting/done,
-  with a session-ID compatibility fix for subsequent user messages.
-
-These integration files live in this repo. The rest of `~/.config/opencode`
-continues to use its existing independent configuration repo. Notifications are
-handled natively by OpenCode V2 (system alerts when the terminal is unfocused);
-the custom `desktop-notifications.ts` plugin was removed to avoid duplicate alerts.
-
-After activating Home Manager, restart OpenCode and reload tmux with
-`tmux source-file ~/.tmux.conf`. Inside a Git project in tmux:
+Herdr is the terminal/agent runtime that replaced tmux and workmux:
 
 ```bash
-workmux add feature-name -p "Describe the task here"
-workmux list
-workmux dashboard
+herdr                     # TUI
+herdr session attach      # attach to a session
+hs                        # attach to the "shell" session
+hc                        # attach to the "code" session
+herdr machine list        # configured machines
 ```
 
-Each task gets its own branch, worktree, and OpenCode window. `Ctrl-a Ctrl-w`
-opens the dashboard, `Ctrl-a Ctrl-t` toggles the sidebar, and `Ctrl-a L` jumps
-to the most recently completed/waiting agent. `workmux merge feature-name`
-merges locally and cleans up; run it only when you intend to merge.
+The Noctalia plugin `hy4ri/herdr` (v1.2.1, plugin API 43) adds a bar widget
+and panel. On Niri it focuses an existing terminal window instead of opening a
+duplicate; this needs `NIRI_SOCKET` in Noctalia's environment (it inherits it
+from the Niri session) and the `niri` + `ps` tools.
 
-Project-specific setup commands and ignored files belong in the project's
-`.workmux.yaml`; the global configuration only launches OpenCode and a shell.
+`install.sh` runs `herdr integration install opencode` once. Those files land
+in `~/.config/opencode` (a separate repo) and are runtime state, not dotfiles.
 
-### cht.sh window (`Ctrl-a i`)
-
-`~/.local/bin/tmux-cht.sh --window` opens in a throwaway tmux window: it fuses the
-language and command topic lists into one fzf picker, percent-encodes the query as
-cht.sh path segments, tries both URL shapes (`/topic/query` then `topic~query`),
-caches answers for a week under `~/.cache/tmux-cht`, and falls back to
-`opencode run -m opencode/big-pickle` when cht.sh has nothing. Arrows and
-PgUp/PgDn scroll the answer, `q` closes the window. It also runs outside tmux:
-`tmux-cht.sh git rebase`.
-
-The topic lists carry two kinds of entries. `curl -s "cht.sh/<topic>" | head -1`
-printing `# <topic>` means a real sheet exists; a 404 on
-`cht.sh/<topic>/<query>` only means that one question is missing, not the topic.
-Topics without a sheet (`hono`, `tanstack-*`, `react`, `nextjs`, `redux`,
-`zustand`, `prisma`, `zod`, …) are still listed on purpose — they are answered by
-the AI fallback, which is slower but never empty.
-
-Answers are painted by `bat` (never cht.sh's own ANSI, which bat would double-wrap):
-the topic decides the syntax — `python` highlights as Python, command topics as
-bash — with `BAT_THEME`, or Catppuccin Macchiato when the shell has no theme set.
-The `---`/`tags:` banner is dropped, and long answers page through `less`.
-
-### Shell AI helpers
+## Shell AI helpers
 
 - `gpt <question>` — `opencode run` on the free `opencode/big-pickle` model.
   `-c` continues the last session, `-m provider/model` overrides the model.
 - `img <prompt>` — free image generation through the pollinations.ai endpoint
-  `tgpt` uses, no API key; saves to `~/Pictures/ai` and opens the result. The
-  free tier allows about one image per 45 s. OpenCode exposes no image model at
-  all (checked with `models type: image`), so this is not routed through it.
+  `tgpt` uses, no API key; saves to `~/Pictures/ai` and opens the result.
 
-### Home Manager pitfalls
+## Notes / pitfalls already hit
 
 - **No `executable = true` on out-of-store script links.** Home Manager builds
   `executable = true` files with `cp`, which dereferences the symlink to the
   live-repo path *outside* the Nix sandbox and fails the build. The repo scripts
   are already `+x`, so plain symlinks preserve executability.
-- **One path, one manager.** Don't declare `.config/lazygit` as a whole directory
-  in one module *and* `.config/lazygit/config.yml` per-file in another — Home
-  Manager errors with `Error installing file ... outside $HOME`. Link each path
-  exactly once.
-- **Keep fzf/zsh on pacman** — `~/.zshrc` sources `/usr/share/fzf/key-bindings.zsh`
-  and `/usr/share/zsh/site-functions`, which only exist from the Arch packages.
+- **One path, one manager.** Don't declare `.config/lazygit` as a whole
+  directory in one module *and* `.config/lazygit/config.yml` per-file in
+  another — Home Manager errors with `Error installing file ... outside $HOME`.
+  Link each path exactly once.
+- **Keep fzf/zsh on pacman** — `~/.zshrc` sources
+  `/usr/share/fzf/key-bindings.zsh` and `/usr/share/zsh/site-functions`, which
+  only exist from the Arch packages.
+- **Noctalia needs `libjxl 0.12`.** Installing `noctalia` without a full
+  `pacman -Syu` leaves the old `libjxl` and the binary fails with
+  `libjxl_threads.so.0.12: cannot open shared object file`. On this machine
+  `libjxl` is pinned in `/etc/pacman.conf` (`IgnorePkg = libjxl libvdpau`),
+  so `pacman -Syu` skips it. Until that line is removed, a wrapper at
+  `~/.local/bin/noctalia` runs `/usr/bin/noctalia` against a user-local copy
+  of the library in `~/.local/lib/noctalia-libjxl`. Fix it permanently with:
 
-## Next steps / ideas
+  ```bash
+  sudo sed -i 's/^IgnorePkg.*/#&/' /etc/pacman.conf
+  sudo pacman -Syu
+  ```
 
-- Add more tools to `home.packages` as you use them.
-- Optionally fold more read-only configs into `text = ''...''` inside modules for
-  a stricter "declarative" setup — only sensible where nothing rewrites them at
-  runtime.
+  Once `/usr/lib/libjxl_threads.so.0.12` exists the wrapper is a passthrough.
+- **Noctalia template writes.** The Kitty template skips an existing
+  `kitty.conf`; the repo config includes `themes/*.conf` explicitly so the
+  generated palette is still loaded.
 
 ## Reference
 
-- Design doc: `docs/superpowers/specs/2026-08-28-nix-home-manager-migration-design.md`
+- Noctalia: <https://noctalia.dev> — Niri integration:
+  <https://docs.noctalia.dev/noctalia/compositor-settings/niri/>
+- Herdr: <https://herdr.dev> — Noctalia plugin:
+  <https://noctalia.dev/plugins/community/herdr>
+- Migration design: `docs/superpowers/specs/2026-11-05-noctalia-migration-design.md`
+- Earlier design: `docs/superpowers/specs/2026-08-28-nix-home-manager-migration-design.md`

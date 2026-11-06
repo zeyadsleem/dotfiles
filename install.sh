@@ -24,7 +24,7 @@ export PATH="$PREV_NIX_PATH"
 # 3. check key dependencies
 echo "==> checking dependencies..."
 missing=()
-for cmd in nvim zsh tmux kitty git lazygit fzf zoxide bat eza yazi niri; do
+for cmd in nvim zsh kitty git lazygit fzf zoxide bat eza yazi niri noctalia herdr; do
   command -v "$cmd" &>/dev/null || missing+=("$cmd")
 done
 
@@ -43,25 +43,17 @@ if [ ! -d "$ZINIT_HOME" ]; then
   git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 fi
 
-# 5. tmux plugin manager
-TPM_HOME="$HOME/.tmux/plugins/tpm"
-if [ ! -d "$TPM_HOME" ]; then
-  echo "==> installing tmux plugin manager..."
-  mkdir -p "$TPM_HOME"
-  git clone https://github.com/tmux-plugins/tpm "$TPM_HOME"
-fi
-
-# 6. powerlevel10k
+# 5. powerlevel10k
 P10K_DIR="$HOME/powerlevel10k"
 if [ ! -d "$P10K_DIR" ]; then
   echo "==> installing powerlevel10k..."
   git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
 fi
 
-# 7. apply theme
-if [ -x "$HOME/.local/bin/set-theme" ]; then
-  echo "==> applying theme..."
-  "$HOME/.local/bin/set-theme"
+# 6. OpenCode integration for Herdr (runtime files live in ~/.config/opencode)
+if command -v herdr &>/dev/null; then
+  echo "==> installing Herdr OpenCode integration..."
+  herdr integration install opencode || true
 fi
 
 echo ""

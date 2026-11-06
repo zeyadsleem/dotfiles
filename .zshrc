@@ -32,9 +32,6 @@ if [[ ! -d "$ZINIT_HOME" ]]; then
 fi
 [[ -r "$ZINIT_HOME/zinit.zsh" ]] && source "$ZINIT_HOME/zinit.zsh"
 
-# Optional theme environment
-[[ -r ~/.config/themes/current/zsh/env.zsh ]] && source ~/.config/themes/current/zsh/env.zsh
-
 # Environment
 export BROWSER=brave
 export TERMINAL=kitty

@@ -1,0 +1,399 @@
+# Noctalia 5.4 shell configuration.
+# GUI/IPC changes are written to ~/.local/state/noctalia/settings.toml and
+# override this file. Keep that file in mind when a change "does not stick".
+
+[accessibility]
+ui_scale = 1.0
+high_contrast = false
+
+[shell]
+corner_radius_scale = 1.0
+font_family = "Maple Mono NF"
+time_format = "{:%I:%M %p}"
+date_format = "%A, %d %B %Y"
+offline_mode = false
+telemetry_enabled = false
+polkit_agent = true
+password_style = "default"
+readline_shortcuts = true
+settings_show_advanced = true
+settings_expand_all_groups = false
+show_location = false
+clipboard_enabled = true
+clipboard_history_max_entries = 100
+clipboard_keep_from_closed_apps = true
+clipboard_auto_paste = "auto"
+niri_overview_type_to_launch_enabled = false
+
+[shell.screenshot]
+skip_annotate_on_copy_save = false
+close_on_copy = true
+close_on_save = true
+copy_on_close = false
+
+[shell.animation]
+enabled = true
+speed = 1.2
+
+[shell.panel]
+transparency_mode = "solid"
+borders = true
+border_color = "outline_variant"
+border_width = 1.0
+shadow = true
+launcher_placement = "floating"
+clipboard_placement = "floating"
+control_center_placement = "attached"
+wallpaper_placement = "attached"
+session_placement = "attached"
+launcher_position = "center"
+clipboard_position = "center"
+open_near_click_control_center = false
+open_near_click_launcher = false
+open_near_click_clipboard = false
+open_near_click_wallpaper = false
+open_near_click_session = false
+
+[shell.launcher]
+layout = "full"
+width = 760
+search_position = "top"
+default_view = "recent"
+categories = true
+show_navigation_labels = true
+show_settings_button = true
+show_session_button = true
+show_icons = true
+show_app_origin_indicator = false
+compact = false
+app_grid = false
+track_usage = true
+sort_by_usage = true
+ignore_mouse = false
+pinned = []
+fetch_exchange_rates = false
+provider_prefix = "/"
+auto_paste = "auto"
+
+[shell.launcher.providers.calculator]
+prefix = "calc"
+global = true
+
+[shell.launcher.providers.emoji]
+prefix = "emo"
+
+[shell.launcher.providers.session]
+prefix = "session"
+global = false
+
+[shell.launcher.providers.wallpaper]
+prefix = "wall"
+
+[shell.launcher.providers.windows]
+prefix = "win"
+
+[shell.mpris]
+blacklist = []
+
+[shell.window_switcher]
+style = "carousel"
+mru = false
+show_caption = true
+show_count = true
+show_app_icon = true
+
+[wallpaper]
+enabled = true
+fill_mode = "crop"
+fill_color = ""
+transition = ["fade"]
+transition_duration = 800
+edge_smoothness = 0.3
+transition_on_startup = false
+directory = "/home/zeyad/Pictures/Wallpapers"
+directory_light = ""
+directory_dark = ""
+
+[wallpaper.default]
+path = "/home/zeyad/Pictures/Wallpapers/nord.jpg"
+
+[wallpaper.automation]
+enabled = false
+interval_seconds = 1800
+order = "random"
+recursive = true
+
+[theme]
+mode = "dark"
+source = "wallpaper"
+wallpaper_scheme = "m3-content"
+pure_black_dark = false
+
+[theme.templates]
+enable_builtin_templates = true
+builtin_ids = ["btop", "gtk3", "gtk4", "kitty", "qt"]
+enable_community_templates = false
+community_ids = []
+
+[backdrop]
+enabled = false
+blur_intensity = 0.5
+tint_intensity = 0.3
+
+[notification]
+enable_daemon = true
+show_app_name = true
+show_actions = true
+keep_dismissed_in_history = true
+layer = "top"
+scale = 1.0
+background_opacity = 0.97
+border = true
+border_color = "outline_variant"
+border_width = 1
+follow_focused_output = false
+offset_x = 20
+offset_y = 8
+
+[osd]
+position = "top_right"
+position_vertical = "top_center"
+orientation = "horizontal"
+hide_delay_ms = 1400
+scale = 1.0
+background_opacity = 0.97
+border = true
+border_color = "outline_variant"
+border_width = 1
+follow_focused_output = false
+offset_x = 20
+offset_y = 8
+
+[osd.kinds]
+volume = true
+volume_output = true
+volume_input = true
+brightness = true
+wifi = true
+bluetooth = false
+power_profile = true
+caffeine = true
+nightlight = true
+dnd = true
+lock_keys = false
+keyboard_layout = false
+privacy = true
+
+[lockscreen]
+enabled = true
+grace_period_seconds = 0
+blurred_desktop = false
+transition = ["fade"]
+transition_duration = 800
+edge_smoothness = 0.3
+blur_intensity = 0.5
+tint_intensity = 0.3
+lock_before_suspend = true
+
+[system.monitor]
+enabled = true
+cpu_poll_seconds = 2.0
+memory_poll_seconds = 2.0
+network_poll_seconds = 3.0
+disk_poll_seconds = 10.0
+
+[calendar]
+enabled = false
+
+[control_center]
+circular_avatar = true
+show_avatar_border = true
+
+[[control_center.shortcuts]]
+type = "caffeine"
+
+[[control_center.shortcuts]]
+type = "nightlight"
+
+[[control_center.shortcuts]]
+type = "notification"
+
+[[control_center.shortcuts]]
+type = "power_profile"
+
+[[control_center.shortcuts]]
+type = "system"
+
+[weather]
+enabled = false
+
+[audio]
+enable_overdrive = false
+enable_sounds = false
+
+[bluetooth]
+connect_when_enabled = false
+
+[brightness]
+enable_ddcutil = false
+
+[nightlight]
+enabled = true
+force = false
+temperature_day = 6500
+temperature_night = 4000
+
+[location]
+auto_locate = false
+address = ""
+custom_schedule = true
+sunset = "19:00"
+sunrise = "06:00"
+
+[idle.behavior.lock]
+timeout = 600
+action = "lock"
+enabled = false
+
+[idle.behavior.screen-off]
+timeout = 660
+action = "screen_off"
+enabled = false
+
+[bar]
+order = ["main"]
+
+[bar.main]
+position = "top"
+thickness = 34
+background_opacity = 0.92
+compositor_blur = true
+radius = 0
+margin_ends = 0
+margin_edge = 0
+padding = 14
+widget_spacing = 6
+scale = 1.0
+shadow = false
+auto_hide = false
+show_on_workspace_switch = true
+reserve_space = true
+capsule = false
+start = ["launcher", "wallpaper", "workspaces"]
+center = ["clock"]
+end = [
+  "privacy",
+  "tray",
+  "notifications",
+  "clipboard",
+  "keyboard_layout",
+  "separator",
+  "network",
+  "separator",
+  "volume",
+  "separator",
+  "brightness",
+  "separator",
+  "cpu",
+  "separator",
+  "ram",
+  "separator",
+  "temp",
+  "separator",
+  "battery",
+  "separator",
+  "session",
+  "separator",
+  "hy4ri/herdr:bar",
+]
+
+[dock]
+enabled = false
+
+[desktop_widgets]
+enabled = false
+
+[plugins]
+enabled = ["hy4ri/herdr"]
+auto_update = "none"
+
+[widget.clock]
+format = "{:%I:%M %p}"
+tooltip_format = "{:%A, %d %B %Y}"
+color = "on_surface"
+font_weight = 700
+
+[widget.workspaces]
+label_source = "id"
+style = "regular"
+max_label_chars = 2
+focused_output_only = false
+focused_color = "primary"
+occupied_color = "surface_container"
+empty_color = "outline_variant"
+color = "on_surface"
+
+[widget.separator]
+type = "text"
+text = "|"
+color = "outline_variant"
+
+[widget.cpu]
+type = "sysmon"
+stat = "cpu_usage"
+visualization = "none"
+show_value = true
+glyph = "cpu"
+color = "on_surface_variant"
+label_min_width = 20
+
+[widget.ram]
+type = "sysmon"
+stat = "ram_used"
+visualization = "none"
+show_value = true
+glyph = "database"
+color = "on_surface_variant"
+label_min_width = 44
+
+[widget.temp]
+type = "sysmon"
+stat = "cpu_temp"
+visualization = "none"
+show_value = true
+glyph = "temperature-celsius"
+glyph_position = "after"
+color = "on_surface_variant"
+label_show_units = false
+label_min_width = 0
+
+[widget.network]
+show_label = false
+
+[widget.volume]
+device = "output"
+show_label = true
+color = "on_surface_variant"
+
+[widget.brightness]
+show_label = true
+color = "on_surface_variant"
+
+[widget.battery]
+show_label = true
+
+[widget.keyboard_layout]
+show_glyph = false
+
+[widget.privacy]
+hide_inactive = true
+icon_spacing = 4
+
+[widget.session]
+glyph = "power"
+
+[widget.tray]
+hidden = []
+
+[widget.notifications]
+hide_when_no_unread = false

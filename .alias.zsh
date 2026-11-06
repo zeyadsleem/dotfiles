@@ -124,9 +124,10 @@ function odd() {
 #     fi
 # }
 
-# TMUX - Terminal Multiplexer
-alias t='tmux'
-alias ta='tmux attach'
+# HERDR - Agent terminal sessions
+alias h='herdr'
+alias hs='herdr session attach shell'
+alias hc='herdr session attach code'
 
 # DEVELOPMENT TOOLS
 alias v='nvim'        # Neovim editor
@@ -268,8 +269,8 @@ function img() {
 alias open='gio open'
 alias c='clear'
 
-# WALLPAPER - Set desktop background (persists across reboots)
-alias wp='set-wallpaper'
+# WALLPAPER - Noctalia wallpaper picker
+alias wp='noctalia msg panel-toggle wallpaper'
 
 if command -v systemctl &>/dev/null; then
     alias sctl='sudo systemctl'

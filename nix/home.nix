@@ -8,7 +8,6 @@
   imports = [
     ./modules/packages.nix
     ./modules/git.nix
-    ./modules/tmux.nix
     ./modules/zsh.nix
     ./modules/kitty.nix
     ./modules/yazi.nix

@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+
+is_headset_connected() {
+    LC_ALL=C pactl list cards 2>/dev/null |
+        grep -Eq 'analog-output-headphones:.*(available: yes|, available\))'
+}
+
+set_audio_port() {
+    local type="$1"
+    shift
+
+    local port
+    local object
+
+    for port in "$@"; do
+        while IFS=$'\t' read -r _ object _; do
+            if pactl "set-${type}-port" "$object" "$port" 2>/dev/null; then
+                return 0
+            fi
+        done < <(pactl list short "${type}s")
+    done
+
+    return 1
+}
+
+show_headset_menu() {
+    local choice
+
+    choice="$(
+        printf '%s\n' \
+            'Headphones — سماعة فقط' \
+            'Headset — سماعة وميكروفون' \
+            'Microphone — ميكروفون فقط' |
+        noctalia dmenu \
+            --prompt='نوع الجهاز: '
+    )"
+
+    case "$choice" in
+        "Headphones"*)
+            set_audio_port sink \
+                analog-output-headphones
+
+            set_audio_port source \
+                analog-input-internal-mic || true
+
+            notify-send "Audio Jack" "تم اختيار Headphones"
+            ;;
+
+        "Headset"*)
+            set_audio_port sink \
+                analog-output-headphones
+
+            set_audio_port source \
+                analog-input-headset-mic \
+                analog-input-headphone-mic || true
+
+            notify-send "Audio Jack" "تم اختيار Headset مع الميكروفون"
+            ;;
+
+        "Microphone"*)
+            set_audio_port sink \
+                analog-output-speaker || true
+
+            set_audio_port source \
+                analog-input-headphone-mic \
+                analog-input-mic \
+                analog-input-headset-mic || true
+
+            notify-send "Audio Jack" "تم اختيار Microphone"
+            ;;
+    esac
+}
+
+previous=0
+
+if is_headset_connected; then
+    previous=1
+fi
+
+pactl subscribe | while IFS= read -r event; do
+    case "$event" in
+        *"on card"*)
+            sleep 0.4
+
+            current=0
+            if is_headset_connected; then
+                current=1
+            fi
+
+            if [[ "$current" -eq 1 && "$previous" -eq 0 ]]; then
+                show_headset_menu
+            fi
+
+            previous="$current"
+            ;;
+    esac
+done

@@ -6,13 +6,6 @@
 }:
 {
   home.file = {
-    # Keep OpenCode's existing config repo; manage only these integrations here.
-    ".config/opencode/plugins/workmux-status.ts" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/opencode/plugins/workmux-status.ts";
-    };
-    ".config/workmux/config.yaml" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/workmux/config.yaml";
-    };
     # --- Wayland compositor + friends (Layer 2: config managed, binary stays pacman) ---
     # NOTE: niri linked per-file ONLY (config.kdl). ~/.config/niri is a real dir with
     # local extras (config.kdl.bak*, fix-greetd-keyring.sh, fix-pam-only.sh,
@@ -20,41 +13,22 @@
     ".config/niri/config.kdl" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/niri/config.kdl";
     };
-    # NOTE: waybar/swaync/gtklock linked per-file — their real dirs hold runtime-created
-    # content NOT in repo (waybar/scripts, colors.css, gtklock/*.png, style.css) that a
-    # whole-dir symlink would orphan. Per-file links match stow's exact on-disk behavior.
-    ".config/waybar/config-niri" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/waybar/config-niri";
+
+    # Noctalia owns the shell layer. Keep config.toml linked per-file: the real
+    # ~/.config/noctalia directory also holds runtime palettes and templates.
+    ".config/noctalia/config.toml" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/noctalia/config.toml";
     };
-    ".config/waybar/style.css" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/waybar/style.css";
-    };
-    ".config/waybar/scripts/dot-health.sh" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/waybar/scripts/dot-health.sh";
-    };
-    ".config/waybar/scripts/hijri-clock.sh" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/waybar/scripts/hijri-clock.sh";
-    };
-    ".config/swaync/config.json" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/swaync/config.json";
-    };
+
+    # Output profiles stay with kanshi; Noctalia does not manage outputs.
     ".config/kanshi" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/kanshi";
     };
-    ".config/swayosd" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/swayosd";
-    };
-    ".config/gtklock/config.ini" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/gtklock/config.ini";
-    };
 
-    # --- GTK / theme-facing config (mutated by set-theme at runtime) ---
+    # --- GTK / theme-facing config (Noctalia templates write gtk.css alongside) ---
     # gtk-3.0 linked per-file: local dir holds runtime-created `bookmarks` not in repo.
     ".config/gtk-3.0/settings.ini" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/gtk-3.0/settings.ini";
-    };
-    ".config/themes" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/themes";
     };
 
     # --- Apps (config managed, binaries stay pacman) ---
@@ -77,9 +51,6 @@
     };
     ".config/ripgrep" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/ripgrep";
-    };
-    ".config/tmux" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/tmux";
     };
     ".config/mimeapps.list" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/mimeapps.list";

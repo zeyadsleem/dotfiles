@@ -12,14 +12,13 @@ nix-ar/
 __pycache__/
 *.pyc
 
-# Runtime-generated theme artifacts (set-theme retargets these)
-.config/yazi/theme.toml
-.config/waybar/colors.css
-.config/swaync/style.css
+# Runtime-generated artifacts
 .config/nvim/lua/current_theme.lua
-.config/gtklock/style.css
-.config/themes/current
-.config/themes/current_zsh_env.zsh
+.config/noctalia/palettes/
+.config/kitty/themes/
 
 # niri capture scratch files
 .config/niri/config.kdl.t3-capture-backup-*
+
+# Yazi writes its own generated theme
+.config/yazi/theme.toml

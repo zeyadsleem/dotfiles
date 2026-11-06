@@ -74,27 +74,30 @@ cursor {
     hide-when-typing
 }
 
+debug {
+    honor-xdg-activation-with-invalid-serial
+}
+
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
     Super+Shift+Slash { spawn "/home/zeyad/.local/bin/dot" "keys" "--gui"; }
 
     Mod+T { spawn "kitty"; }
-    Mod+D { spawn "fuzzel"; }
-    Super+Alt+L { spawn "gtklock"; }
+    Super+Alt+L { spawn "noctalia" "msg" "session" "lock"; }
 
     Super+Alt+S allow-when-locked=true hotkey-overlay-title=null { spawn-sh "pkill orca || exec orca"; }
 
-    XF86AudioRaiseVolume allow-when-locked=true { spawn "swayosd-client" "--output-volume" "raise"; }
-    XF86AudioLowerVolume allow-when-locked=true { spawn "swayosd-client" "--output-volume" "lower"; }
-    XF86AudioMute        allow-when-locked=true { spawn "swayosd-client" "--output-volume" "mute-toggle"; }
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-up"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-down"; }
+    XF86AudioMute        allow-when-locked=true { spawn "noctalia" "msg" "volume-mute"; }
 
     XF86AudioPlay        allow-when-locked=true { spawn-sh "playerctl play-pause"; }
     XF86AudioStop        allow-when-locked=true { spawn-sh "playerctl stop"; }
     XF86AudioPrev        allow-when-locked=true { spawn-sh "playerctl previous"; }
     XF86AudioNext        allow-when-locked=true { spawn-sh "playerctl next"; }
 
-    XF86MonBrightnessUp allow-when-locked=true   { spawn "swayosd-client" "--brightness" "raise"; }
-    XF86MonBrightnessDown allow-when-locked=true { spawn "swayosd-client" "--brightness" "lower"; }
+    XF86MonBrightnessUp allow-when-locked=true   { spawn "noctalia" "msg" "brightness-up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "noctalia" "msg" "brightness-down"; }
 
     XF86Sleep { spawn "systemctl" "suspend"; }
 
@@ -206,7 +209,7 @@ binds {
 
     Mod+W { toggle-column-tabbed-display; }
 
-    Mod+Shift+E { spawn-sh "sh ~/.local/bin/power-menu-niri.sh"; }
+    Mod+Shift+E { spawn "noctalia" "msg" "panel-toggle" "session"; }
 
     Print { screenshot; }
     Ctrl+Print { screenshot-screen; }
@@ -216,7 +219,10 @@ binds {
 
     Mod+Shift+P { spawn "thunar"; }
     Mod+Return { spawn "kitty"; }
-    Mod+Shift+D { spawn "/home/zeyad/.local/bin/app-menu"; }
+    Mod+S { spawn "noctalia" "msg" "panel-toggle" "control-center"; }
+    Mod+Shift+Comma { spawn "noctalia" "msg" "settings-toggle"; }
+    Alt+Tab { spawn "noctalia" "msg" "window-switcher" "hold"; }
+    Alt+Shift+Tab { spawn "noctalia" "msg" "window-switcher" "hold" "reverse"; }
 
     Mod+Grave { spawn "niri" "msg" "action" "load-config-file"; }
 
@@ -224,19 +230,16 @@ binds {
 
     Mod+Shift+O { spawn "brave"; }
 
-    Mod+C { spawn-sh "cliphist list | fuzzel -d -w 50 -l 15 -p 'Select from clipboard: ' | cliphist decode | wl-copy"; }
-    Mod+X { spawn-sh "cliphist list | fuzzel -d -w 50 -l 15 -p 'Select entry to delete: ' | cliphist delete"; }
+    Mod+C { spawn "noctalia" "msg" "panel-toggle" "clipboard"; }
 
     Mod+Shift+Period { spawn "hyprpicker" "--autocopy"; }
 
-    Mod+Shift+N { spawn "swaync-client" "-t" "-sw"; }
+    Mod+Shift+N { spawn "noctalia" "msg" "panel-toggle" "control-center" "notifications"; }
+    Mod+Shift+A { spawn "noctalia" "msg" "panel-toggle" "hy4ri/herdr:panel"; }
 
-    Mod+Space { spawn-sh "~/.local/bin/switch-layout.sh"; }
-    Mod+Shift+Space { spawn-sh "~/.local/bin/dot menu"; }
+    Mod+Space { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
 
-    Mod+Ctrl+Grave { spawn-sh "~/.local/bin/toggle-waybar.sh"; }
-    Mod+Shift+Grave { spawn-sh "~/.local/bin/toggle-waybar.sh"; }
-    Ctrl+Shift+2 repeat=false { spawn "gdbus" "call" "--session" "--dest" "com.t3tools.T3Code.SnapShot" "--object-path" "/com/t3tools/SnapShot" "--method" "com.t3tools.SnapShot.Capture"; }
+    Mod+Ctrl+Grave { spawn "noctalia" "msg" "bar-toggle"; }
 }
 
 window-rule {
@@ -244,25 +247,16 @@ window-rule {
     open-maximized true
 }
 window-rule {
-    match app-id=r#"^dev\.zeyad\.Wallpaper$"#
-    open-floating true
-    default-floating-position x=140 y=100 relative-to="top-left"
-}
-window-rule {
     match app-id=r#"firefox$"# title="^Picture-in-Picture$"
     open-floating true
 }
 window-rule {
-    match app-id="polkit-gnome-authentication-agent-1"
+    match app-id=r#"^dev\.noctalia\.Noctalia$"#
     open-floating true
-}
-window-rule {
-    match app-id="lxqt-policykit-agent"
-    open-floating true
-}
-window-rule {
-    match app-id="org.kde.polkit-kde-authentication-agent-1"
-    open-floating true
+    default-column-width { fixed 1080; }
+    default-window-height { fixed 920; }
+    geometry-corner-radius 20
+    clip-to-geometry true
 }
 window-rule {
     match app-id="xdg-desktop-portal-gtk"
@@ -327,18 +321,10 @@ window-rule {
     open-floating true
 }
 
-spawn-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
-spawn-at-startup "bash" "/home/zeyad/.local/bin/set-wallpaper" "--supervise"
 spawn-at-startup "kanshi"
-spawn-at-startup "swaync"
-spawn-at-startup "swayosd-server"
-spawn-at-startup "wl-paste" "--type" "text" "--watch" "cliphist" "store"
-spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
+spawn-at-startup "noctalia"
 spawn-at-startup "nm-applet" "--indicator"
-spawn-at-startup "/home/zeyad/.local/bin/app-menu"
-spawn-at-startup "waybar" "-c" "/home/zeyad/.config/waybar/config-niri"
 
 spawn-sh-at-startup "gnome-keyring-daemon --start --components=secrets,ssh"
-spawn-sh-at-startup "swayidle -w before-sleep $HOME/.local/bin/lock-if-not-running.sh &"
 spawn-sh-at-startup "protonvpn-app"
 spawn-sh-at-startup "$HOME/.local/bin/headset-popup-daemon"

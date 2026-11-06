@@ -8,9 +8,4 @@
 !dot
 !editor-config
 !emoji-picker
-!set-theme
-!set-theme-picker
-!set-wallpaper
-!theme-info
-!tmux-cht.sh
-!tmux-session-wizard.sh
+!headset-popup-daemon
