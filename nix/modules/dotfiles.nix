@@ -60,6 +60,11 @@
     ".config/mimeapps.list" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/mimeapps.list";
     };
+    # fontconfig: map Obsidian's default "Inter" to IBM Plex Sans Arabic
+    # (Arabic + Latin in one voice; affects apps requesting Inter generically).
+    ".config/fontconfig/fonts.conf" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/fontconfig/fonts.conf";
+    };
     ".config/brave-flags.conf" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/brave-flags.conf";
     };
