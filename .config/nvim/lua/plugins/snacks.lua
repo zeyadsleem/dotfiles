@@ -38,5 +38,11 @@ return {
     scroll = {
       enabled = false,
     },
+
+    dashboard = {
+      preset = {
+        header = require('custom.dashboard_art'),
+      },
+    },
   },
 }
