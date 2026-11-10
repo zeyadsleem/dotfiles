@@ -1,0 +1,59 @@
+onboarding = false
+
+[theme]
+# Follow the host terminal palette, which Noctalia regenerates from the wallpaper.
+name = "terminal"
+
+auto_switch = false
+[keys]
+# tmux muscle memory: prefix was C-a there too.
+prefix = "ctrl+a"
+
+# Splits: tmux used prefix+\ and prefix+-.
+split_vertical = ["prefix+v", "prefix+backslash"]
+split_horizontal = ["prefix+minus"]
+
+# Direct tab jumps like the old Alt+1..9.
+switch_tab = ["prefix+1..9", "alt+1..9"]
+
+# tmux-style one-chord pane resizing (was Alt+h/j/k/l).
+resize_pane_left = "alt+h"
+resize_pane_down = "alt+j"
+resize_pane_up = "alt+k"
+resize_pane_right = "alt+l"
+
+# Goto picker keeps Herdr's native prefix+g binding.
+
+# The four tmux throwaway windows, ported as Herdr panes/popups.
+[[keys.command]]
+key = "prefix+i"
+type = "pane"
+command = "lazygit"
+description = "lazygit"
+
+[[keys.command]]
+key = "prefix+m"
+type = "pane"
+command = "btop"
+description = "btop"
+
+[[keys.command]]
+key = "prefix+f"
+type = "pane"
+command = "yazi"
+description = "yazi"
+
+[[keys.command]]
+key = "prefix+t"
+type = "popup"
+command = "exec \"${SHELL:-sh}\""
+description = "scratch terminal"
+width = "80%"
+height = "80%"
+
+[ui.toast]
+# Hand notifications to Noctalia's org.freedesktop.Notifications daemon.
+delivery = "system"
+
+[ui]
+status_indicators = "symbols"

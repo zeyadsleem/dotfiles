@@ -52,6 +52,11 @@
     ".config/ripgrep" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/ripgrep";
     };
+    # Herdr keeps logs, sockets, and session.json next to its config in the
+    # real ~/.config/herdr dir, so link the config file only.
+    ".config/herdr/config.toml" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/herdr/config.toml";
+    };
     ".config/mimeapps.list" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/mimeapps.list";
     };
