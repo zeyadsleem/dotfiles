@@ -320,6 +320,10 @@ enabled = false
 enabled = ["hy4ri/herdr"]
 auto_update = "none"
 
+[widget."hy4ri/herdr:bar"]
+# Icon-only: the robot glyph reflects agent state without a count badge.
+display_mode = "icon"
+
 [widget.clock]
 format = "{:%I:%M %p}"
 tooltip_format = "{:%A, %d %B %Y}"
