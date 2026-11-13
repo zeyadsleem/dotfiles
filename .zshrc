@@ -400,3 +400,6 @@ export PATH=/home/zeyad/.opencode/bin:$PATH
 
 # Hermes Agent command
 case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+
+# ApexYard: enable Claude Code LSP (added by /setup)
+export ENABLE_LSP_TOOL=1
