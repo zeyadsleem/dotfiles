@@ -317,7 +317,7 @@ enabled = false
 enabled = false
 
 [plugins]
-enabled = ["hy4ri/herdr"]
+enabled = ["hy4ri/herdr", "noctalia/wallhaven"]
 auto_update = "none"
 
 [widget."hy4ri/herdr:bar"]
@@ -401,6 +401,11 @@ glyph = "power"
 
 [widget.tray]
 hidden = []
+
+[widget.wallpaper.actions]
+# Right-click the wallpaper icon to open the Wallhaven browser;
+# left click still opens the local wallpaper picker.
+right = "panel-toggle noctalia/wallhaven:browser"
 
 [widget.notifications]
 hide_when_no_unread = false
