@@ -47,9 +47,6 @@ path=(
   "$HOME/bin"
   "$HOME/go/bin"
   "$HOME/.bun/bin"
-  "$HOME/.config/herd-lite/bin"
-  "$HOME/.turso"
-  "$HOME/.local/share/mise/shims"
   $path
 )
 export PATH
