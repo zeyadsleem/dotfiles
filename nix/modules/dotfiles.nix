@@ -20,6 +20,12 @@
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/noctalia/config.toml";
     };
 
+    # Icon-theme names consumed by the icon-theme user template (config.toml):
+    # Noctalia reads these on every theme apply. No runtime files land here.
+    ".config/noctalia/icons" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/noctalia/icons";
+    };
+
     # Output profiles stay with kanshi; Noctalia does not manage outputs.
     ".config/kanshi" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/kanshi";

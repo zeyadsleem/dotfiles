@@ -141,6 +141,13 @@ builtin_ids = ["btop", "gtk3", "gtk4", "kitty", "qt"]
 enable_community_templates = false
 community_ids = []
 
+# Omarchy-style icon swap: Noctalia cannot recolor icon packs, so flip the
+# system icon theme by mode like omarchy-theme-set does (dark -> Papirus-Dark).
+[theme.templates.user.icon-theme]
+input_path_modes = { dark = "~/.config/noctalia/icons/dark.txt", light = "~/.config/noctalia/icons/light.txt" }
+output_path = "~/.cache/noctalia-icon-theme"
+post_hook = 'gsettings set org.gnome.desktop.interface icon-theme "$(cat ~/.cache/noctalia-icon-theme)"'
+
 [backdrop]
 enabled = false
 blur_intensity = 0.5
