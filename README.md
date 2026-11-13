@@ -62,40 +62,6 @@ sudo systemctl disable --now greetd
 sudo systemctl enable --now sddm
 ```
 
-
-
-## The dot CLI
-
-`dot` is a read-only inventory and health check for this machine. It answers
-*what is installed* and *who owns it* across pacman, the Nix profile, tool
-shims, scripts and config files.
-
-| Command | What it tells you |
-|---|---|
-| `dot list` | what is installed (apps, CLI tools, scripts, managed configs) |
-| `dot list --all` | every item, ungrouped |
-| `dot list --ownership` | who owns each config file |
-| `dot list --json` | machine-readable |
-| `dot status` | broken links, stale copies, missing binaries, drift |
-| `dot status --json` | machine-readable findings |
-
-`dot status` exits `1` when it finds problems.
-
-| Command | What it does |
-|---|---|
-| `dot health` | fast health check for scripts and niri spawn targets |
-| `dot pkg list` | packages declared in `nix/modules/packages.nix` |
-| `dot pkg add <name>` | add a package and apply it |
-| `dot pkg rm <name>` | remove a package and apply it |
-| `dot pkg sync` | apply the list as it stands |
-| `dot browse` | fzf launcher over apps, CLI tools, scripts and configs |
-| `dot keys` | Niri cheat sheet, parsed from the live config (Arabic by default) |
-| `dot show <id>` | details of one item |
-
-`dot pkg` is the only mutating command: it edits `nix/modules/packages.nix`,
-shows the diff, asks before writing, and restores the file if the switch fails.
-It never uses `sudo`.
-
 ## How it's organized
 
 ```

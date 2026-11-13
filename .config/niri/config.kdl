@@ -77,7 +77,6 @@ debug {
 
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
-    Super+Shift+Slash { spawn "/home/zeyad/.local/bin/dot" "keys" "--gui"; }
 
     Mod+T { spawn "kitty"; }
     Super+Alt+L { spawn "noctalia" "msg" "session" "lock"; }
