@@ -236,6 +236,7 @@ binds {
 
     Mod+Shift+N { spawn "noctalia" "msg" "panel-toggle" "control-center" "notifications"; }
     Mod+Shift+A { spawn "noctalia" "msg" "panel-toggle" "hy4ri/herdr:panel"; }
+    Mod+Shift+W { spawn "noctalia" "msg" "panel-toggle" "noctalia/wallhaven:browser"; }
 
     Mod+D { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
     Mod+Space { switch-layout "next"; }
@@ -246,6 +247,10 @@ binds {
 window-rule {
     match app-id=r#"^kitty$"#
     open-maximized true
+    background-effect {
+        blur true
+        xray false
+    }
 }
 window-rule {
     match app-id=r#"firefox$"# title="^Picture-in-Picture$"
