@@ -33,7 +33,7 @@ fi
 [[ -r "$ZINIT_HOME/zinit.zsh" ]] && source "$ZINIT_HOME/zinit.zsh"
 
 # Environment
-export BROWSER=brave
+export BROWSER=helium-browser
 export TERMINAL=kitty
 export EDITOR=nvim
 export VISUAL=nvim

@@ -222,9 +222,9 @@ binds {
 
     Mod+Grave { spawn "niri" "msg" "action" "load-config-file"; }
 
-    Mod+B repeat=false { spawn "brave"; }
+    Mod+B repeat=false { spawn "helium-browser"; }
 
-    Mod+Shift+O { spawn "brave"; }
+    Mod+Shift+O { spawn "helium-browser"; }
 
     Mod+C { spawn "noctalia" "msg" "panel-toggle" "clipboard"; }
 
@@ -283,12 +283,12 @@ window-rule {
     default-window-height { fixed 600; }
 }
 window-rule {
-    match app-id=r#"^brave-browser$"#
-    exclude app-id=r#"^brave-browser$"# title=r#"(?i)(sign in|google accounts|accounts.google|oauth|login|authorize|authentication)"#
+    match app-id=r#"^(?i)helium"#
+    exclude app-id=r#"^(?i)helium$"# title=r#"(?i)(sign in|google accounts|accounts.google|oauth|login|authorize|authentication)"#
     open-maximized true
 }
 window-rule {
-    match app-id=r#"^brave-browser$"# title=r#"(?i)(sign in|google accounts|accounts.google|oauth|login|authorize|authentication)"#
+    match app-id=r#"^(?i)helium$"# title=r#"(?i)(sign in|google accounts|accounts.google|oauth|login|authorize|authentication)"#
     open-floating true
     default-column-width { proportion 0.45; }
     default-window-height { proportion 0.70; }
