@@ -71,9 +71,6 @@
     ".config/fontconfig/fonts.conf" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/fontconfig/fonts.conf";
     };
-    ".config/brave-flags.conf" = {
-      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/brave-flags.conf";
-    };
     ".config/xed.dconf" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/xed.dconf";
     };

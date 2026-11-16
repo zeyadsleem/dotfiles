@@ -1,6 +1,4 @@
 [Default Applications]
-x-scheme-handler/postman=Postman.desktop
-x-scheme-handler/mailto=brave-browser.desktop
 image/jpeg=org.gnome.Loupe.desktop
 x-scheme-handler/http=helium.desktop
 x-scheme-handler/https=helium.desktop
@@ -13,20 +11,16 @@ application/xhtml+xml=helium.desktop
 application/x-extension-xhtml=helium.desktop
 application/x-extension-xht=helium.desktop
 image/png=org.gnome.Loupe.desktop
-video/mp4=io.github.celluloid_player.Celluloid.desktop
+video/mp4=mpv.desktop
 application/pdf=atril.desktop
 image/vnd.microsoft.icon=org.gnome.Loupe.desktop
 image/gif=org.gnome.Loupe.desktop
 image/webp=org.gnome.Loupe.desktop
 inode/directory=thunar.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
-x-scheme-handler/flywheel-local=Local.desktop
-x-scheme-handler/codex=chatgpt.desktop
-x-scheme-handler/antigravity=antigravity.desktop
 x-scheme-handler/t3code=com.t3tools.T3Code.desktop
 
 [Added Associations]
-x-scheme-handler/mailto=userapp-Evolution-0Q0AF3.desktop;
 x-scheme-handler/http=helium.desktop;
 x-scheme-handler/https=helium.desktop;
 x-scheme-handler/chrome=helium.desktop;
@@ -40,10 +34,9 @@ application/x-extension-xht=helium.desktop;
 text/markdown=org.x.editor.desktop;
 application/json=org.x.editor.desktop;
 image/png=org.gnome.Loupe.desktop;swappy.desktop;
-video/mp4=io.github.celluloid_player.Celluloid.desktop;
+video/mp4=mpv.desktop;
 application/pdf=atril.desktop;
 image/jpeg=org.gnome.Loupe.desktop;
 image/vnd.microsoft.icon=org.gnome.Loupe.desktop;
 image/gif=org.gnome.Loupe.desktop;
 image/webp=org.gnome.Loupe.desktop;
-x-scheme-handler/antigravity=antigravity.desktop;

@@ -66,8 +66,8 @@ prefer-no-csd
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
 cursor {
-    xcursor-theme "Adwaita"
-    xcursor-size 24
+    xcursor-theme "Bibata-Modern-Ice"
+    xcursor-size 20
     hide-when-typing
 }
 
@@ -80,8 +80,6 @@ binds {
 
     Mod+T { spawn "kitty"; }
     Super+Alt+L { spawn "noctalia" "msg" "session" "lock"; }
-
-    Super+Alt+S allow-when-locked=true hotkey-overlay-title=null { spawn-sh "pkill orca || exec orca"; }
 
     XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-up"; }
     XF86AudioLowerVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-down"; }
@@ -224,8 +222,6 @@ binds {
 
     Mod+B repeat=false { spawn "helium-browser"; }
 
-    Mod+Shift+O { spawn "helium-browser"; }
-
     Mod+C { spawn "noctalia" "msg" "panel-toggle" "clipboard"; }
 
     Mod+Shift+Period { spawn "hyprpicker" "--autocopy"; }
@@ -249,10 +245,6 @@ window-rule {
     }
 }
 window-rule {
-    match app-id=r#"firefox$"# title="^Picture-in-Picture$"
-    open-floating true
-}
-window-rule {
     match app-id=r#"^dev\.noctalia\.Noctalia$"#
     open-floating true
     default-column-width { fixed 1080; }
@@ -273,10 +265,6 @@ window-rule {
     open-floating true
 }
 window-rule {
-    match app-id="blueman-manager"
-    open-floating true
-}
-window-rule {
     match app-id="thunar"
     open-floating true
     default-column-width { fixed 800; }
@@ -294,17 +282,6 @@ window-rule {
     default-window-height { proportion 0.70; }
     default-floating-position x=0 y=0 relative-to="top"
     open-focused true
-}
-window-rule {
-    match app-id="protonvpn-app"
-    open-floating true
-}
-window-rule {
-    match app-id=r#"(?i)(cloudflare|warp)"#
-    open-floating true
-    default-column-width { proportion 0.45; }
-    default-window-height { proportion 0.70; }
-    default-floating-position x=32 y=32 relative-to="top-right"
 }
 window-rule {
     match title="(?i)(save as|save file|open file|open folder|open project)"
@@ -328,5 +305,6 @@ spawn-at-startup "noctalia"
 spawn-at-startup "nm-applet" "--indicator"
 
 spawn-sh-at-startup "gnome-keyring-daemon --start --components=secrets,ssh"
-spawn-sh-at-startup "protonvpn-app"
 spawn-sh-at-startup "$HOME/.local/bin/headset-popup-daemon"
+
+include "noctalia.kdl"
