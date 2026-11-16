@@ -271,31 +271,6 @@ window-rule {
     default-window-height { fixed 600; }
 }
 window-rule {
-    match app-id=r#"^(?i)helium"#
-    exclude app-id=r#"^(?i)helium$"# title=r#"(?i)(sign in|google accounts|accounts.google|oauth|login|authorize|authentication)"#
-    open-maximized true
-}
-window-rule {
-    match app-id=r#"^(?i)helium$"# title=r#"(?i)(sign in|google accounts|accounts.google|oauth|login|authorize|authentication)"#
-    open-floating true
-    default-column-width { proportion 0.45; }
-    default-window-height { proportion 0.70; }
-    default-floating-position x=0 y=0 relative-to="top"
-    open-focused true
-}
-window-rule {
-    match title="(?i)(save as|save file|open file|open folder|open project)"
-    open-floating true
-}
-window-rule {
-    match title="(?i)(preferences|settings|options|configuration)"
-    open-floating true
-}
-window-rule {
-    match title="(?i)(print|printer|printing)"
-    open-floating true
-}
-window-rule {
     match app-id="slurp"
     open-floating true
 }
