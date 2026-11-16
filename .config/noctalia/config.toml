@@ -9,6 +9,7 @@ high_contrast = false
 [shell]
 corner_radius_scale = 1.0
 font_family = "Maple Mono NF"
+circular_avatar = true
 avatar_path = "/home/zeyad/.face"
 time_format = "{:%I:%M %p}"
 date_format = "%A, %d %B %Y"
@@ -137,16 +138,25 @@ pure_black_dark = false
 
 [theme.templates]
 enable_builtin_templates = true
-builtin_ids = ["btop", "gtk3", "gtk4", "kitty", "qt"]
+builtin_ids = ["btop", "gtk3", "gtk4", "kitty", "niri", "qt"]
 enable_community_templates = false
 community_ids = []
 
-# Omarchy-style icon swap: Noctalia cannot recolor icon packs, so flip the
-# system icon theme by mode like omarchy-theme-set does (dark -> Papirus-Dark).
+# Icon swap by mode like omarchy-theme-set does (dark -> Papirus-Dark): the
+# post_hook keeps the GSettings icon theme in sync for portal consumers.
 [theme.templates.user.icon-theme]
-input_path_modes = { dark = "~/.config/noctalia/icons/dark.txt", light = "~/.config/noctalia/icons/light.txt" }
-output_path = "~/.cache/noctalia-icon-theme"
+input_path_modes = { dark = "icons/dark.txt", light = "icons/light.txt" }
+output_path = "$XDG_CACHE_HOME/noctalia-icon-theme"
 post_hook = 'gsettings set org.gnome.desktop.interface icon-theme "$(cat ~/.cache/noctalia-icon-theme)"'
+
+# GTK settings.ini (gtk3 + gtk4): keeps the startup fallback files in sync
+# with the mode, since the builtin gtk templates only write gtk.css.
+[theme.templates.user.gtk-settings-ini]
+input_path_modes = { dark = "gtk/dark.ini", light = "gtk/light.ini" }
+output_path = [
+    "$XDG_CONFIG_HOME/gtk-3.0/settings.ini",
+    "$XDG_CONFIG_HOME/gtk-4.0/settings.ini",
+]
 
 [backdrop]
 enabled = false
@@ -219,7 +229,6 @@ disk_poll_seconds = 10.0
 enabled = false
 
 [control_center]
-circular_avatar = true
 show_avatar_border = true
 
 [[control_center.shortcuts]]
