@@ -201,7 +201,7 @@ wifi = true
 bluetooth = false
 power_profile = true
 caffeine = true
-nightlight = false
+nightlight = true
 dnd = true
 lock_keys = false
 keyboard_layout = false
@@ -233,6 +233,9 @@ show_avatar_border = true
 
 [[control_center.shortcuts]]
 type = "caffeine"
+
+[[control_center.shortcuts]]
+type = "nightlight"
 
 [[control_center.shortcuts]]
 type = "notification"
