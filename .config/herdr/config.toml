@@ -22,12 +22,12 @@ resize_pane_down = "alt+j"
 resize_pane_up = "alt+k"
 resize_pane_right = "alt+l"
 
-# Prefix-free vim pane navigation: Ctrl+h/j/k/l move to the pane in that
-# direction (no prefix needed).
-focus_pane_left = ["prefix+h", "ctrl+h"]
-focus_pane_down = ["prefix+j", "ctrl+j"]
-focus_pane_up = ["prefix+k", "ctrl+k"]
-focus_pane_right = ["prefix+l", "ctrl+l"]
+# Pane navigation keeps both forms, but the prefix-free chord is Ctrl+Alt so
+# bare Ctrl+h/j/k/l reach Neovim for split navigation inside a pane.
+focus_pane_left = ["prefix+h", "ctrl+alt+h"]
+focus_pane_down = ["prefix+j", "ctrl+alt+j"]
+focus_pane_up = ["prefix+k", "ctrl+alt+k"]
+focus_pane_right = ["prefix+l", "ctrl+alt+l"]
 
 # Workspaces, not agent sessions: prefix, then Ctrl+N / Ctrl+P.
 next_workspace = "prefix+ctrl+n"

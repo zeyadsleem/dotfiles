@@ -15,6 +15,9 @@ opt.conceallevel = 0
 opt.concealcursor = ""
 opt.signcolumn = "yes:2"
 
+-- Disable Snacks' non-essential UI animations for snappier pickers/popups.
+vim.g.snacks_animate = false
+
 vim.keymap.set("i", "<CR>", function()
   local row, col = unpack(vim.api.nvim_win_get_cursor(0))
   local line = vim.api.nvim_get_current_line()
@@ -41,6 +44,10 @@ vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "FileType" }, {
   end,
   desc = "Force conceal off everywhere",
 })
+
+-- Neovim 0.12's built-in, much faster TypeScript LSP. Keep the existing
+-- vtsls extra installed for fallback, but avoid starting the heavier server.
+vim.g.lazyvim_ts_lsp = "tsc"
 
 vim.api.nvim_create_autocmd("ColorScheme", {
   callback = function()

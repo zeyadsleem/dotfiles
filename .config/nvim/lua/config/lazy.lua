@@ -24,8 +24,10 @@ require("lazy").setup({
     version = false,
   },
   -- install = { colorscheme = { "tokyonight" } },
+  -- Background git checks on every startup add avoidable work. Plugin updates
+  -- stay available on demand via `:Lazy update`.
   checker = {
-    enabled = true,
+    enabled = false,
     notify = false,
   },
   performance = {

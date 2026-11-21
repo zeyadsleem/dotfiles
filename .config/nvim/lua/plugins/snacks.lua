@@ -1,7 +1,19 @@
 return {
   "folke/snacks.nvim",
 
+  -- The explorer is replaced by mini.files; keep the picker itself.
+  keys = {
+    { "<leader>e", false },
+    { "<leader>E", false },
+    { "<leader>fe", false },
+    { "<leader>fE", false },
+  },
+
   opts = {
+    explorer = {
+      enabled = false,
+    },
+
     picker = {
       enabled = true,
 
