@@ -32,10 +32,9 @@
   # Kept on one line: Herdr 0.9.5's VT reflow duplicates multiline p10k prompts
   # when a pane is split or resized (herdrdev/herdr#3672). Single-line is clean.
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
-    # =========================[ Line #1 ]=========================
-    # os_icon               # os identifier
-    dir                     # current directory
-    vcs                     # git status
+    # Git/dir/worktree info is printed by `_print_git_info_line` in precmd as
+    # ordinary output, so zsh's active prompt stays ONE logical line and Herdr
+    # pane splits never duplicate it.
     prompt_char             # prompt symbol
   )
 

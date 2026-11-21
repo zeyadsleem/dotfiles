@@ -353,6 +353,70 @@ if command -v zoxide >/dev/null 2>&1; then
   compdef __cd_zoxide_complete cd
 fi
 
+# Suppress the default inverse `%` end-of-prompt marker on the handoff to p10k.
+PROMPT_EOL_MARK=''
+
+# Two-line prompt look with a ONE-line active prompt. `_print_git_info_line`
+# writes dir/git/worktree as ordinary output in precmd, so zsh's active prompt
+# remains one logical line and Herdr pane splits never duplicate it. It is
+# synchronous, so git/worktree info is complete before the prompt is drawn.
+function _print_git_info_line() {
+  emulate -L zsh
+  local out head branch ab='' ahead='' behind='' flags='' worktree='' color=2
+  local -a lines
+
+  out=$(command git --no-optional-locks status --porcelain=v1 -b --untracked-files=normal 2>/dev/null) || return 0
+  lines=(${(f)out})
+
+  head=${lines[1]#\#\# }
+  branch=${head%% *}
+  branch=${branch%%...*}
+  if [[ $head == *'['* ]]; then
+    ab=${head##*\[}
+    ab=${ab%%\]*}
+    [[ $ab == *ahead* ]] && ahead="↑${${ab#*ahead }%%,*}"
+    [[ $ab == *behind* ]] && behind="↓${ab##*behind }"
+  fi
+  if [[ $branch == HEAD ]]; then
+    branch=$(command git rev-parse --short HEAD 2>/dev/null) || branch='detached'
+  fi
+
+  local line x y
+  for line in ${lines[2,-1]}; do
+    [[ -z $line ]] && continue
+    x=${line[1]}
+    y=${line[2]}
+    case $x in
+      '?'|'!') flags+='?' ;;
+      M|A|D|R|C) flags+='+' ;;
+    esac
+    case $y in
+      M|D|R|C) flags+='*' ;;
+    esac
+  done
+  [[ -n $flags ]] && color=3
+
+  local dirs gd gc
+  dirs=$(command git rev-parse --git-dir --git-common-dir 2>/dev/null) || dirs=''
+  if [[ -n $dirs ]]; then
+    gd=${dirs%%$'\n'*}
+    gc=${dirs##*$'\n'}
+    [[ $gd != $gc ]] && worktree=" %F{6}wt:${gd:t}%f"
+  fi
+
+  local markers=''
+  [[ -n $flags ]] && markers=" %F{1}${flags}%f"
+  local delta=''
+  [[ -n $ahead$behind ]] && delta=" %F{5}${ahead}${behind}%f"
+
+  print -rP -- "%F{4}%~%f  %F{${color}} ${branch}%f${delta}${worktree}${markers}"
+}
+
+# p10k forces `_p9k_precmd` to the end; this hook stays before it so the info
+# line is printed before the prompt is drawn.
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _print_git_info_line
+
 # Powerlevel10k
 [[ -r ~/powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/powerlevel10k/powerlevel10k.zsh-theme
 [[ -r ~/.p10k.zsh ]] && source ~/.p10k.zsh
