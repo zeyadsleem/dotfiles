@@ -22,6 +22,22 @@ resize_pane_down = "alt+j"
 resize_pane_up = "alt+k"
 resize_pane_right = "alt+l"
 
+# Prefix-free vim pane navigation: Ctrl+h/j/k/l move to the pane in that
+# direction (no prefix needed).
+focus_pane_left = ["prefix+h", "ctrl+h"]
+focus_pane_down = ["prefix+j", "ctrl+j"]
+focus_pane_up = ["prefix+k", "ctrl+k"]
+focus_pane_right = ["prefix+l", "ctrl+l"]
+
+# Workspaces, not agent sessions: prefix, then Ctrl+N / Ctrl+P.
+next_workspace = "prefix+ctrl+n"
+previous_workspace = "prefix+ctrl+p"
+
+# Upstream herdrdev/herdr#3672: shrinking a pane can leave stale copies of a
+# wide zsh/p10k prompt in the grid. One keystroke wipes them; the real zsh fix
+# is still pending in the vendored Ghostty VT code.
+clear_pane = "prefix+ctrl+k"
+
 # Goto picker keeps Herdr's native prefix+g binding.
 
 # The four tmux throwaway windows, ported as Herdr panes/popups.
@@ -57,3 +73,7 @@ delivery = "system"
 
 [ui]
 status_indicators = "symbols"
+
+# Already the default, pinned here so focus changes always wipe the stale
+# zsh/p10k rows from herdrdev/herdr#3672.
+redraw_on_focus_gained = true

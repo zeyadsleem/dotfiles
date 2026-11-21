@@ -24,13 +24,16 @@ setopt AUTO_PARAM_KEYS
 [[ -t 0 ]] && stty -ixon
 bindkey -e
 
-# Zinit
-ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
-if [[ ! -d "$ZINIT_HOME" ]]; then
-  mkdir -p "${ZINIT_HOME:h}"
-  git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
-fi
-[[ -r "$ZINIT_HOME/zinit.zsh" ]] && source "$ZINIT_HOME/zinit.zsh"
+# Plugins are sourced directly from disk. Zinit's loader adds ~120ms to every
+# shell start, so only its checked-out plugin directory is kept. Refresh them
+# with `zsh-plugins-update`.
+ZSH_PLUGIN_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/plugins"
+zsh-plugins-update() {
+  local plugin
+  for plugin in Aloxaf---fzf-tab zsh-users---zsh-autosuggestions zdharma-continuum---fast-syntax-highlighting; do
+    git -C "$ZSH_PLUGIN_DIR/$plugin" pull --ff-only
+  done
+}
 
 # Environment
 export BROWSER=helium-browser
@@ -158,8 +161,8 @@ if [[ -f "$ZCOMPDUMP" && ! -f "$ZCOMPDUMP.zwc" || "$ZCOMPDUMP" -nt "$ZCOMPDUMP.z
 fi
 
 # fzf-tab: display native completion results
-zinit ice lucid
-zinit light Aloxaf/fzf-tab
+[[ -r "$ZSH_PLUGIN_DIR/Aloxaf---fzf-tab/fzf-tab.plugin.zsh" ]] && \
+  source "$ZSH_PLUGIN_DIR/Aloxaf---fzf-tab/fzf-tab.plugin.zsh"
 
 zstyle ':fzf-tab:*' switch-group ',' '.'
 zstyle ':fzf-tab:*' continuous-trigger '/'
@@ -194,14 +197,14 @@ zstyle ':fzf-tab:complete:(\\|*/|)man:*' fzf-preview \
 # Autosuggestions: history only, completion stays on Tab
 ZSH_AUTOSUGGEST_STRATEGY=(history)
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=120
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#9893a5'
+# ANSI palette index: Kitty's live palette is pushed on Noctalia colors_changed.
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 ZSH_AUTOSUGGEST_HISTORY_IGNORE="$HISTORY_IGNORE"
 
-zinit ice lucid atload'
-  bindkey "^ " autosuggest-accept
-  bindkey "^F" autosuggest-accept
-'
-zinit light zsh-users/zsh-autosuggestions
+[[ -r "$ZSH_PLUGIN_DIR/zsh-users---zsh-autosuggestions/zsh-autosuggestions.plugin.zsh" ]] && \
+  source "$ZSH_PLUGIN_DIR/zsh-users---zsh-autosuggestions/zsh-autosuggestions.plugin.zsh"
+bindkey "^ " autosuggest-accept
+bindkey "^F" autosuggest-accept
 
 # Native prefix history search on Up/Down
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
@@ -221,7 +224,8 @@ if command -v fzf >/dev/null 2>&1; then
     --info=inline-right
     --no-hscroll
     --pointer='▶'
-    --color=fg:246,hl:179,fg+:255,bg+:237,hl+:222,info:243,prompt:108,pointer:204,marker:114,spinner:108,header:240,border:239
+    # ANSI 0-15 track Kitty's Noctalia-driven palette; -1 keeps terminal defaults.
+    --color=fg:-1,hl:3,fg+:-1,bg+:0,hl+:11,info:8,prompt:6,pointer:5,marker:2,spinner:6,header:8,border:0
   )
 
   # Ctrl-R: zsh history, newest first, exact duplicates removed
@@ -355,19 +359,20 @@ fi
 
 # Syntax highlighting must load last
 typeset -A FAST_HIGHLIGHT_STYLES
+# ANSI palette indices (0-15) follow Kitty's Noctalia-driven palette live.
 FAST_HIGHLIGHT_STYLES[default]='none'
-FAST_HIGHLIGHT_STYLES[unknown-token]='fg=#d7827e,bold'
-FAST_HIGHLIGHT_STYLES[reserved-word]='fg=#7a5ccc,bold'
-FAST_HIGHLIGHT_STYLES[alias]='fg=#286983'
-FAST_HIGHLIGHT_STYLES[command]='fg=#286983,bold'
-FAST_HIGHLIGHT_STYLES[path]='fg=#56949f,underline'
-FAST_HIGHLIGHT_STYLES[globbing]='fg=#7a5ccc'
-FAST_HIGHLIGHT_STYLES[option]='fg=#ea9d34'
-FAST_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#56949f'
-FAST_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#56949f'
+FAST_HIGHLIGHT_STYLES[unknown-token]='fg=1,bold'
+FAST_HIGHLIGHT_STYLES[reserved-word]='fg=5,bold'
+FAST_HIGHLIGHT_STYLES[alias]='fg=6'
+FAST_HIGHLIGHT_STYLES[command]='fg=4,bold'
+FAST_HIGHLIGHT_STYLES[path]='fg=6,underline'
+FAST_HIGHLIGHT_STYLES[globbing]='fg=5'
+FAST_HIGHLIGHT_STYLES[option]='fg=3'
+FAST_HIGHLIGHT_STYLES[single-quoted-argument]='fg=2'
+FAST_HIGHLIGHT_STYLES[double-quoted-argument]='fg=2'
 
-zinit ice lucid
-zinit light zdharma-continuum/fast-syntax-highlighting
+[[ -r "$ZSH_PLUGIN_DIR/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]] && \
+  source "$ZSH_PLUGIN_DIR/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
 
 # General keybindings
 bindkey '^A' beginning-of-line

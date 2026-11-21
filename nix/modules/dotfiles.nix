@@ -20,6 +20,15 @@
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/noctalia/config.toml";
     };
 
+    # Hand-written hooks live in their own *.toml file so they load from the
+    # config stack without touching the managed config.toml or runtime state.
+    ".config/noctalia/hooks.toml" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/noctalia/hooks.toml";
+    };
+    ".config/noctalia/hooks/kitty-live-colors.sh" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/noctalia/hooks/kitty-live-colors.sh";
+    };
+
     # Icon-theme names consumed by the icon-theme user template (config.toml):
     # Noctalia reads these on every theme apply. No runtime files land here.
     ".config/noctalia/icons" = {

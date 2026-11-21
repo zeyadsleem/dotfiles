@@ -1,0 +1,6 @@
+# Hand-written Noctalia hooks. colors_changed fires after the palette is
+# resolved and the kitty template has regenerated themes/noctalia.conf.
+[hooks]
+colors_changed = [
+  "~/.config/noctalia/hooks/kitty-live-colors.sh",
+]

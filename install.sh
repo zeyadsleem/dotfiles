@@ -35,13 +35,21 @@ else
   echo "  all key tools found."
 fi
 
-# 4. zinit (plugin manager for zsh)
-ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
-if [ ! -d "$ZINIT_HOME" ]; then
-  echo "==> installing zinit..."
-  mkdir -p "${ZINIT_HOME:h}"
-  git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
-fi
+# 4. zsh plugins (sourced directly at startup; zinit's layout is reused)
+ZSH_PLUGIN_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/plugins"
+for plugin in \
+  'Aloxaf---fzf-tab https://github.com/Aloxaf/fzf-tab.git' \
+  'zsh-users---zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions.git' \
+  'zdharma-continuum---fast-syntax-highlighting https://github.com/zdharma-continuum/fast-syntax-highlighting.git'
+do
+  dir=${plugin%% *}
+  url=${plugin#* }
+  if [ ! -d "$ZSH_PLUGIN_DIR/$dir" ]; then
+    echo "==> installing zsh plugin: $dir..."
+    mkdir -p "$ZSH_PLUGIN_DIR"
+    git clone "$url" "$ZSH_PLUGIN_DIR/$dir"
+  fi
+done
 
 # 5. powerlevel10k
 P10K_DIR="$HOME/powerlevel10k"
