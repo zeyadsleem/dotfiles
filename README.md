@@ -74,7 +74,7 @@ sudo systemctl enable --now sddm
 │   └── modules/         # one concern each:
 │       ├── packages.nix # home.packages — the CLI tool set
 │       ├── git.nix      # programs.git
-│       ├── zsh.nix      # links ~/.zshrc, ~/.p10k.zsh, ~/.alias.zsh
+│       ├── zsh.nix      # links ~/.zshrc and ~/.p10k.zsh
 │       ├── kitty.nix    # links kitty.conf
 │       ├── yazi.nix     # links ~/.config/yazi
 │       └── dotfiles.nix # Level 2 configs (niri, noctalia, kanshi, apps)
@@ -107,7 +107,9 @@ Each switch creates a **generation** you can roll back to.
    from pacman** (safer for fast-moving/GPU-tied software like the compositor).
 3. **Level 3 — untouched**: kernel/GPU drivers/systemd stay system-managed;
    zsh/fzf/p10k/zinit stay on pacman because `~/.zshrc` sources
-   `/usr/share/...` paths that a Nix-provided binary would break.
+   `/usr/share/...` paths that a Nix-provided binary would break. The zsh
+   config itself lives in a single `~/.zshrc` (aliases/functions included),
+   with `~/.p10k.zsh` kept separate as the generated Powerlevel10k config.
 
 ## How the dots get to ~
 

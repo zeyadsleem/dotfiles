@@ -3,12 +3,13 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# Locale
+# ------------------------------------------------------------------------------
+# Locale & core options
+# ------------------------------------------------------------------------------
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 setopt COMBINING_CHARS
 
-# Core options
 setopt PROMPT_SUBST
 setopt AUTO_CD
 setopt GLOB_DOTS
@@ -24,9 +25,41 @@ setopt AUTO_PARAM_KEYS
 [[ -t 0 ]] && stty -ixon
 bindkey -e
 
-# Plugins are sourced directly from disk. Zinit's loader adds ~120ms to every
-# shell start, so only its checked-out plugin directory is kept. Refresh them
-# with `zsh-plugins-update`.
+# ------------------------------------------------------------------------------
+# Environment
+# ------------------------------------------------------------------------------
+export BROWSER=helium-browser
+export TERMINAL=kitty
+export EDITOR=nvim
+export VISUAL=nvim
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export MANROFFOPT=-c
+
+# PATH (deduped). Keep user/tool bins early; append tool-specific paths once.
+typeset -U path PATH
+path=(
+  "$HOME/.local/bin"
+  "$HOME/bin"
+  "$HOME/go/bin"
+  "$HOME/.bun/bin"
+  "$HOME/.opencode/bin"
+  $path
+)
+[[ -n "${PNPM_HOME:-}" ]] || export PNPM_HOME="$HOME/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) path+=("$PNPM_HOME") ;;
+esac
+export PATH
+
+[[ -r "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+[[ -r "$HOME/.vite-plus/env" ]] && source "$HOME/.vite-plus/env"
+[[ -r ~/.env.zsh ]] && source ~/.env.zsh
+
+# ------------------------------------------------------------------------------
+# Plugins (manual sourcing for fast startup; no Zinit loader overhead)
+# Refresh with `zsh-plugins-update`.
+# ------------------------------------------------------------------------------
 ZSH_PLUGIN_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/plugins"
 zsh-plugins-update() {
   local plugin
@@ -35,48 +68,9 @@ zsh-plugins-update() {
   done
 }
 
-# Environment
-export BROWSER=helium-browser
-export TERMINAL=kitty
-export EDITOR=nvim
-export VISUAL=nvim
-export MANPAGER="sh -c 'col -bx | bat -l man -p'"
-export MANROFFOPT=-c
-
-# PATH without duplicates
-typeset -U path PATH
-path=(
-  "$HOME/.local/bin"
-  "$HOME/bin"
-  "$HOME/go/bin"
-  "$HOME/.bun/bin"
-  $path
-)
-export PATH
-
-[[ -r "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
-[[ -r "$HOME/.vite-plus/env" ]] && source "$HOME/.vite-plus/env"
-[[ -r ~/.env.zsh ]] && source ~/.env.zsh
-[[ -r ~/.alias.zsh ]] && source ~/.alias.zsh
-
-# FZF file and directory search
-if command -v fd >/dev/null 2>&1; then
-  export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-  export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
-fi
-
-export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {} 2>/dev/null'"
-export FZF_ALT_C_OPTS="--preview 'eza --tree --level=3 --color=always --icons --git {} 2>/dev/null | head -200'"
-
-# FZF keybindings (Ctrl-T, Alt-C); Ctrl-R is rebound to the history widget below
-if [[ -r /usr/share/fzf/key-bindings.zsh ]]; then
-  source /usr/share/fzf/key-bindings.zsh
-elif [[ -r ~/.fzf/shell/key-bindings.zsh ]]; then
-  source ~/.fzf/shell/key-bindings.zsh
-fi
-
+# ------------------------------------------------------------------------------
 # History
+# ------------------------------------------------------------------------------
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=100000
 SAVEHIST=100000
@@ -112,14 +106,18 @@ zshaddhistory() {
   return 0
 }
 
+# ------------------------------------------------------------------------------
 # Wayland fallback
+# ------------------------------------------------------------------------------
 if [[ -z "$WAYLAND_DISPLAY" && -n "$XDG_RUNTIME_DIR" ]]; then
   for socket in "$XDG_RUNTIME_DIR"/wayland-*(N); do
     [[ $socket != *.lock ]] && export WAYLAND_DISPLAY=${socket:t} && break
   done
 fi
 
-# Native Zsh completion + Arch zsh-completions
+# ------------------------------------------------------------------------------
+# Completion (native compinit + fzf-tab)
+# ------------------------------------------------------------------------------
 zmodload zsh/complist
 autoload -Uz compinit
 
@@ -156,7 +154,7 @@ else
   compinit -d "$ZCOMPDUMP"
 fi
 
-if [[ -f "$ZCOMPDUMP" && ! -f "$ZCOMPDUMP.zwc" || "$ZCOMPDUMP" -nt "$ZCOMPDUMP.zwc" ]]; then
+if [[ -f "$ZCOMPDUMP" && ( ! -f "$ZCOMPDUMP.zwc" || "$ZCOMPDUMP" -nt "$ZCOMPDUMP.zwc" ) ]]; then
   zcompile "$ZCOMPDUMP" 2>/dev/null
 fi
 
@@ -194,7 +192,28 @@ zstyle ':fzf-tab:complete:git-show:*' fzf-preview \
 zstyle ':fzf-tab:complete:(\\|*/|)man:*' fzf-preview \
   'MANWIDTH=80 man "$word" 2>/dev/null'
 
-# Autosuggestions: history only, completion stays on Tab
+# ------------------------------------------------------------------------------
+# FZF (file search + widgets)
+# ------------------------------------------------------------------------------
+if command -v fd >/dev/null 2>&1; then
+  export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+fi
+
+export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:500 {} 2>/dev/null'"
+export FZF_ALT_C_OPTS="--preview 'eza --tree --level=3 --color=always --icons --git {} 2>/dev/null | head -200'"
+
+# FZF keybindings (Ctrl-T, Alt-C); Ctrl-R is rebound to the history widget below
+if [[ -r /usr/share/fzf/key-bindings.zsh ]]; then
+  source /usr/share/fzf/key-bindings.zsh
+elif [[ -r ~/.fzf/shell/key-bindings.zsh ]]; then
+  source ~/.fzf/shell/key-bindings.zsh
+fi
+
+# ------------------------------------------------------------------------------
+# Autosuggestions
+# ------------------------------------------------------------------------------
 ZSH_AUTOSUGGEST_STRATEGY=(history)
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=120
 # ANSI palette index: Kitty's live palette is pushed on Noctalia colors_changed.
@@ -206,7 +225,9 @@ ZSH_AUTOSUGGEST_HISTORY_IGNORE="$HISTORY_IGNORE"
 bindkey "^ " autosuggest-accept
 bindkey "^F" autosuggest-accept
 
-# Native prefix history search on Up/Down
+# ------------------------------------------------------------------------------
+# History search & custom widgets
+# ------------------------------------------------------------------------------
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
@@ -320,7 +341,9 @@ else
   bindkey '^R' history-incremental-search-backward
 fi
 
+# ------------------------------------------------------------------------------
 # zoxide
+# ------------------------------------------------------------------------------
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
 
@@ -353,6 +376,353 @@ if command -v zoxide >/dev/null 2>&1; then
   compdef __cd_zoxide_complete cd
 fi
 
+# ------------------------------------------------------------------------------
+# Aliases & functions
+# ------------------------------------------------------------------------------
+
+# Safety
+alias rm='rm -i'
+alias mv='mv -i'
+alias cp='cp -i'
+
+# Navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ......='cd ../../../../..'
+
+md() { mkdir -p "$@" && cd "${@: -1}"; }
+alias du='du -h'
+
+# Prefer zoxide for directory jumps; keep builtin cd fallback.
+cd() {
+  if command -v zoxide >/dev/null 2>&1; then
+    z "$@"
+  else
+    builtin cd "$@"
+  fi
+}
+
+alias x=exit
+alias o='opencode'
+
+# File listing
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza -la --icons --git --group-directories-first'
+  alias l='eza -a --icons --group-directories-first'
+  alias lt='eza -la --icons --tree --level=4 --ignore-glob="**/node_modules|**/.git"'
+fi
+command -v bat >/dev/null 2>&1 && alias cat='bat --style=plain'
+
+# Git
+git_branch() { git rev-parse --abbrev-ref HEAD; }
+alias clone='git clone'
+alias fetch='git fetch && git status -s'
+alias pull='git pull && git status -s'
+alias push='git push'
+pushupstream() { git push --set-upstream origin "$(git_branch)"; }
+commit() { git commit -a -m "$*"; }
+alias amend='git commit --amend'
+alias amendall='git commit --amend --no-edit --allow-empty --allow-empty-message '
+alias br='git branch -vv'
+alias co='git checkout'
+alias trackedbranch='git rev-parse --abbrev-ref --symbolic-full-name @{u}'
+
+st() {
+  git status | sed -n '/Your/,/^$/p'
+  git status -s
+  echo
+  git log --pretty=format:"%h - <%an> %s (%cr)" --date=relative -3
+  echo
+}
+
+log() { git log --pretty=format:"%h - <%an> %s (%cr)" --date=relative -10 "$@"; }
+alias mylog='git log --pretty=format:"%h - <%an> %s (%cr)" --date=relative -10 --author=zeyad.sleem'
+alias stash='git stash push'
+alias unstash='git stash pop'
+alias stashes='git stash list'
+alias clean='git clean -xdf'
+alias unstage='git reset HEAD'
+alias pick='git cherry-pick'
+alias rebasemain='git fetch && git rebase origin/main && git status -s'
+alias grbc='git rebase --continue'
+alias grba='git rebase --abort'
+odd() { git difftool -y -d "$1".."$2"; }
+
+# Herdr
+alias h='herdr'
+alias hs='herdr session attach shell'
+alias hc='herdr session attach code'
+
+# Development tools
+alias v='nvim'
+alias pn='pnpm'
+alias dlx='pnpm dlx'
+alias pni='pnpm install'
+alias pna='pnpm add'
+alias pnr='pnpm run'
+alias pnu='pnpm update'
+
+# AI helpers
+# gpt: one-shot OpenCode question on the free Big Pickle model.
+# Usage: gpt <question...> | gpt -c <follow up> | gpt -m provider/model ...
+gpt() {
+  if (( $# == 0 )); then
+    print -u2 "usage: gpt [-c] [-m provider/model] <question...>"
+    return 1
+  fi
+
+  local arg has_model=0
+  for arg in "$@"; do
+    [[ $arg == -m || $arg == --model || $arg == --model=* ]] && has_model=1
+  done
+
+  if (( has_model )); then
+    opencode run "$@"
+  else
+    opencode run -m opencode/big-pickle "$@"
+  fi
+}
+
+# img: free pollinations.ai image generation (no API key required).
+# Usage: img [-s WxH] [-o file] [-n] [-f] <prompt...>
+img() {
+  local size="1024x1024" out="" no_open=0 force=0 width height prompt=""
+  local dir="$HOME/Pictures/ai"
+  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/img"
+
+  while (( $# )); do
+    case $1 in
+      -s)
+        [[ -n ${2:-} && $2 =~ ^[0-9]+x[0-9]+$ ]] || { print -u2 "img: -s takes WxH, got '${2:-}'"; return 1; }
+        size="$2"; shift 2 ;;
+      -o)
+        [[ -n ${2:-} ]] || { print -u2 "img: -o needs a file path"; return 1; }
+        out="$2"; shift 2 ;;
+      -n) no_open=1; shift ;;
+      -f|--force) force=1; shift ;;
+      -h|--help) print -u2 "usage: img [-s WxH] [-o file] [-n] [-f] <prompt...>"; return 0 ;;
+      --) shift; break ;;
+      -*) print -u2 "img: unknown option '$1'"; return 1 ;;
+      *) break ;;
+    esac
+  done
+
+  prompt="$*"
+  if [[ -z ${prompt//[[:space:]]/} ]]; then
+    print -u2 "usage: img [-s WxH] [-o file] [-n] [-f] <prompt...>"
+    return 1
+  fi
+
+  width="${size%x*}"
+  height="${size#*x}"
+
+  if [[ -z $out ]]; then
+    mkdir -p "$dir" || return 1
+    out="$dir/$(date +%Y%m%d-%H%M%S).jpg"
+  fi
+
+  local encoded
+  encoded="$(printf '%s' "$prompt" | jq -sRr '@uri')" || {
+    print -u2 "img: jq is required to encode the prompt"
+    return 1
+  }
+
+  mkdir -p "$cache" || return 1
+  local key cached
+  key="$(printf '%s|%s' "$prompt" "$size" | sha1sum | cut -d' ' -f1)"
+  cached="$cache/$key.jpg"
+
+  if (( ! force )) && [[ -s $cached && $(file -b --mime-type "$cached" 2>/dev/null) == image/* ]]; then
+    cp -f "$cached" "$out" || return 1
+    print -u2 "img: cached -> $out"
+    print "$out"
+    (( no_open )) || gio open "$out" >/dev/null 2>&1
+    return 0
+  fi
+
+  local url="https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&nologo=true"
+  local -a auth=()
+  [[ -n ${POLLINATIONS_TOKEN:-} ]] && auth=(-H "Authorization: Bearer $POLLINATIONS_TOKEN")
+
+  print -u2 "generating ${width}x${height} -> $out"
+
+  local attempt=1 max_attempts=3 ok=0 message pause tmp
+  tmp="$(mktemp "${TMPDIR:-/tmp}/img.XXXXXX")" || return 1
+
+  while (( attempt <= max_attempts )); do
+    curl -sS -L --max-time 180 "${auth[@]}" -o "$tmp" "$url" 2>/dev/null
+    if [[ -s $tmp ]] && [[ $(file -b --mime-type "$tmp" 2>/dev/null) == image/* ]]; then
+      ok=1
+      break
+    fi
+
+    message="$(jq -r '.error.message // empty' "$tmp" 2>/dev/null)"
+    : >"$tmp"
+    print -u2 "img: ${message:-no image returned} (attempt $attempt/$max_attempts)"
+
+    if (( attempt < max_attempts )); then
+      pause="$(printf '%s' "$message" | grep -oiE 'after [0-9]+ ?s' | grep -oE '[0-9]+' | head -1)"
+      pause="${pause:-8}"
+      (( pause > 70 )) && pause=70
+      print -u2 "img: waiting ${pause}s"
+      sleep "$pause"
+    fi
+    (( attempt++ ))
+  done
+
+  if (( ! ok )); then
+    rm -f "$tmp"
+    print -u2 "img: gave up after $max_attempts attempts."
+    print -u2 "img: the free tier allows 1 image per 45s per IP and the shared API is often busy."
+    print -u2 "img: try again in a minute, or set POLLINATIONS_TOKEN to lift the limit."
+    return 1
+  fi
+
+  mv -f "$tmp" "$out" || { rm -f "$tmp"; print -u2 "img: cannot write $out"; return 1; }
+  cp -f "$out" "$cached" 2>/dev/null
+
+  print "$out"
+  (( no_open )) || gio open "$out" >/dev/null 2>&1
+}
+
+# System utilities
+alias open='gio open'
+alias c='clear'
+alias wp='noctalia msg panel-toggle wallpaper'
+
+if command -v systemctl >/dev/null 2>&1; then
+  alias sctl='sudo systemctl'
+  alias jctl='sudo journalctl'
+fi
+
+# Nix helpers (edit the declarative packages list and re-activate HM)
+nxin() {
+  local pkg="$1"
+  local file="$HOME/dotfiles/nix/modules/packages.nix"
+
+  if [[ -z "$pkg" ]]; then
+    echo "usage: nxin <nix-package-name>"
+    return 1
+  fi
+  if [[ ! "$pkg" =~ ^[a-zA-Z0-9._+-]+$ ]]; then
+    echo "error: invalid package name '$pkg'"
+    return 1
+  fi
+  if [[ ! -f "$file" ]]; then
+    echo "error: packages.nix not found at $file"
+    return 1
+  fi
+  if grep -qE "^[[:space:]]*${pkg}[[:space:]]*$" "$file"; then
+    echo "'$pkg' is already in packages.nix"
+    return 0
+  fi
+
+  sed -i "0,/^[[:space:]]*\];$/s//    ${pkg}\n  ];/" "$file"
+  echo "added '$pkg' to packages.nix - re-activating Home Manager..."
+  (cd "$HOME/dotfiles" && nix run home-manager/master -- switch --flake '.#zeyad')
+}
+
+nxrm() {
+  local pkg="$1"
+  local file="$HOME/dotfiles/nix/modules/packages.nix"
+
+  if [[ -z "$pkg" ]]; then
+    echo "usage: nxrm <nix-package-name>"
+    return 1
+  fi
+  if [[ ! "$pkg" =~ ^[a-zA-Z0-9._+-]+$ ]]; then
+    echo "error: invalid package name '$pkg'"
+    return 1
+  fi
+  if [[ ! -f "$file" ]]; then
+    echo "error: packages.nix not found at $file"
+    return 1
+  fi
+  if ! grep -qE "^[[:space:]]*${pkg}[[:space:]]*$" "$file"; then
+    echo "'$pkg' is not in packages.nix"
+    return 1
+  fi
+
+  sed -i "/^[[:space:]]*${pkg}[[:space:]]*$/d" "$file"
+  echo "removed '$pkg' from packages.nix - re-activating Home Manager..."
+  (cd "$HOME/dotfiles" && nix run home-manager/master -- switch --flake '.#zeyad')
+}
+
+# Utilities
+lg() {
+  export LAZYGIT_NEW_DIR_FILE=~/.lazygit/newdir
+  lazygit "$@"
+  if [[ -f $LAZYGIT_NEW_DIR_FILE ]]; then
+    cd "$(cat "$LAZYGIT_NEW_DIR_FILE")" || return
+    rm -f -- "$LAZYGIT_NEW_DIR_FILE"
+  fi
+}
+
+yy() {
+  local tmp
+  tmp="$(mktemp -t yazi-cwd.XXXXXX)" || return 1
+  yazi "$@" --cwd-file="$tmp"
+  if [[ -s $tmp ]]; then
+    cd "$(cat "$tmp")" || return
+  fi
+  rm -f -- "$tmp"
+}
+
+fkill() {
+  local pid
+  pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+  [[ -n $pid ]] && echo "$pid" | xargs kill -"${1:-15}"
+}
+
+bak() { cp "$1"{,.bak.$(date +%Y%m%d_%H%M%S)}; }
+
+extract() {
+  [[ ! -f $1 ]] && return 1
+  case $1 in
+    *.tar.bz2) tar xjf "$1" ;;
+    *.tar.gz)  tar xzf "$1" ;;
+    *.tar.xz)  tar xJf "$1" ;;
+    *.bz2)     bunzip2 "$1" ;;
+    *.gz)      gunzip "$1" ;;
+    *.tar)     tar xf "$1" ;;
+    *.zip)     unzip "$1" ;;
+    *.7z)      7z x "$1" ;;
+    *.rar)     unrar x "$1" ;;
+    *)         echo "Unknown archive format"; return 1 ;;
+  esac
+}
+
+topcmd() {
+  history | awk '{CMD[$2]++} END {for (a in CMD) print CMD[a], a}' | sort -nr | head -20
+}
+
+pnpm-auto() {
+  if [[ -f package.json ]]; then
+    local node_version
+    node_version=$(node -p "require('./package.json').engines?.node || '24.13.0'")
+    pnpm env use "$node_version"
+  fi
+}
+
+# Zsh suffix/global aliases and named directories
+alias -s {txt,yml,yaml,toml,lua,conf,ini}=nvim
+alias -s {go,js,ts,py,c,cpp,h,hpp,css,html}=nvim
+alias -s json=jless
+alias -s md='glow -p'
+
+alias -g NE='2> /dev/null'
+alias -g NO='&> /dev/null'
+alias -g G='| grep'
+alias -g C='| wl-copy'
+
+hash -d dotfiles=$HOME/dotfiles
+hash -d conf=$HOME/.config
+
+# ------------------------------------------------------------------------------
+# Prompt (git info line + p10k active prompt)
+# ------------------------------------------------------------------------------
 # Suppress the default inverse `%` end-of-prompt marker on the handoff to p10k.
 PROMPT_EOL_MARK=''
 
@@ -360,7 +730,7 @@ PROMPT_EOL_MARK=''
 # writes dir/git/worktree as ordinary output in precmd, so zsh's active prompt
 # remains one logical line and Herdr pane splits never duplicate it. It is
 # synchronous, so git/worktree info is complete before the prompt is drawn.
-function _print_git_info_line() {
+_print_git_info_line() {
   emulate -L zsh
   local out head branch ab='' ahead='' behind='' flags='' worktree='' color=2
   local -a lines
@@ -421,7 +791,9 @@ add-zsh-hook precmd _print_git_info_line
 [[ -r ~/powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/powerlevel10k/powerlevel10k.zsh-theme
 [[ -r ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
-# Syntax highlighting must load last
+# ------------------------------------------------------------------------------
+# Syntax highlighting (must load last)
+# ------------------------------------------------------------------------------
 typeset -A FAST_HIGHLIGHT_STYLES
 # ANSI palette indices (0-15) follow Kitty's Noctalia-driven palette live.
 FAST_HIGHLIGHT_STYLES[default]='none'
@@ -438,7 +810,9 @@ FAST_HIGHLIGHT_STYLES[double-quoted-argument]='fg=2'
 [[ -r "$ZSH_PLUGIN_DIR/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]] && \
   source "$ZSH_PLUGIN_DIR/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
 
-# General keybindings
+# ------------------------------------------------------------------------------
+# Keybindings
+# ------------------------------------------------------------------------------
 bindkey '^A' beginning-of-line
 bindkey '^E' end-of-line
 bindkey '^[[H' beginning-of-line
@@ -453,19 +827,5 @@ bindkey '^/' undo
 bindkey '^[/' redo
 bindkey '^[[C' forward-char
 
-# pnpm
-export PNPM_HOME="/home/zeyad/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME/bin:"*) ;;
-  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
-esac
-# pnpm end
-
-# opencode
-export PATH=/home/zeyad/.opencode/bin:$PATH
-
-# Hermes Agent command
-case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
-
-# ApexYard: enable Claude Code LSP (added by /setup)
+# Environment toggles
 export ENABLE_LSP_TOOL=1
