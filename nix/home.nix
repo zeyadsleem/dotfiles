@@ -10,6 +10,7 @@
     ./modules/git.nix
     ./modules/zsh.nix
     ./modules/kitty.nix
+    ./modules/ptyxis.nix
     ./modules/yazi.nix
     ./modules/dotfiles.nix
   ];

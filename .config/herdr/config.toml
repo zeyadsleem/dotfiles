@@ -1,5 +1,10 @@
 onboarding = false
 
+[experimental]
+# `h` inside a herdr pane should open another herdr instead of erroring.
+# Keep this opt-in: nested sessions multiply input handling and panes.
+allow_nested = true
+
 [theme]
 # Follow the host terminal palette, which Noctalia regenerates from the wallpaper.
 name = "terminal"

@@ -7,13 +7,6 @@ sort_by = "natural"
 sort_dir_first = true
 show_hidden = true
 
-[preview]
-max_width = 800
-max_height = 600
-image_delay = 0
-image_filter = "triangle"
-image_quality = 75
-
 [plugin]
 prepend_previewers = [
   # Markdown rendering via Piper + Glow
