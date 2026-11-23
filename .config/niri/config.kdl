@@ -246,7 +246,7 @@ window-rule {
 }
 window-rule {
     match app-id=r#"^org\.gnome\.Ptyxis$"#
-    open-fullscreen true
+    open-maximized-to-edges true
     background-effect {
         blur true
         xray false
