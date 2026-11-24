@@ -32,7 +32,7 @@ index d65f0d7..e0dd2a1 100644
  vte-terminal.padded {
    margin: 0 0 1px 0;
 -  padding: 7px 6px 3px 6px;
-+  padding: 3px;
++  padding: 24px 6px 3px 6px;
  }
  
  vte-terminal:drop(active) { border-radius: 0 0 11px 11px; }
