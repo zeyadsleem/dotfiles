@@ -296,7 +296,7 @@ order = ["main"]
 
 [bar.main]
 position = "top"
-thickness = 34
+thickness = 32
 background_opacity = 0.92
 compositor_blur = true
 radius = 0

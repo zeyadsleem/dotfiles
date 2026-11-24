@@ -2,7 +2,7 @@
 let
   # Ptyxis 50.1 always draws its libadwaita header bar and tab bar. Kitty runs
   # with hidden decorations and a hidden tab bar, so patch them out and use
-  # kitty's 3px terminal padding.
+  # an explicit, uniform 4px terminal padding.
   ptyxis = pkgs.ptyxis.overrideAttrs (old: {
     patches = (old.patches or [ ]) ++ [
       ./ptyxis-hide-headerbar.patch
