@@ -56,6 +56,11 @@ animations {
 
 prefer-no-csd
 
+// Don't show the hotkey list on startup (still available with Mod+Shift+/).
+hotkey-overlay {
+    skip-at-startup
+}
+
 // Ptyxis is the default terminal. Exporting TERMINAL here (not only in zsh)
 // lets Noctalia's launcher and other niri-spawned apps open the same terminal.
 environment {
