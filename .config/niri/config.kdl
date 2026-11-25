@@ -61,10 +61,12 @@ hotkey-overlay {
     skip-at-startup
 }
 
-// Ptyxis is the default terminal. Exporting TERMINAL here (not only in zsh)
-// lets Noctalia's launcher and other niri-spawned apps open the same terminal.
+// Konsole is the default terminal: kitty-graphics images plus bidi Arabic.
+// Exporting TERMINAL here (not only in zsh) lets Noctalia's launcher and other
+// niri-spawned apps open the same terminal. `konsole` resolves to the wrapper
+// in ~/.local/bin, which selects the noctalia profile and hides the chrome.
 environment {
-    TERMINAL "ptyxis"
+    TERMINAL "konsole"
 }
 
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
@@ -82,7 +84,7 @@ debug {
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
 
-    Mod+T { spawn "ptyxis" "--new-window"; }
+    Mod+T { spawn "konsole"; }
     Super+Alt+L { spawn "noctalia" "msg" "session" "lock"; }
 
     XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia" "msg" "volume-up"; }
@@ -216,7 +218,7 @@ binds {
     Mod+Escape { toggle-keyboard-shortcuts-inhibit; }
 
     Mod+Shift+P { spawn "thunar"; }
-    Mod+Return { spawn "ptyxis" "--new-window"; }
+    Mod+Return { spawn "konsole"; }
     Mod+Shift+Return { spawn "kitty"; }
     Mod+S { spawn "noctalia" "msg" "panel-toggle" "control-center"; }
     Mod+Shift+Comma { spawn "noctalia" "msg" "settings-toggle"; }
@@ -250,7 +252,7 @@ window-rule {
     }
 }
 window-rule {
-    match app-id=r#"^org\.gnome\.Ptyxis$"#
+    match app-id=r#"^org\.kde\.konsole$"#
     open-maximized-to-edges true
     background-effect {
         blur true

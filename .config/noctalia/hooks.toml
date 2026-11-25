@@ -3,5 +3,5 @@
 [hooks]
 colors_changed = [
   "~/.config/noctalia/hooks/kitty-live-colors.sh",
-  "~/.config/noctalia/hooks/ptyxis-palette.sh",
+  "~/.config/noctalia/hooks/konsole-palette.sh",
 ]

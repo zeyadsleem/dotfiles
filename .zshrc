@@ -29,7 +29,7 @@ bindkey -e
 # Environment
 # ------------------------------------------------------------------------------
 export BROWSER=helium-browser
-export TERMINAL=ptyxis
+export TERMINAL=konsole
 export EDITOR=nvim
 export VISUAL=nvim
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"

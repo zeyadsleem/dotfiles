@@ -1,5 +1,11 @@
 onboarding = false
 
+[terminal]
+# Render kitty-graphics images inside panes (yazi previews, image tools).
+# Default is true; pinned so a future default change cannot silently break
+# previews. Konsole implements kitty graphics (direct transfer).
+kitty_graphics = true
+
 [experimental]
 # `h` inside a herdr pane should open another herdr instead of erroring.
 # Keep this opt-in: nested sessions multiply input handling and panes.
