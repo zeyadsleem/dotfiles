@@ -31,6 +31,9 @@
     ".config/noctalia/hooks/konsole-palette.sh" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/noctalia/hooks/konsole-palette.sh";
     };
+    ".config/noctalia/hooks/yazi-theme.sh" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/noctalia/hooks/yazi-theme.sh";
+    };
 
     # Icon-theme names consumed by the icon-theme user template (config.toml):
     # Noctalia reads these on every theme apply. No runtime files land here.
