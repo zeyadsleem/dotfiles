@@ -24,6 +24,10 @@ HistorySize=10000
 ScrollBarPosition=2
 
 [Terminal Features]
-# Qt's fribidi-based bidi: the reason Konsole replaced VTE for Arabic.
+# ICU bidi: the reason Konsole replaced VTE for Arabic.
 BidiRenderingEnabled=true
-BidiLineLTR=true
+# "force LTR line direction" — must stay false, otherwise every line is laid
+# out left-to-right regardless of content and Arabic renders LTR. With false,
+# each line's base direction comes from its first strongly directional
+# character, so Arabic lines are RTL and Latin ones stay LTR.
+BidiLineLTR=false
