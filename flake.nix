@@ -11,24 +11,26 @@
     { nixpkgs, home-manager, ... }:
     let
       system = "x86_64-linux";
-      # `antigravity` is an unfree IDE and is declared in nix/modules/packages.nix,
-      # so the configuration can only evaluate when that one package is allowed.
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfreePredicate =
-          pkg: builtins.elem (nixpkgs.lib.getName pkg) [ "antigravity-ide" ];
-      };
+      pkgs = nixpkgs.legacyPackages.${system};
     in
     {
       homeConfigurations."zeyad" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-
-        extraSpecialArgs = {
-          dotfilesDir = "/home/zeyad/dotfiles";
-        };
-
         modules = [
           ./nix/home.nix
+        ];
+      };
+
+      # Pinned CLI: install.sh and the shell helpers run this instead of
+      # home-manager/master, so the binary always matches flake.lock.
+      packages.${system}.home-manager = home-manager.packages.${system}.home-manager;
+
+      # Backs `.envrc` (`use flake`).
+      devShells.${system}.default = pkgs.mkShell {
+        packages = [
+          pkgs.nil
+          pkgs.nixfmt
+          pkgs.statix
         ];
       };
     };
