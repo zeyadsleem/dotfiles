@@ -131,7 +131,6 @@ ZCOMPDUMP="$ZSH_CACHE_DIR/.zcompdump-${HOST}-${ZSH_VERSION}"
 
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "$ZSH_CACHE_DIR"
-zstyle ':completion:*' rehash true
 zstyle ':completion:*' squeeze-slashes true
 zstyle ':completion:*' special-dirs true
 zstyle ':completion:*' complete-options true
@@ -164,7 +163,11 @@ fi
 
 zstyle ':fzf-tab:*' switch-group ',' '.'
 zstyle ':fzf-tab:*' continuous-trigger '/'
-zstyle ':fzf-tab:*' fzf-flags --height=80% --layout=reverse --border
+# Tab moves down the list (wrapping at the end thanks to --cycle), Shift-Tab
+# moves up, Enter accepts. This is fzf-tab's default; kept explicit so no other
+# zstyle can silently take Tab away from cycling.
+zstyle ':fzf-tab:*' fzf-bindings 'tab:down,btab:up'
+zstyle ':fzf-tab:*' fzf-flags --height=80% --layout=reverse --border --cycle
 
 zstyle ':fzf-tab:complete:cd:*' fzf-preview \
   'realpath=${realpath/#\~/$HOME}; eza -1 --color=always --icons "$realpath" 2>/dev/null || ls -la --color=always "$realpath" 2>/dev/null'
@@ -236,12 +239,19 @@ bindkey '^[[B' down-line-or-beginning-search
 bindkey '^P' up-line-or-beginning-search
 bindkey '^N' down-line-or-beginning-search
 
-# fzf widgets: Ctrl-R history, Tab on an empty line = commands, Tab twice = flags
+# Every fzf list (completion popup, Ctrl-R, empty-line commands, fkill, and any
+# other tool that shells out to fzf) gets the same keys: Tab/Shift-Tab move
+# through the candidates and wrap around, Ctrl-Space still marks multiple.
+export FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS:+$FZF_DEFAULT_OPTS }--bind=tab:down,btab:up,ctrl-space:toggle --cycle"
+
+# fzf widgets: Ctrl-R history, Tab on an empty line = commands
 if command -v fzf >/dev/null 2>&1; then
   typeset -ga __fzf_ui_opts=(
     --height=60%
     --layout=reverse
     --border=rounded
+    --cycle
+    --bind=tab:down,btab:up,ctrl-space:toggle
     --info=inline-right
     --no-hscroll
     --pointer='▶'
@@ -308,32 +318,14 @@ if command -v fzf >/dev/null 2>&1; then
     zle reset-prompt
   }
 
-  # Tab inside the completion popup asks for the command's own options
-  typeset -g __fzf_tab_flag="${XDG_RUNTIME_DIR:-/tmp}/fzf-tab-want-flags"
-  zstyle ':fzf-tab:*' fzf-bindings "tab:execute-silent(: > ${__fzf_tab_flag})+abort"
-
-  __fzf_options_widget() {
-    local before=$BUFFER
-    LBUFFER+='-'
-    zle fzf-tab-complete
-    if [[ $BUFFER == "$before-" ]]; then
-      BUFFER=$before
-      CURSOR=${#BUFFER}
-      zle reset-prompt
-    fi
-  }
-
+  # Tab inside the completion popup cycles the list (fzf-tab's default
+  # `tab:down` binding), so it must not be rebound to close the popup.
   __tab_complete() {
     if [[ -z ${BUFFER//[[:space:]]/} ]]; then
       __fzf_command_widget
       return 0
     fi
-    rm -f -- "$__fzf_tab_flag"
     zle fzf-tab-complete
-    if [[ -e $__fzf_tab_flag ]]; then
-      rm -f -- "$__fzf_tab_flag"
-      __fzf_options_widget
-    fi
   }
   zle -N __tab_complete
   bindkey '^I' __tab_complete
@@ -809,6 +801,22 @@ FAST_HIGHLIGHT_STYLES[double-quoted-argument]='fg=2'
 
 [[ -r "$ZSH_PLUGIN_DIR/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]] && \
   source "$ZSH_PLUGIN_DIR/zdharma-continuum---fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
+
+# ------------------------------------------------------------------------------
+# omp (oh-my-pi) completions
+# ------------------------------------------------------------------------------
+# `omp completions zsh` takes ~300ms, so cache it under XDG_CACHE_HOME and only
+# regenerate when the binary changes (i.e. after an omp upgrade).
+if command -v omp >/dev/null 2>&1; then
+  __omp_completions="${XDG_CACHE_HOME:-$HOME/.cache}/omp/completions.zsh"
+
+  if [[ ! -s $__omp_completions || $commands[omp] -nt $__omp_completions ]]; then
+    mkdir -p "${__omp_completions:h}" && omp completions zsh >| "$__omp_completions"
+  fi
+
+  [[ -s $__omp_completions ]] && source "$__omp_completions"
+  unset __omp_completions
+fi
 
 # ------------------------------------------------------------------------------
 # Keybindings
