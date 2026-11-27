@@ -161,6 +161,18 @@ fi
 [[ -r "$ZSH_PLUGIN_DIR/Aloxaf---fzf-tab/fzf-tab.plugin.zsh" ]] && \
   source "$ZSH_PLUGIN_DIR/Aloxaf---fzf-tab/fzf-tab.plugin.zsh"
 
+# fzf-tab skips its popup when zsh reports an unambiguous prefix, so the first
+# Tab only extends e.g. `rep` to `report-`. Clear compstate[insert] after zsh
+# finishes completing so the list opens immediately; Tab/Shift-Tab then cycle
+# through it using the bindings below.
+functions[_ftb__main_complete_orig]=$functions[_ftb__main_complete]
+function _ftb__main_complete() {
+  local ret=0
+  _ftb__main_complete_orig "$@" || ret=$?
+  compstate[insert]=
+  return $ret
+}
+
 zstyle ':fzf-tab:*' switch-group ',' '.'
 zstyle ':fzf-tab:*' continuous-trigger '/'
 # Tab moves down the list (wrapping at the end thanks to --cycle), Shift-Tab
