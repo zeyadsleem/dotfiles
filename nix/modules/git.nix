@@ -21,9 +21,11 @@
       fetch.prune = true;
       core.editor = "$EDITOR";
       core.pager = "delta";
-      delta.features = "side-by-side line-numbers";
-      delta."syntax-theme" = "Dracula";
-      delta.navigate = true;
+      delta = {
+        features = "side-by-side line-numbers";
+        "syntax-theme" = "Dracula";
+        navigate = true;
+      };
       rerere.enabled = true;
       rebase.autosquash = true;
       rebase.autoStash = true;

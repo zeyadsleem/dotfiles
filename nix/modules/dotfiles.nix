@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   dotfilesDir,
   ...
 }:
@@ -50,6 +49,13 @@
     # gtk-3.0 linked per-file: local dir holds runtime-created `bookmarks` not in repo.
     ".config/gtk-3.0/settings.ini" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/gtk-3.0/settings.ini";
+    };
+
+    # --- Editor ---
+    # Whole-directory link: Neovim writes runtime state (current_theme.lua) next
+    # to the config, and the repo already ignores that file.
+    ".config/nvim" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.config/nvim";
     };
 
     # --- Apps (config managed, binaries stay pacman) ---
@@ -109,6 +115,12 @@
     };
     ".icons" = {
       source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.icons";
+    };
+
+    # Chromium external-extension marker. Whole-directory link so Home Manager
+    # replaces the old hand-made symlink instead of writing through it.
+    ".local/share/zeyad" = {
+      source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/.local/share/zeyad";
     };
   };
 }

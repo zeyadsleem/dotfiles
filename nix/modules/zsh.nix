@@ -1,4 +1,4 @@
-{ config, lib, dotfilesDir, ... }:
+{ config, dotfilesDir, ... }:
 {
   # .zshrc is the single source of truth for interactive shell config
   # (aliases, functions, plugins, prompt, keybindings). .p10k.zsh remains

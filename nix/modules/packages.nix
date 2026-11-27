@@ -4,7 +4,7 @@
     git
     neovim
     nil
-    nixfmt-rfc-style
+    nixfmt
     statix
     ripgrep
     fd
