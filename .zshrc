@@ -613,7 +613,7 @@ nxin() {
 
   sed -i "0,/^[[:space:]]*\];$/s//    ${pkg}\n  ];/" "$file"
   echo "added '$pkg' to packages.nix - re-activating Home Manager..."
-  (cd "$HOME/dotfiles" && nix run home-manager/master -- switch --flake '.#zeyad')
+  (cd "$HOME/dotfiles" && nix run .#home-manager -- switch --flake '.#zeyad')
 }
 
 nxrm() {
@@ -639,7 +639,7 @@ nxrm() {
 
   sed -i "/^[[:space:]]*${pkg}[[:space:]]*$/d" "$file"
   echo "removed '$pkg' from packages.nix - re-activating Home Manager..."
-  (cd "$HOME/dotfiles" && nix run home-manager/master -- switch --flake '.#zeyad')
+  (cd "$HOME/dotfiles" && nix run .#home-manager -- switch --flake '.#zeyad')
 }
 
 # Utilities
