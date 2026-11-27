@@ -4,8 +4,9 @@ Personal dotfiles and Home Manager setup, managed declaratively with
 [Nix](https://nixos.org) flakes on top of an Arch (EndeavourOS) base.
 
 Everything lives in one repo: shell, editor, terminal, compositor, desktop
-shell and app configs, plus user scripts. GNU stow is no longer used —
-Home Manager owns the dots.
+shell and app configs, plus user scripts. Home Manager owns the dots; the only
+paths it does not manage (the `~/.local/bin` script directory and the tracked
+`.desktop` files) are linked by `install.sh`.
 
 The desktop is **Niri + Noctalia**: Niri manages windows, Noctalia owns the
 bar, launcher, notifications, OSD, clipboard, wallpaper, lock screen and
@@ -75,9 +76,10 @@ sudo systemctl enable --now sddm
 │       ├── packages.nix # home.packages — the CLI tool set
 │       ├── git.nix      # programs.git
 │       ├── zsh.nix      # links ~/.zshrc and ~/.p10k.zsh
-│       ├── kitty.nix    # links kitty.conf
+│       ├── kitty.nix    # links ~/.config/kitty
+│       ├── konsole.nix  # Konsole wrapper (no menubar/tabbar/toolbars)
 │       ├── yazi.nix     # links ~/.config/yazi
-│       └── dotfiles.nix # Level 2 configs (niri, noctalia, kanshi, apps)
+│       └── dotfiles.nix # Level 2 configs (nvim, niri, noctalia, apps)
 ├── .config/             # the actual configs (source of truth)
 └── .local/bin/          # user scripts
 ```
@@ -86,7 +88,7 @@ sudo systemctl enable --now sddm
 
 ```bash
 cd ~/dotfiles
-nix run home-manager/master -- switch --flake '.#zeyad'
+nix run .#home-manager -- switch --flake '.#zeyad'
 ```
 
 or:
@@ -106,28 +108,44 @@ Each switch creates a **generation** you can roll back to.
    gtk-3.0 and the apps are managed by Home Manager, but the **binaries stay
    from pacman** (safer for fast-moving/GPU-tied software like the compositor).
 3. **Level 3 — untouched**: kernel/GPU drivers/systemd stay system-managed;
-   zsh/fzf/p10k/zinit stay on pacman because `~/.zshrc` sources
-   `/usr/share/...` paths that a Nix-provided binary would break. The zsh
-   config itself lives in a single `~/.zshrc` (aliases/functions included),
-   with `~/.p10k.zsh` kept separate as the generated Powerlevel10k config.
+   zsh/fzf stay on pacman because `~/.zshrc` sources `/usr/share/...` paths
+   that a Nix-provided binary would break. Powerlevel10k is cloned to
+   `~/powerlevel10k`, and the zsh plugins are cloned into
+   `~/.local/share/zinit/plugins` (the zinit *layout* is reused, the zinit
+   loader is not). The zsh config itself lives in a single `~/.zshrc`
+   (aliases/functions included), with `~/.p10k.zsh` kept separate as the
+   generated Powerlevel10k config.
 
 ## How the dots get to ~
 
-Home Manager writes a small directory of links under
-`/nix/store/*-home-manager-files`. Those links point **out-of-store** at the
-live repo (`$HOME/dotfiles`) via `mkOutOfStoreSymlink`. That is deliberate:
-Noctalia writes generated theme files at runtime (GTK CSS, Kitty palette,
-palettes under `~/.config/noctalia/`), so the targets must not be frozen
-read-only into the store.
+There are three deliberately separate paths:
 
-The flake computes that path rather than using `./.`:
+1. **Home Manager (declarative).** `home.file` entries point **out-of-store** at
+   the live repo (`$HOME/dotfiles`) via `mkOutOfStoreSymlink`. That is
+   deliberate: Noctalia writes generated theme files at runtime (GTK CSS, Kitty
+   palette, palettes under `~/.config/noctalia/`), so the targets must not be
+   frozen read-only into the store. Directories that hold runtime state (niri,
+   noctalia, Thunar, herdr, konsole) are linked per-file; clean directories
+   (nvim, yazi, kitty, kanshi, ripgrep) are linked whole.
+2. **`install.sh` bootstrap links.** Two paths are not Home Manager's: the whole
+   `~/.local/bin` directory (so every script in the repo is on `PATH`) and the
+   tracked `.desktop` files in `~/.local/share/applications`. `install.sh`
+   creates/refreshes them idempotently before the switch. `~/.local/bin` must be
+   linked first: Home Manager writes the `konsole` wrapper through it into the
+   repo.
+3. **Runtime-generated.** Noctalia writes `~/.config/niri/noctalia.kdl`,
+   `~/.config/kitty/themes/noctalia.conf`, the Yazi theme and the Konsole
+   colorscheme. Those are ignored by git and never declared as `home.file`.
+
+The repo location is computed, not hard-coded:
 
 ```nix
-_module_args.dotfilesDir = config.home.homeDirectory + "/dotfiles";
+_module.args.dotfilesDir = config.home.homeDirectory + "/dotfiles";
 ```
 
 Using `./.` would copy the repo into the store during evaluation and all those
-symlinks would point at a read-only snapshot.
+symlinks would point at a read-only snapshot. `.envrc` runs `use flake` against
+the `devShells.default` output (nil, nixfmt, statix).
 
 ## Herdr
 
@@ -186,6 +204,9 @@ in `~/.config/opencode` (a separate repo) and are runtime state, not dotfiles.
 - **Noctalia template writes.** The Kitty template skips an existing
   `kitty.conf`; the repo config includes `themes/*.conf` explicitly so the
   generated palette is still loaded.
+- **One palette file, three terminals.** `~/.config/kitty/themes/noctalia.conf`
+  is the palette source. The Konsole and Yazi hooks parse it, so Kitty stays
+  installed even though Konsole is the default terminal.
 
 ## Reference
 
